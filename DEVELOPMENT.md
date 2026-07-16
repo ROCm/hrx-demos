@@ -130,6 +130,27 @@ At runtime, `hrx-id4` and `hrx-info` default to the wheel's HSA and AQL profile
 libraries. Setting `IREE_HAL_AMDGPU_LIBHSA_PATH` explicitly opts out of that
 default and leaves the caller's library search configuration unchanged.
 
+The package version defaults to `0.1.0`. Set
+`HRX_DEMOS_PACKAGE_VERSION=<pep440-version>` to override it for an automated
+build. The reusable CI workflow exposes this as its `package_version` input so
+a future tag-based release can provide the release version without modifying
+the source tree.
+
+### Manylinux CI
+
+`.github/workflows/build_python_wheel.yml` is the reusable build boundary. It
+uses the same managed Linux runner, pinned manylinux image, and TheRock artifact
+fetcher as HRX. Its ROCm defaults are the latest complete nightly Linux release
+artifact run, the `core` artifact set, and the `release` artifact variant. Pass
+`run_id` to reproduce a specific TheRock build.
+
+The workflow builds the ordinary `linux_x86_64` wheel, repairs it to the pinned
+container's `AUDITWHEEL_PLAT`, installs it, and exercises both console scripts.
+The repaired wheel is uploaded as the `hrx-demos-wheel-linux-x86_64` artifact.
+The `ci_python_wheel.yml` caller runs this flow for pull requests and pushes to
+`main` or `main-staging`, and exposes the ROCm and package-version inputs for
+manual dispatch. Publishing to PyPI remains a separate release workflow.
+
 ## Source References
 
 Primary public references:

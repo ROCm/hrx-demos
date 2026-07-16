@@ -18,6 +18,7 @@ from setuptools.command.build_py import build_py
 
 
 REPO_ROOT = Path(__file__).resolve().parents[1]
+DEFAULT_PACKAGE_VERSION = "0.1.0"
 BAZEL_TARGETS = (
     "//binding/cli:id4",
     "@hrx_system//libhrx/tools:hrx-info",
@@ -35,6 +36,11 @@ ROCM_DOCUMENTS = (
     "share/doc/rocprofiler-register/LICENSE.md",
     "share/therock/therock_manifest.json",
 )
+
+
+def package_version() -> str:
+    """Returns the package version selected for this build."""
+    return os.environ.get("HRX_DEMOS_PACKAGE_VERSION") or DEFAULT_PACKAGE_VERSION
 
 
 def discover_bazel(explicit: Optional[str] = None) -> Path:

@@ -12,10 +12,12 @@ from build_tools.python_packaging import (
     BazelBuildPy,
     BinaryDistribution,
     Py3PlatformWheel,
+    package_version,
 )
 
 
 setup(
+    version=package_version(),
     distclass=BinaryDistribution,
     cmdclass={
         "build_py": BazelBuildPy,

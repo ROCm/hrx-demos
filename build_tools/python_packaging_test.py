@@ -7,14 +7,26 @@
 from __future__ import annotations
 
 import json
+import os
 import tempfile
 import unittest
 from pathlib import Path
+from unittest import mock
 
 from build_tools import python_packaging
 
 
 class PythonPackagingTest(unittest.TestCase):
+    def test_package_version_defaults_to_project_version(self):
+        with mock.patch.dict(os.environ, {}, clear=True):
+            self.assertEqual(python_packaging.package_version(), "0.1.0")
+
+    def test_package_version_accepts_ci_override(self):
+        with mock.patch.dict(
+            os.environ, {"HRX_DEMOS_PACKAGE_VERSION": "0.2.0.dev1"}, clear=True
+        ):
+            self.assertEqual(python_packaging.package_version(), "0.2.0.dev1")
+
     def test_reads_last_repo_env_value(self):
         with tempfile.TemporaryDirectory() as temporary_directory:
             bazelrc = Path(temporary_directory) / ".bazelrc.local"
