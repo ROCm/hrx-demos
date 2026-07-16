@@ -68,9 +68,13 @@ jobs:
       - name: Fetch ROCm toolchain
         run: bash .github/scripts/fetch_rocm_toolchain.sh
 
-      - name: Check Python build frontend
+      - name: Install Python build requirements
         run: |
           "${HRX_BUILD_PYTHON}" --version
+          "${HRX_BUILD_PYTHON}" -m pip install --upgrade \
+            build \
+            "setuptools>=77" \
+            "wheel>=0.45"
           "${HRX_BUILD_PYTHON}" -m build --version
 
       - name: Install Bazel host tools
