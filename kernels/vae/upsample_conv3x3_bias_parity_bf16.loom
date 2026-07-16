@@ -1,0 +1,344 @@
+config.decl @id4.vae.upsample_conv3x3_bias_parity.input_width : %value: index where [range(%value, 1, 65536)]
+
+config.decl @id4.vae.upsample_conv3x3_bias_parity.input_height : %value: index where [range(%value, 1, 65536)]
+
+config.decl @id4.vae.upsample_conv3x3_bias_parity.channel_count : %value: index where [range(%value, 1, 4096)]
+
+config.decl @id4.vae.upsample_conv3x3_bias_parity.batch_count : %value: index where [range(%value, 1, 1024)]
+
+config.decl @id4.vae.upsample_conv3x3_bias_parity.output_width : %value: index where [range(%value, 1, 65536)]
+
+config.decl @id4.vae.upsample_conv3x3_bias_parity.output_height : %value: index where [range(%value, 1, 65536)]
+
+config.decl @id4.vae.upsample_conv3x3_bias_parity.output_element_count : %value: index where [range(%value, 1, 268435456)]
+
+kernel.def export("id4_vae_upsample_conv3x3_bias_parity_bf16_wmma_oc64") @id4_vae_upsample_conv3x3_bias_parity_bf16_wmma_oc64() {
+  %unit = index.constant 1 : index
+  %four = index.constant 4 : index
+  %pixel_tile_size = index.constant 32 : index
+  %output_channel_tile_size = index.constant 64 : index
+  %workgroup_size_x = index.constant 32 : index
+  %input_width = config.get @id4.vae.upsample_conv3x3_bias_parity.input_width : index
+  %input_height = config.get @id4.vae.upsample_conv3x3_bias_parity.input_height : index
+  %batch_count = config.get @id4.vae.upsample_conv3x3_bias_parity.batch_count : index
+  %channel_count = config.get @id4.vae.upsample_conv3x3_bias_parity.channel_count : index
+  %pixel_count0 = index.mul %input_width, %input_height : index
+  %pixel_count = index.mul %pixel_count0, %batch_count : index
+  %pixel_rounding = index.sub %pixel_tile_size, %unit : index
+  %pixel_rounded = index.add %pixel_count, %pixel_rounding : index
+  %workgroups_x = index.div %pixel_rounded, %pixel_tile_size : index
+  %workgroups_y0 = index.div %channel_count, %output_channel_tile_size : index
+  %workgroups_y = index.assume %workgroups_y0 [range(%workgroups_y0, 1, 64)] : index
+  kernel.launch.config workgroups(%workgroups_x, %workgroups_y, %four) workgroup_size(%workgroup_size_x, %unit, %unit) : index
+} launch(%input: buffer, %weight: buffer, %bias: buffer, %output: buffer) {
+  %base = index.constant 0 : offset
+  %lhs_scratch_bytes = index.constant 1024 : offset
+  %zero = index.constant 0 : index
+  %unit = index.constant 1 : index
+  %two = index.constant 2 : index
+  %four = index.constant 4 : index
+  %eight = index.constant 8 : index
+  %sixteen = index.constant 16 : index
+  %thirty_two = index.constant 32 : index
+  %forty_eight = index.constant 48 : index
+  %sixty_four = index.constant 64 : index
+  %pixel_tile = kernel.workgroup.id<x> : index
+  %output_channel_tile = kernel.workgroup.id<y> : index
+  %parity = kernel.workgroup.id<z> : index
+  %lane = kernel.workitem.id<x> : index
+  %workgroup_size_x = index.constant 32 : index
+  %input_width = config.get @id4.vae.upsample_conv3x3_bias_parity.input_width : index
+  %input_height = config.get @id4.vae.upsample_conv3x3_bias_parity.input_height : index
+  %channel_count = config.get @id4.vae.upsample_conv3x3_bias_parity.channel_count : index
+  %batch_count0 = config.get @id4.vae.upsample_conv3x3_bias_parity.batch_count : index
+  %batch_count = index.assume %batch_count0 [range(%batch_count0, 1, 1)] : index
+  %output_width = config.get @id4.vae.upsample_conv3x3_bias_parity.output_width : index
+  %output_height = config.get @id4.vae.upsample_conv3x3_bias_parity.output_height : index
+  %output_element_count = config.get @id4.vae.upsample_conv3x3_bias_parity.output_element_count : index
+  %parity_x = index.rem %parity, %two : index
+  %parity_y = index.div %parity, %two : index
+  %zero_f32 = scalar.constant 0.0 : f32
+  %zero_bf16 = scalar.fptrunc %zero_f32 : f32 to bf16
+  %zero_bf16x8 = vector.splat %zero_bf16 : vector<8xbf16>
+  %zero_acc = vector.constant 0.0 : vector<8xf32>
+  %m = index.constant 16 : index
+  %n = index.constant 16 : index
+  %k = index.constant 16 : index
+  %channel_square = index.mul %channel_count, %channel_count : index
+  %weight_layout = encoding.layout.strided [1, %channel_count] : encoding<layout>
+  %input_noalias, %weight_noalias, %bias_noalias, %output_noalias = buffer.assume.noalias %input, %weight, %bias, %output : buffer, buffer, buffer, buffer
+  %input_global = buffer.assume.memory_space<global> %input_noalias : buffer
+  %weight_global = buffer.assume.memory_space<global> %weight_noalias : buffer
+  %bias_global = buffer.assume.memory_space<global> %bias_noalias : buffer
+  %output_global = buffer.assume.memory_space<global> %output_noalias : buffer
+  %input_pixel_count0 = index.mul %input_width, %input_height : index
+  %pixel_count = index.mul %input_pixel_count0, %batch_count : index
+  %input_pixel_element_count = index.mul %input_pixel_count0, %channel_count : index
+  %input_element_count = index.mul %input_pixel_element_count, %batch_count : index
+  %input_flat_view = buffer.view %input_global[%base] : buffer -> view<[%input_element_count]xbf16, #dense>
+  %bias_view = buffer.view %bias_global[%base] : buffer -> view<[%channel_count]xbf16, #dense>
+  %output_flat_view = buffer.view %output_global[%base] : buffer -> view<[%output_element_count]xbf16, #dense>
+  %lhs_scratch = buffer.alloca %lhs_scratch_bytes {base_alignment = 16, memory_space = workgroup} : buffer
+  %lhs_scratch_view = buffer.view %lhs_scratch[%base] : buffer -> view<32x16xbf16, #dense>
+  %pixel_origin = index.mul %pixel_tile, %thirty_two : index
+  %pixel_origin_high = index.add %pixel_origin, %sixteen : index
+  %output_channel_origin = index.mul %output_channel_tile, %sixty_four : index
+  %output_channel_origin1 = index.add %output_channel_origin, %sixteen : index
+  %output_channel_origin2 = index.add %output_channel_origin, %thirty_two : index
+  %output_channel_origin3 = index.add %output_channel_origin, %forty_eight : index
+  %channel_rounding = index.sub %sixteen, %unit : index
+  %channel_rounded = index.add %channel_count, %channel_rounding : index
+  %channel_tile_count0 = index.div %channel_rounded, %sixteen : index
+  %channel_tile_count = index.assume %channel_tile_count0 [range(%channel_tile_count0, 1, 256)] : index
+  %last_input_x = index.sub %input_width, %unit : index
+  %last_input_y = index.sub %input_height, %unit : index
+  %init00 = vector.fragment<init> %zero_acc shape [%m, %n] : vector<8xf32>
+  %init01 = vector.fragment<init> %zero_acc shape [%m, %n] : vector<8xf32>
+  %init02 = vector.fragment<init> %zero_acc shape [%m, %n] : vector<8xf32>
+  %init03 = vector.fragment<init> %zero_acc shape [%m, %n] : vector<8xf32>
+  %init10 = vector.fragment<init> %zero_acc shape [%m, %n] : vector<8xf32>
+  %init11 = vector.fragment<init> %zero_acc shape [%m, %n] : vector<8xf32>
+  %init12 = vector.fragment<init> %zero_acc shape [%m, %n] : vector<8xf32>
+  %init13 = vector.fragment<init> %zero_acc shape [%m, %n] : vector<8xf32>
+  %result00, %result01, %result02, %result03, %result10, %result11, %result12, %result13 = scf.for %source_tap = [%zero to %four step %unit](%source_acc00 = %init00 : vector<8xf32>, %source_acc01 = %init01 : vector<8xf32>, %source_acc02 = %init02 : vector<8xf32>, %source_acc03 = %init03 : vector<8xf32>, %source_acc10 = %init10 : vector<8xf32>, %source_acc11 = %init11 : vector<8xf32>, %source_acc12 = %init12 : vector<8xf32>, %source_acc13 = %init13 : vector<8xf32>) -> (vector<8xf32>, vector<8xf32>, vector<8xf32>, vector<8xf32>, vector<8xf32>, vector<8xf32>, vector<8xf32>, vector<8xf32>) {
+    %source_tap_x = index.rem %source_tap, %two : index
+    %source_tap_y = index.div %source_tap, %two : index
+    %weight_tile = index.madd %parity, %four, %source_tap : index
+    %weight_tile_element_base = index.mul %weight_tile, %channel_square : index
+    %weight_tile_byte_base_index = index.mul %weight_tile_element_base, %two : index
+    %weight_tile_byte_base = index.cast %weight_tile_byte_base_index : index to offset
+    %weight_view = buffer.view %weight_global[%weight_tile_byte_base] : buffer -> view<[%channel_count]x[%channel_count]xbf16, %weight_layout>
+    %tap_result00, %tap_result01, %tap_result02, %tap_result03, %tap_result10, %tap_result11, %tap_result12, %tap_result13 = scf.for %channel_tile = [%zero to %channel_tile_count step %unit](%acc00 = %source_acc00 : vector<8xf32>, %acc01 = %source_acc01 : vector<8xf32>, %acc02 = %source_acc02 : vector<8xf32>, %acc03 = %source_acc03 : vector<8xf32>, %acc10 = %source_acc10 : vector<8xf32>, %acc11 = %source_acc11 : vector<8xf32>, %acc12 = %source_acc12 : vector<8xf32>, %acc13 = %source_acc13 : vector<8xf32>) -> (vector<8xf32>, vector<8xf32>, vector<8xf32>, vector<8xf32>, vector<8xf32>, vector<8xf32>, vector<8xf32>, vector<8xf32>) {
+      %channel_origin = index.mul %channel_tile, %sixteen : index
+      %lhs_vector_count = index.constant 64 : index
+      scf.for %lhs_vector = [%lane to %lhs_vector_count step %workgroup_size_x] {
+        %local_pixel = index.div %lhs_vector, %two : index
+        %local_channel_group = index.rem %lhs_vector, %two : index
+        %local_channel = index.mul %local_channel_group, %eight : index
+        %global_pixel = index.add %pixel_origin, %local_pixel : index
+        %input_channel0 = index.add %channel_origin, %local_channel : index
+        %pixel_valid = index.cmp ult, %global_pixel, %pixel_count : index
+        %input_channel_high = index.add %input_channel0, %eight : index
+        %channel_valid = index.cmp ule, %input_channel_high, %channel_count : index
+        %valid = scalar.andi %pixel_valid, %channel_valid : i1
+        %lhs_values = scf.if %valid -> (vector<8xbf16>) {
+          %global_pixel_valid = index.assume %global_pixel [ge(%global_pixel, 0), lt(%global_pixel, %pixel_count)] : index
+          %input_channel = index.assume %input_channel0 [ge(%input_channel0, 0), lt(%input_channel0, %channel_count)] : index
+          %base_y0 = index.rem %global_pixel_valid, %input_height : index
+          %base_y = index.assume %base_y0 [ge(%base_y0, 0), lt(%base_y0, %input_height)] : index
+          %row = index.div %global_pixel_valid, %input_height : index
+          %base_x0 = index.rem %row, %input_width : index
+          %base_x = index.assume %base_x0 [ge(%base_x0, 0), lt(%base_x0, %input_width)] : index
+          %batch0 = index.div %row, %input_width : index
+          %batch = index.assume %batch0 [range(%batch0, 0, 0)] : index
+          %parity_x_zero = index.cmp eq, %parity_x, %zero : index
+          %source_tap_x_zero = index.cmp eq, %source_tap_x, %zero : index
+          %x_delta_left = scalar.andi %parity_x_zero, %source_tap_x_zero : i1
+          %parity_x_nonzero = index.cmp ne, %parity_x, %zero : index
+          %source_tap_x_nonzero = index.cmp ne, %source_tap_x, %zero : index
+          %x_delta_right = scalar.andi %parity_x_nonzero, %source_tap_x_nonzero : i1
+          %source_x = scf.if %x_delta_left -> (index) {
+            %is_left_edge = index.cmp eq, %base_x, %zero : index
+            %source_x_left = scf.if %is_left_edge -> (index) {
+              scf.yield %input_width : index
+            } else {
+              %previous_x = index.sub %base_x, %unit : index
+              scf.yield %previous_x : index
+            }
+            scf.yield %source_x_left : index
+          } else {
+            %source_x_not_left = scf.if %x_delta_right -> (index) {
+              %is_right_edge = index.cmp eq, %base_x, %last_input_x : index
+              %source_x_right = scf.if %is_right_edge -> (index) {
+                scf.yield %input_width : index
+              } else {
+                %next_x = index.add %base_x, %unit : index
+                scf.yield %next_x : index
+              }
+              scf.yield %source_x_right : index
+            } else {
+              scf.yield %base_x : index
+            }
+            scf.yield %source_x_not_left : index
+          }
+          %parity_y_zero = index.cmp eq, %parity_y, %zero : index
+          %source_tap_y_zero = index.cmp eq, %source_tap_y, %zero : index
+          %y_delta_top = scalar.andi %parity_y_zero, %source_tap_y_zero : i1
+          %parity_y_nonzero = index.cmp ne, %parity_y, %zero : index
+          %source_tap_y_nonzero = index.cmp ne, %source_tap_y, %zero : index
+          %y_delta_bottom = scalar.andi %parity_y_nonzero, %source_tap_y_nonzero : i1
+          %source_y = scf.if %y_delta_top -> (index) {
+            %is_top_edge = index.cmp eq, %base_y, %zero : index
+            %source_y_top = scf.if %is_top_edge -> (index) {
+              scf.yield %input_height : index
+            } else {
+              %previous_y = index.sub %base_y, %unit : index
+              scf.yield %previous_y : index
+            }
+            scf.yield %source_y_top : index
+          } else {
+            %source_y_not_top = scf.if %y_delta_bottom -> (index) {
+              %is_bottom_edge = index.cmp eq, %base_y, %last_input_y : index
+              %source_y_bottom = scf.if %is_bottom_edge -> (index) {
+                scf.yield %input_height : index
+              } else {
+                %next_y = index.add %base_y, %unit : index
+                scf.yield %next_y : index
+              }
+              scf.yield %source_y_bottom : index
+            } else {
+              scf.yield %base_y : index
+            }
+            scf.yield %source_y_not_top : index
+          }
+          %source_x_valid = index.cmp ult, %source_x, %input_width : index
+          %source_y_valid = index.cmp ult, %source_y, %input_height : index
+          %source_valid = scalar.andi %source_x_valid, %source_y_valid : i1
+          %loaded = scf.if %source_valid -> (vector<8xbf16>) {
+            %valid_source_x = index.assume %source_x [ge(%source_x, 0), lt(%source_x, %input_width)] : index
+            %valid_source_y = index.assume %source_y [ge(%source_y, 0), lt(%source_y, %input_height)] : index
+            %input_x_row_base = index.mul %valid_source_x, %input_height : index
+            %input_pixel_base = index.add %input_x_row_base, %valid_source_y : index
+            %input_pixel_element_base = index.mul %input_pixel_base, %channel_count : index
+            %input_channel_element = index.add %input_pixel_element_base, %input_channel : index
+            %input_batch_base = index.mul %input_channel_element, %batch_count : index
+            %input_element0 = index.add %input_batch_base, %batch : index
+            %last_vector_input_element = index.sub %input_element_count, %eight : index
+            %input_element = index.assume %input_element0 [ge(%input_element0, 0), le(%input_element0, %last_vector_input_element)] : index
+            %value = vector.load %input_flat_view[%input_element] : view<[%input_element_count]xbf16, #dense> -> vector<8xbf16>
+            scf.yield %value : vector<8xbf16>
+          } else {
+            scf.yield %zero_bf16x8 : vector<8xbf16>
+          }
+          scf.yield %loaded : vector<8xbf16>
+        } else {
+          scf.yield %zero_bf16x8 : vector<8xbf16>
+        }
+        vector.store %lhs_values, %lhs_scratch_view[%local_pixel, %local_channel] : vector<8xbf16>, view<32x16xbf16, #dense>
+      }
+      kernel.barrier<workgroup> {ordering = acq_rel, scope = workgroup}
+      %lhs0 = vector.fragment.load<lhs> %lhs_scratch_view[%zero, %zero] shape [%m, %k] : view<32x16xbf16, #dense> -> vector<16xbf16>
+      %lhs1 = vector.fragment.load<lhs> %lhs_scratch_view[%sixteen, %zero] shape [%m, %k] : view<32x16xbf16, #dense> -> vector<16xbf16>
+      %rhs0 = vector.fragment.load<rhs> %weight_view[%channel_origin, %output_channel_origin] shape [%k, %n] : view<[%channel_count]x[%channel_count]xbf16, %weight_layout> -> vector<16xbf16>
+      %rhs1 = vector.fragment.load<rhs> %weight_view[%channel_origin, %output_channel_origin1] shape [%k, %n] : view<[%channel_count]x[%channel_count]xbf16, %weight_layout> -> vector<16xbf16>
+      %rhs2 = vector.fragment.load<rhs> %weight_view[%channel_origin, %output_channel_origin2] shape [%k, %n] : view<[%channel_count]x[%channel_count]xbf16, %weight_layout> -> vector<16xbf16>
+      %rhs3 = vector.fragment.load<rhs> %weight_view[%channel_origin, %output_channel_origin3] shape [%k, %n] : view<[%channel_count]x[%channel_count]xbf16, %weight_layout> -> vector<16xbf16>
+      %next00 = vector.mma %lhs0, %rhs0, %acc00 : vector<16xbf16>, vector<16xbf16>, vector<8xf32>
+      %next01 = vector.mma %lhs0, %rhs1, %acc01 : vector<16xbf16>, vector<16xbf16>, vector<8xf32>
+      %next02 = vector.mma %lhs0, %rhs2, %acc02 : vector<16xbf16>, vector<16xbf16>, vector<8xf32>
+      %next03 = vector.mma %lhs0, %rhs3, %acc03 : vector<16xbf16>, vector<16xbf16>, vector<8xf32>
+      %next10 = vector.mma %lhs1, %rhs0, %acc10 : vector<16xbf16>, vector<16xbf16>, vector<8xf32>
+      %next11 = vector.mma %lhs1, %rhs1, %acc11 : vector<16xbf16>, vector<16xbf16>, vector<8xf32>
+      %next12 = vector.mma %lhs1, %rhs2, %acc12 : vector<16xbf16>, vector<16xbf16>, vector<8xf32>
+      %next13 = vector.mma %lhs1, %rhs3, %acc13 : vector<16xbf16>, vector<16xbf16>, vector<8xf32>
+      kernel.barrier<workgroup> {ordering = acq_rel, scope = workgroup}
+      scf.yield %next00, %next01, %next02, %next03, %next10, %next11, %next12, %next13 : vector<8xf32>, vector<8xf32>, vector<8xf32>, vector<8xf32>, vector<8xf32>, vector<8xf32>, vector<8xf32>, vector<8xf32>
+    }
+    scf.yield %tap_result00, %tap_result01, %tap_result02, %tap_result03, %tap_result10, %tap_result11, %tap_result12, %tap_result13 : vector<8xf32>, vector<8xf32>, vector<8xf32>, vector<8xf32>, vector<8xf32>, vector<8xf32>, vector<8xf32>, vector<8xf32>
+  }
+  %lane_column = index.rem %lane, %sixteen : index
+  %lane_group = index.div %lane, %sixteen : index
+  %column0 = index.add %output_channel_origin, %lane_column : index
+  %column1 = index.add %output_channel_origin1, %lane_column : index
+  %column2 = index.add %output_channel_origin2, %lane_column : index
+  %column3 = index.add %output_channel_origin3, %lane_column : index
+  %bias0_bf16 = view.load %bias_view[%column0] : view<[%channel_count]xbf16, #dense> -> bf16
+  %bias1_bf16 = view.load %bias_view[%column1] : view<[%channel_count]xbf16, #dense> -> bf16
+  %bias2_bf16 = view.load %bias_view[%column2] : view<[%channel_count]xbf16, #dense> -> bf16
+  %bias3_bf16 = view.load %bias_view[%column3] : view<[%channel_count]xbf16, #dense> -> bf16
+  %bias0 = scalar.extf %bias0_bf16 : bf16 to f32
+  %bias1 = scalar.extf %bias1_bf16 : bf16 to f32
+  %bias2 = scalar.extf %bias2_bf16 : bf16 to f32
+  %bias3 = scalar.extf %bias3_bf16 : bf16 to f32
+  scf.for %register_index = [%zero to %eight step %unit] {
+    %register_pixel_base = index.mul %register_index, %two : index
+    %local_pixel = index.add %register_pixel_base, %lane_group : index
+    %pixel0 = index.add %pixel_origin, %local_pixel : index
+    %pixel1 = index.add %pixel_origin_high, %local_pixel : index
+    %pixel0_valid = index.cmp ult, %pixel0, %pixel_count : index
+    scf.if %pixel0_valid {
+      %base_y0 = index.rem %pixel0, %input_height : index
+      %base_y = index.assume %base_y0 [ge(%base_y0, 0), lt(%base_y0, %input_height)] : index
+      %row0 = index.div %pixel0, %input_height : index
+      %base_x0 = index.rem %row0, %input_width : index
+      %base_x = index.assume %base_x0 [ge(%base_x0, 0), lt(%base_x0, %input_width)] : index
+      %batch0 = index.div %row0, %input_width : index
+      %output_x = index.madd %base_x, %two, %parity_x : index
+      %output_y = index.madd %base_y, %two, %parity_y : index
+      %output_x_row_base = index.mul %output_x, %output_height : index
+      %output_pixel_base = index.add %output_x_row_base, %output_y : index
+      %output_pixel_element_base = index.mul %output_pixel_base, %channel_count : index
+      %output_channel_element_base00 = index.add %output_pixel_element_base, %column0 : index
+      %output_channel_element_base01 = index.add %output_pixel_element_base, %column1 : index
+      %output_channel_element_base02 = index.add %output_pixel_element_base, %column2 : index
+      %output_channel_element_base03 = index.add %output_pixel_element_base, %column3 : index
+      %output_batch_element_base00 = index.mul %output_channel_element_base00, %batch_count : index
+      %output_batch_element_base01 = index.mul %output_channel_element_base01, %batch_count : index
+      %output_batch_element_base02 = index.mul %output_channel_element_base02, %batch_count : index
+      %output_batch_element_base03 = index.mul %output_channel_element_base03, %batch_count : index
+      %output_element00 = index.add %output_batch_element_base00, %batch0 : index
+      %output_element01 = index.add %output_batch_element_base01, %batch0 : index
+      %output_element02 = index.add %output_batch_element_base02, %batch0 : index
+      %output_element03 = index.add %output_batch_element_base03, %batch0 : index
+      %value00 = vector.extract %result00[%register_index] : vector<8xf32> -> f32
+      %value01 = vector.extract %result01[%register_index] : vector<8xf32> -> f32
+      %value02 = vector.extract %result02[%register_index] : vector<8xf32> -> f32
+      %value03 = vector.extract %result03[%register_index] : vector<8xf32> -> f32
+      %biased00 = scalar.addf<reassoc|nnan|ninf|nsz> %value00, %bias0 : f32
+      %biased01 = scalar.addf<reassoc|nnan|ninf|nsz> %value01, %bias1 : f32
+      %biased02 = scalar.addf<reassoc|nnan|ninf|nsz> %value02, %bias2 : f32
+      %biased03 = scalar.addf<reassoc|nnan|ninf|nsz> %value03, %bias3 : f32
+      %rounded00 = scalar.fptrunc %biased00 : f32 to bf16
+      %rounded01 = scalar.fptrunc %biased01 : f32 to bf16
+      %rounded02 = scalar.fptrunc %biased02 : f32 to bf16
+      %rounded03 = scalar.fptrunc %biased03 : f32 to bf16
+      view.store %rounded00, %output_flat_view[%output_element00] : bf16, view<[%output_element_count]xbf16, #dense>
+      view.store %rounded01, %output_flat_view[%output_element01] : bf16, view<[%output_element_count]xbf16, #dense>
+      view.store %rounded02, %output_flat_view[%output_element02] : bf16, view<[%output_element_count]xbf16, #dense>
+      view.store %rounded03, %output_flat_view[%output_element03] : bf16, view<[%output_element_count]xbf16, #dense>
+    }
+    %pixel1_valid = index.cmp ult, %pixel1, %pixel_count : index
+    scf.if %pixel1_valid {
+      %base_y0 = index.rem %pixel1, %input_height : index
+      %base_y = index.assume %base_y0 [ge(%base_y0, 0), lt(%base_y0, %input_height)] : index
+      %row1 = index.div %pixel1, %input_height : index
+      %base_x0 = index.rem %row1, %input_width : index
+      %base_x = index.assume %base_x0 [ge(%base_x0, 0), lt(%base_x0, %input_width)] : index
+      %batch1 = index.div %row1, %input_width : index
+      %output_x = index.madd %base_x, %two, %parity_x : index
+      %output_y = index.madd %base_y, %two, %parity_y : index
+      %output_x_row_base = index.mul %output_x, %output_height : index
+      %output_pixel_base = index.add %output_x_row_base, %output_y : index
+      %output_pixel_element_base = index.mul %output_pixel_base, %channel_count : index
+      %output_channel_element_base10 = index.add %output_pixel_element_base, %column0 : index
+      %output_channel_element_base11 = index.add %output_pixel_element_base, %column1 : index
+      %output_channel_element_base12 = index.add %output_pixel_element_base, %column2 : index
+      %output_channel_element_base13 = index.add %output_pixel_element_base, %column3 : index
+      %output_batch_element_base10 = index.mul %output_channel_element_base10, %batch_count : index
+      %output_batch_element_base11 = index.mul %output_channel_element_base11, %batch_count : index
+      %output_batch_element_base12 = index.mul %output_channel_element_base12, %batch_count : index
+      %output_batch_element_base13 = index.mul %output_channel_element_base13, %batch_count : index
+      %output_element10 = index.add %output_batch_element_base10, %batch1 : index
+      %output_element11 = index.add %output_batch_element_base11, %batch1 : index
+      %output_element12 = index.add %output_batch_element_base12, %batch1 : index
+      %output_element13 = index.add %output_batch_element_base13, %batch1 : index
+      %value10 = vector.extract %result10[%register_index] : vector<8xf32> -> f32
+      %value11 = vector.extract %result11[%register_index] : vector<8xf32> -> f32
+      %value12 = vector.extract %result12[%register_index] : vector<8xf32> -> f32
+      %value13 = vector.extract %result13[%register_index] : vector<8xf32> -> f32
+      %biased10 = scalar.addf<reassoc|nnan|ninf|nsz> %value10, %bias0 : f32
+      %biased11 = scalar.addf<reassoc|nnan|ninf|nsz> %value11, %bias1 : f32
+      %biased12 = scalar.addf<reassoc|nnan|ninf|nsz> %value12, %bias2 : f32
+      %biased13 = scalar.addf<reassoc|nnan|ninf|nsz> %value13, %bias3 : f32
+      %rounded10 = scalar.fptrunc %biased10 : f32 to bf16
+      %rounded11 = scalar.fptrunc %biased11 : f32 to bf16
+      %rounded12 = scalar.fptrunc %biased12 : f32 to bf16
+      %rounded13 = scalar.fptrunc %biased13 : f32 to bf16
+      view.store %rounded10, %output_flat_view[%output_element10] : bf16, view<[%output_element_count]xbf16, #dense>
+      view.store %rounded11, %output_flat_view[%output_element11] : bf16, view<[%output_element_count]xbf16, #dense>
+      view.store %rounded12, %output_flat_view[%output_element12] : bf16, view<[%output_element_count]xbf16, #dense>
+      view.store %rounded13, %output_flat_view[%output_element13] : bf16, view<[%output_element_count]xbf16, #dense>
+    }
+  }
+  kernel.return
+}

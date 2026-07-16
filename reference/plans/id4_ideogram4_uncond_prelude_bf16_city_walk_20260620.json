@@ -1,0 +1,176 @@
+{
+  "fixture_id": "id4_ideogram4_uncond_prelude_bf16_city_walk_20260620",
+  "source_label": "stable-diffusion.cpp BF16 city-walk trace with layer-0 DiT taps, dense Qwen condition, 1024px, one Euler step, seed 20260623",
+  "source_trace_id": "stage-bf16-city-walk-1024-1step-layer0-deep3-20260621",
+  "texts": [],
+  "tensors": [
+    {
+      "name": "x",
+      "output": "ideogram4/uncond/x_image_tokens_0_1x0_2x0_128x0_1.npy",
+      "role": "input",
+      "slice": [
+        {
+          "length": 2,
+          "start": 0
+        },
+        {
+          "length": 1,
+          "start": 0
+        },
+        {
+          "length": 128,
+          "start": 0
+        },
+        {
+          "length": 1,
+          "start": 0
+        }
+      ],
+      "stage": "ideogram4.uncond.input"
+    },
+    {
+      "name": "timestep",
+      "output": "ideogram4/uncond/timestep.npy",
+      "role": "input",
+      "slice": [
+        {
+          "length": 1,
+          "start": 0
+        }
+      ],
+      "stage": "ideogram4.uncond.input"
+    },
+    {
+      "name": "image_indicator",
+      "output": "ideogram4/uncond/image_indicator_0_2x0_1.npy",
+      "role": "input",
+      "slice": [
+        {
+          "length": 2,
+          "start": 0
+        },
+        {
+          "length": 1,
+          "start": 0
+        }
+      ],
+      "stage": "ideogram4.uncond.input"
+    },
+    {
+      "name": "position_embedding",
+      "output": "ideogram4/uncond/position_embedding_0_2x0_2x0_128x0_2.npy",
+      "role": "input",
+      "slice": [
+        {
+          "length": 2,
+          "start": 0
+        },
+        {
+          "length": 2,
+          "start": 0
+        },
+        {
+          "length": 128,
+          "start": 0
+        },
+        {
+          "length": 2,
+          "start": 0
+        }
+      ],
+      "stage": "ideogram4.uncond.input"
+    },
+    {
+      "name": "ideogram4.uncond.prelude.hidden",
+      "output": "ideogram4/uncond/prelude_hidden_0_4608x0_2.npy",
+      "role": "expected",
+      "slice": [
+        {
+          "length": 4608,
+          "start": 0
+        },
+        {
+          "length": 2,
+          "start": 0
+        }
+      ],
+      "stage": "graph.debug",
+      "tolerance": {
+        "atol": 0.005,
+        "rtol": 0.005
+      }
+    },
+    {
+      "name": "ideogram4.uncond.prelude.adaln_input",
+      "output": "ideogram4/uncond/prelude_adaln_input.npy",
+      "role": "expected",
+      "slice": [
+        {
+          "length": 512,
+          "start": 0
+        }
+      ],
+      "stage": "graph.debug",
+      "tolerance": {
+        "atol": 0.005,
+        "rtol": 0.005
+      }
+    },
+    {
+      "name": "ideogram4.uncond.layers.0.adaln_modulation",
+      "output": "ideogram4/uncond/layer0_adaln_modulation_0_18432.npy",
+      "role": "expected",
+      "slice": [
+        {
+          "length": 18432,
+          "start": 0
+        }
+      ],
+      "stage": "graph.debug",
+      "tolerance": {
+        "atol": 0.005,
+        "rtol": 0.005
+      }
+    },
+    {
+      "name": "ideogram4.uncond.layers.0.attention_input",
+      "output": "ideogram4/uncond/layer0_attention_input_0_4608x0_2.npy",
+      "role": "expected",
+      "slice": [
+        {
+          "length": 4608,
+          "start": 0
+        },
+        {
+          "length": 2,
+          "start": 0
+        }
+      ],
+      "stage": "graph.debug",
+      "tolerance": {
+        "atol": 0.015,
+        "rtol": 0.005
+      }
+    },
+    {
+      "name": "ideogram4.uncond.layers.0.attention.qkv",
+      "output": "ideogram4/uncond/layer0_attention_qkv_0_13824x0_2.npy",
+      "role": "expected",
+      "slice": [
+        {
+          "length": 13824,
+          "start": 0
+        },
+        {
+          "length": 2,
+          "start": 0
+        }
+      ],
+      "stage": "graph.debug",
+      "tolerance": {
+        "atol": 0.015,
+        "rtol": 0.005
+      }
+    }
+  ]
+}

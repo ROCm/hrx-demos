@@ -1,0 +1,58 @@
+config.decl @id4.ideogram4.prelude_indicator_bf16.valid_token_count : %value: index where [range(%value, 1, 65536)]
+
+config.decl @id4.ideogram4.prelude_indicator_bf16.token_capacity : %value: index where [range(%value, 1, 65536)]
+
+config.decl @id4.ideogram4.prelude_indicator_bf16.total_token_count : %value: index where [range(%value, 1, 131072)]
+
+config.decl @id4.ideogram4.prelude_indicator_bf16.output_token_offset : %value: index where [range(%value, 0, 65536)]
+
+config.decl @id4.ideogram4.prelude_indicator_bf16.hidden_size : %value: index where [range(%value, 1, 65536)]
+
+kernel.def export("id4_ideogram4_prelude_indicator_bf16") @id4_ideogram4_prelude_indicator_bf16() {
+  %unit = index.constant 1 : index
+  %workgroup_size_x = index.constant 256 : index
+  %valid_token_count = config.get @id4.ideogram4.prelude_indicator_bf16.valid_token_count : index
+  %hidden_size = config.get @id4.ideogram4.prelude_indicator_bf16.hidden_size : index
+  %element_count = index.mul %valid_token_count, %hidden_size : index
+  %rounding = index.sub %workgroup_size_x, %unit : index
+  %rounded = index.add %element_count, %rounding : index
+  %workgroups_x = index.div %rounded, %workgroup_size_x : index
+  kernel.launch.config workgroups(%workgroups_x, %unit, %unit) workgroup_size(%workgroup_size_x, %unit, %unit) : index
+} launch(%projected: buffer, %image_indicator: buffer, %indicator_embedding: buffer, %output: buffer) {
+  %base = index.constant 0 : offset
+  %workgroup = kernel.workgroup.id<x> : index
+  %lane = kernel.workitem.id<x> : index
+  %workgroup_size_x = index.constant 256 : index
+  %valid_token_count = config.get @id4.ideogram4.prelude_indicator_bf16.valid_token_count : index
+  %token_capacity = config.get @id4.ideogram4.prelude_indicator_bf16.token_capacity : index
+  %total_token_count = config.get @id4.ideogram4.prelude_indicator_bf16.total_token_count : index
+  %output_token_offset = config.get @id4.ideogram4.prelude_indicator_bf16.output_token_offset : index
+  %hidden_size = config.get @id4.ideogram4.prelude_indicator_bf16.hidden_size : index
+  %element_count = index.mul %valid_token_count, %hidden_size : index
+  %element_index = index.madd %workgroup, %workgroup_size_x, %lane : index
+  %in_bounds = index.cmp ult, %element_index, %element_count : index
+  %projected_noalias, %image_indicator_noalias, %indicator_embedding_noalias, %output_noalias = buffer.assume.noalias %projected, %image_indicator, %indicator_embedding, %output : buffer, buffer, buffer, buffer
+  %projected_global = buffer.assume.memory_space<global> %projected_noalias : buffer
+  %image_indicator_global = buffer.assume.memory_space<global> %image_indicator_noalias : buffer
+  %indicator_embedding_global = buffer.assume.memory_space<global> %indicator_embedding_noalias : buffer
+  %output_global = buffer.assume.memory_space<global> %output_noalias : buffer
+  %projected_view = buffer.view %projected_global[%base] : buffer -> view<[%token_capacity]x[%hidden_size]xbf16, #dense>
+  %image_indicator_view = buffer.view %image_indicator_global[%base] : buffer -> view<[%total_token_count]xi32, #dense>
+  %indicator_embedding_view = buffer.view %indicator_embedding_global[%base] : buffer -> view<2x[%hidden_size]xbf16, #dense>
+  %output_view = buffer.view %output_global[%base] : buffer -> view<[%total_token_count]x[%hidden_size]xbf16, #dense>
+  scf.if %in_bounds {
+    %token = index.div %element_index, %hidden_size : index
+    %hidden = index.rem %element_index, %hidden_size : index
+    %output_token = index.add %token, %output_token_offset : index
+    %projected_bf16 = view.load %projected_view[%token, %hidden] : view<[%token_capacity]x[%hidden_size]xbf16, #dense> -> bf16
+    %projected_f32 = scalar.extf %projected_bf16 : bf16 to f32
+    %indicator = view.load %image_indicator_view[%output_token] : view<[%total_token_count]xi32, #dense> -> i32
+    %indicator_index = index.cast %indicator : i32 to index
+    %indicator_embedding_bf16 = view.load %indicator_embedding_view[%indicator_index, %hidden] : view<2x[%hidden_size]xbf16, #dense> -> bf16
+    %indicator_embedding_f32 = scalar.extf %indicator_embedding_bf16 : bf16 to f32
+    %value = scalar.addf<reassoc|nnan|ninf|nsz> %projected_f32, %indicator_embedding_f32 : f32
+    %rounded_value = scalar.fptrunc %value : f32 to bf16
+    view.store %rounded_value, %output_view[%output_token, %hidden] : bf16, view<[%total_token_count]x[%hidden_size]xbf16, #dense>
+  }
+  kernel.return
+}

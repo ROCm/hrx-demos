@@ -1,0 +1,315 @@
+# Copyright 2026 The IREE Authors
+#
+# Licensed under the Apache License v2.0 with LLVM Exceptions.
+# See https://llvm.org/LICENSE.txt for license information.
+# SPDX-License-Identifier: Apache-2.0 WITH LLVM-exception
+
+load("//build_tools:hrx_cc.bzl", "iree_runtime_cc_library")
+load("//build_tools:hrx_cc.bzl", "iree_runtime_cc_benchmark")
+load("//build_tools:hrx_cc.bzl", "iree_runtime_cc_test")
+
+package(
+    default_visibility = ["//visibility:public"],
+    features = ["layering_check"],
+    licenses = ["notice"],  # Apache 2.0
+)
+
+iree_runtime_cc_library(
+    name = "sampling",
+    srcs = ["sampling.c"],
+    hdrs = ["sampling.h"],
+    deps = [
+        "@hrx_system//runtime/src/iree/base",
+    ],
+)
+
+iree_runtime_cc_library(
+    name = "lora",
+    srcs = ["lora.c"],
+    hdrs = ["lora.h"],
+    deps = [
+        "//stages:ideogram4_dit_program",
+        "@hrx_system//runtime/src/iree/base",
+        "@hrx_system//runtime/src/iree/base/internal",
+        "@hrx_system//runtime/src/iree/base/internal:json",
+        "@hrx_system//runtime/src/iree/io:parameter_index",
+    ],
+)
+
+iree_runtime_cc_test(
+    name = "lora_test",
+    srcs = ["lora_test.cc"],
+    deps = [
+        ":lora",
+        "@hrx_system//runtime/src/iree/base",
+        "@hrx_system//runtime/src/iree/io:parameter_index",
+        "//runtime/src/iree/testing:gtest",
+        "//runtime/src/iree/testing:gtest_main",
+    ],
+)
+
+iree_runtime_cc_library(
+    name = "lora_bake_plan",
+    srcs = ["lora_bake_plan.c"],
+    hdrs = ["lora_bake_plan.h"],
+    deps = [
+        ":lora",
+        "//pipeline:json",
+        "//pipeline:plan",
+        "//pipeline:program",
+        "//stages:ideogram4_dit_program",
+        "@hrx_system//runtime/src/iree/base",
+        "@hrx_system//runtime/src/iree/base/internal",
+    ],
+)
+
+iree_runtime_cc_test(
+    name = "lora_bake_plan_test",
+    srcs = ["lora_bake_plan_test.cc"],
+    deps = [
+        ":lora_bake_plan",
+        "//pipeline:program",
+        "//pipeline:program_plan",
+        "//stages:test_util",
+        "@hrx_system//runtime/src/iree/base",
+        "@hrx_system//runtime/src/iree/base/internal:json",
+        "@hrx_system//runtime/src/iree/io:parameter_index",
+        "//runtime/src/iree/testing:gtest",
+        "//runtime/src/iree/testing:gtest_main",
+    ],
+)
+
+iree_runtime_cc_library(
+    name = "lora_bake",
+    srcs = ["lora_bake.c"],
+    hdrs = ["lora_bake.h"],
+    deps = [
+        ":lora_bake_plan",
+        "//pipeline:diagnostics",
+        "//pipeline:kernel_cache",
+        "//pipeline:kernel_library",
+        "//pipeline:parameter_layout",
+        "//pipeline:parameter_materialization",
+        "//pipeline:plan",
+        "//pipeline:stage",
+        "@hrx_system//runtime/src/iree/base",
+        "@hrx_system//runtime/src/iree/base/internal",
+        "@hrx_system//runtime/src/iree/hal",
+        "@hrx_system//runtime/src/iree/io:parameter_provider",
+    ],
+)
+
+iree_runtime_cc_library(
+    name = "request",
+    srcs = ["request.c"],
+    hdrs = ["request.h"],
+    deps = [
+        ":sampling",
+        "@hrx_system//runtime/src/iree/base",
+        "@hrx_system//runtime/src/iree/base/internal",
+        "@hrx_system//runtime/src/iree/base/internal:json",
+        "@hrx_system//runtime/src/iree/tokenizer",
+    ],
+)
+
+iree_runtime_cc_test(
+    name = "sampling_test",
+    srcs = ["sampling_test.cc"],
+    deps = [
+        ":sampling",
+        "@hrx_system//runtime/src/iree/base",
+        "//runtime/src/iree/testing:gtest",
+        "//runtime/src/iree/testing:gtest_main",
+    ],
+)
+
+iree_runtime_cc_library(
+    name = "session",
+    srcs = [
+        "session.c",
+        "session_generation.c",
+        "session_generation.h",
+        "session_lifecycle.c",
+        "session_parameters.c",
+        "session_parameters.h",
+        "session_plan.c",
+        "session_prepare.c",
+        "session_prepare.h",
+        "session_qwen.c",
+        "session_state.h",
+        "session_support.c",
+        "session_support.h",
+    ],
+    hdrs = ["session.h"],
+    deps = [
+        ":lora",
+        ":request",
+        "//pipeline:binding",
+        "//pipeline:diagnostics",
+        "//pipeline:kernel_cache",
+        "//pipeline:kernel_library",
+        "//pipeline:parameter_residency",
+        "//pipeline:parameter_window",
+        "//pipeline:plan",
+        "//pipeline:stage",
+        "//stages:ideogram4_decode",
+        "//stages:ideogram4_dit",
+        "//stages:ideogram4_dit_parameters",
+        "//stages:ideogram4_dit_program",
+        "//stages:qwen3_vl",
+        "//stages:qwen3_vl_program",
+        "//stages:sampler",
+        "//stages:vae_program",
+        "@hrx_system//runtime/src/iree/base",
+        "@hrx_system//runtime/src/iree/hal",
+        "@hrx_system//runtime/src/iree/io:parameter_index",
+        "@hrx_system//runtime/src/iree/io:parameter_provider",
+        "@hrx_system//runtime/src/iree/tokenizer",
+    ],
+)
+
+iree_runtime_cc_test(
+    name = "request_test",
+    srcs = ["request_test.cc"],
+    deps = [
+        ":request",
+        "@hrx_system//runtime/src/iree/base",
+        "@hrx_system//runtime/src/iree/base/internal",
+        "//runtime/src/iree/testing:gtest",
+        "//runtime/src/iree/testing:gtest_main",
+        "@hrx_system//runtime/src/iree/tokenizer/format/huggingface:tokenizer_json",
+        "@hrx_system//runtime/src/iree/tokenizer/testdata:streaming_testdata",
+        "@hrx_system//runtime/src/iree/tokenizer/vocab",
+    ],
+)
+
+iree_runtime_cc_test(
+    name = "session_test",
+    srcs = ["session_test.cc"],
+    deps = [
+        ":lora",
+        ":session",
+        "//pipeline:parameter_residency",
+        "//pipeline:parameter_window",
+        "//stages:qwen3_vl_program",
+        "//stages:test_util",
+        "@hrx_system//runtime/src/iree/base",
+        "@hrx_system//runtime/src/iree/hal",
+        "@hrx_system//runtime/src/iree/io:parameter_index",
+        "//runtime/src/iree/testing:gtest",
+        "//runtime/src/iree/testing:gtest_main",
+        "@hrx_system//runtime/src/iree/tokenizer/format/huggingface:tokenizer_json",
+        "@hrx_system//runtime/src/iree/tokenizer/testdata:streaming_testdata",
+    ],
+)
+
+iree_runtime_cc_benchmark(
+    name = "session_benchmark",
+    srcs = ["session_benchmark.cc"],
+    deps = [
+        ":session",
+        "//stages:test_util",
+        "@hrx_system//runtime/src/iree/base",
+        "@hrx_system//runtime/src/iree/hal",
+        "//runtime/src/iree/testing:gbenchmark_harness",
+        "@hrx_system//runtime/src/iree/tokenizer/format/huggingface:tokenizer_json",
+        "@hrx_system//runtime/src/iree/tokenizer/testdata:streaming_testdata",
+    ],
+)
+
+iree_runtime_cc_benchmark(
+    name = "session_live_benchmark",
+    srcs = ["session_live_benchmark.cc"],
+    deps = [
+        ":session",
+        "//stages:hal_integration_util",
+        "//stages:ideogram4_dit_parameters",
+        "//tooling:filesystem",
+        "//tooling:runtime",
+        "@hrx_system//runtime/src/iree/base",
+        "@hrx_system//runtime/src/iree/base/tooling:flags",
+        "@hrx_system//runtime/src/iree/hal",
+        "@hrx_system//runtime/src/iree/io:file_handle",
+        "@hrx_system//runtime/src/iree/io:parameter_provider",
+        "//runtime/src/iree/testing:benchmark",
+        "//runtime/src/iree/testing:benchmark_main",
+        "@hrx_system//runtime/src/iree/tokenizer/format/huggingface:tokenizer_json",
+        "@hrx_system//runtime/src/iree/tooling:device_util",
+    ],
+)
+
+iree_runtime_cc_test(
+    name = "one_step_integration_test",
+    srcs = ["one_step_integration_test.cc"],
+    tags = [
+        "manual",
+        "requires-gpu",
+    ],
+    deps = [
+        "//pipeline:plan",
+        "//pipeline:stage",
+        "//stages:hal_integration_util",
+        "//stages:ideogram4_decode",
+        "//stages:ideogram4_dit",
+        "//stages:qwen3_vl",
+        "//stages:sampler",
+        "@hrx_system//runtime/src/iree/base",
+        "@hrx_system//runtime/src/iree/base/tooling:flags",
+        "@hrx_system//runtime/src/iree/hal",
+        "@hrx_system//runtime/src/iree/io:parameter_provider",
+        "//runtime/src/iree/testing:gtest",
+        "//runtime/src/iree/testing:gtest_main",
+    ],
+)
+
+iree_runtime_cc_test(
+    name = "qwen_session_integration_test",
+    srcs = ["qwen_session_integration_test.cc"],
+    tags = [
+        "manual",
+        "requires-gpu",
+    ],
+    deps = [
+        ":session",
+        "//stages:hal_integration_util",
+        "//stages:qwen3_vl_program",
+        "@hrx_system//runtime/src/iree/base",
+        "@hrx_system//runtime/src/iree/base/tooling:flags",
+        "@hrx_system//runtime/src/iree/hal",
+        "@hrx_system//runtime/src/iree/io:file_handle",
+        "@hrx_system//runtime/src/iree/io:parameter_provider",
+        "//runtime/src/iree/testing:gtest",
+        "//runtime/src/iree/testing:gtest_main",
+        "@hrx_system//runtime/src/iree/tokenizer",
+        "@hrx_system//runtime/src/iree/tokenizer/format/huggingface:tokenizer_json",
+    ],
+)
+
+iree_runtime_cc_test(
+    name = "one_step_trace_integration_test",
+    srcs = ["one_step_trace_integration_test.cc"],
+    tags = [
+        "manual",
+        "requires-gpu",
+    ],
+    deps = [
+        ":request",
+        "//pipeline:plan",
+        "//pipeline:stage",
+        "//stages:hal_integration_util",
+        "//stages:ideogram4_decode",
+        "//stages:ideogram4_dit",
+        "//stages:ideogram4_dit_parameters",
+        "//stages:sampler",
+        "//tooling:capture",
+        "//tooling:image",
+        "//tooling:runtime",
+        "@hrx_system//runtime/src/iree/base",
+        "@hrx_system//runtime/src/iree/base/tooling:flags",
+        "@hrx_system//runtime/src/iree/hal",
+        "@hrx_system//runtime/src/iree/io:file_handle",
+        "@hrx_system//runtime/src/iree/io:parameter_provider",
+        "//runtime/src/iree/testing:gtest",
+        "//runtime/src/iree/testing:gtest_main",
+    ],
+)

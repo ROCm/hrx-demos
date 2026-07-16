@@ -1,0 +1,6 @@
+package(default_visibility = ["//visibility:public"])
+
+alias(
+    name = "embed_data",
+    actual = "@hrx_system//build_tools/embed_data:embed_data",
+)

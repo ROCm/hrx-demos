@@ -1,0 +1,36 @@
+config.decl @id4.elementwise.add.element_count : %value: index where [range(%value, 1, 268435456)]
+
+kernel.def export("id4_elementwise_add_bf16") @id4_elementwise_add_bf16() {
+  %unit = index.constant 1 : index
+  %workgroup_size_x = index.constant 256 : index
+  %element_count = config.get @id4.elementwise.add.element_count : index
+  %rounding = index.sub %workgroup_size_x, %unit : index
+  %rounded = index.add %element_count, %rounding : index
+  %workgroups_x = index.div %rounded, %workgroup_size_x : index
+  kernel.launch.config workgroups(%workgroups_x, %unit, %unit) workgroup_size(%workgroup_size_x, %unit, %unit) : index
+} launch(%lhs: buffer, %rhs: buffer, %output: buffer) {
+  %base = index.constant 0 : offset
+  %workgroup_size_x = index.constant 256 : index
+  %workgroup = kernel.workgroup.id<x> : index
+  %lane = kernel.workitem.id<x> : index
+  %element_count = config.get @id4.elementwise.add.element_count : index
+  %element_index = index.madd %workgroup, %workgroup_size_x, %lane : index
+  %in_bounds = index.cmp ult, %element_index, %element_count : index
+  %lhs_noalias, %rhs_noalias, %output_noalias = buffer.assume.noalias %lhs, %rhs, %output : buffer, buffer, buffer
+  %lhs_global = buffer.assume.memory_space<global> %lhs_noalias : buffer
+  %rhs_global = buffer.assume.memory_space<global> %rhs_noalias : buffer
+  %output_global = buffer.assume.memory_space<global> %output_noalias : buffer
+  %lhs_view = buffer.view %lhs_global[%base] : buffer -> view<[%element_count]xbf16, #dense>
+  %rhs_view = buffer.view %rhs_global[%base] : buffer -> view<[%element_count]xbf16, #dense>
+  %output_view = buffer.view %output_global[%base] : buffer -> view<[%element_count]xbf16, #dense>
+  scf.if %in_bounds {
+    %lhs_bf16 = view.load %lhs_view[%element_index] : view<[%element_count]xbf16, #dense> -> bf16
+    %rhs_bf16 = view.load %rhs_view[%element_index] : view<[%element_count]xbf16, #dense> -> bf16
+    %lhs_value = scalar.extf %lhs_bf16 : bf16 to f32
+    %rhs_value = scalar.extf %rhs_bf16 : bf16 to f32
+    %sum = scalar.addf<reassoc|nnan|ninf|nsz> %lhs_value, %rhs_value : f32
+    %output_value = scalar.fptrunc %sum : f32 to bf16
+    view.store %output_value, %output_view[%element_index] : bf16, view<[%element_count]xbf16, #dense>
+  }
+  kernel.return
+}

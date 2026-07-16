@@ -1,0 +1,53 @@
+// Copyright 2026 The IREE Authors
+//
+// Licensed under the Apache License v2.0 with LLVM Exceptions.
+// See https://llvm.org/LICENSE.txt for license information.
+// SPDX-License-Identifier: Apache-2.0 WITH LLVM-exception
+
+#ifndef EXPERIMENTAL_ID4_STAGES_SMOKE_H_
+#define EXPERIMENTAL_ID4_STAGES_SMOKE_H_
+
+#include <stdint.h>
+
+#include "pipeline/kernel_cache.h"
+#include "pipeline/stage.h"
+#include "iree/base/api.h"
+#include "iree/hal/api.h"
+
+#ifdef __cplusplus
+extern "C" {
+#endif  // __cplusplus
+
+// Byte length of the smoke stage output tensor.
+#define ID4_SMOKE_STAGE_OUTPUT_BYTE_LENGTH 4
+
+// Options for creating the concrete smoke pipeline stage.
+typedef struct id4_smoke_stage_create_options_t {
+  // Size of this structure for versioning.
+  iree_host_size_t structure_size;
+  // Extension structure chain; must be NULL for now.
+  const void* next;
+  // Services retained by the base pipeline stage.
+  id4_pipeline_stage_services_t services;
+  // Loom kernel cache used when preparing the smoke executable.
+  id4_pipeline_kernel_cache_t* kernel_cache;
+  // Loom module path resolved through the prepare-time kernel library.
+  iree_string_view_t module_path;
+  // Exported HAL function name resolved after executable preparation.
+  iree_string_view_t function_name;
+} id4_smoke_stage_create_options_t;
+
+// Creates a concrete smoke stage that exercises the shared pipeline lifecycle.
+iree_status_t id4_smoke_stage_create(
+    const id4_smoke_stage_create_options_t* options,
+    iree_allocator_t host_allocator, id4_pipeline_stage_t** out_stage);
+
+// Returns the output buffer owned by a prepared smoke bundle.
+iree_hal_buffer_t* id4_smoke_stage_bundle_output_buffer(
+    id4_pipeline_bundle_t* bundle);
+
+#ifdef __cplusplus
+}  // extern "C"
+#endif  // __cplusplus
+
+#endif  // EXPERIMENTAL_ID4_STAGES_SMOKE_H_

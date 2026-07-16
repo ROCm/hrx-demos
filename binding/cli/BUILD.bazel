@@ -1,0 +1,131 @@
+# Copyright 2026 The IREE Authors
+#
+# Licensed under the Apache License v2.0 with LLVM Exceptions.
+# See https://llvm.org/LICENSE.txt for license information.
+# SPDX-License-Identifier: Apache-2.0 WITH LLVM-exception
+
+load(
+    "//build_tools:hrx_cc.bzl",
+    "iree_runtime_cc_binary",
+    "iree_runtime_cc_library",
+)
+load("//build_tools:hrx_cc.bzl", "iree_runtime_cc_test")
+
+package(
+    default_visibility = ["//visibility:public"],
+    features = ["layering_check"],
+    licenses = ["notice"],  # Apache 2.0
+)
+
+iree_runtime_cc_library(
+    name = "lora_set",
+    srcs = ["lora_set.c"],
+    hdrs = ["lora_set.h"],
+    deps = [
+        "//ideogram4:lora",
+        "//tooling:runtime",
+        "@hrx_system//runtime/src/iree/base",
+        "@hrx_system//runtime/src/iree/io:parameter_index",
+        "@hrx_system//runtime/src/iree/io:parameter_index_provider",
+        "@hrx_system//runtime/src/iree/io:parameter_provider",
+        "@hrx_system//runtime/src/iree/tooling:parameter_util",
+    ],
+)
+
+iree_runtime_cc_library(
+    name = "lora_variant",
+    srcs = ["lora_variant.c"],
+    hdrs = ["lora_variant.h"],
+    deps = [
+        ":lora_set",
+        "//ideogram4:lora_bake",
+        "//ideogram4:lora_bake_plan",
+        "//pipeline:diagnostics",
+        "//pipeline:kernel_cache",
+        "//pipeline:kernel_library",
+        "//pipeline:parameter_layout",
+        "//pipeline:parameter_materialization",
+        "//pipeline:parameter_materialization_group",
+        "//pipeline:plan",
+        "//pipeline:stage",
+        "@hrx_system//runtime/src/iree/base",
+        "@hrx_system//runtime/src/iree/hal",
+        "@hrx_system//runtime/src/iree/io:parameter_provider",
+    ],
+)
+
+iree_runtime_cc_test(
+    name = "lora_set_test",
+    srcs = ["lora_set_test.cc"],
+    tags = ["requires-filesystem"],
+    deps = [
+        ":lora_set",
+        "//ideogram4:lora",
+        "@hrx_system//runtime/src/iree/base",
+        "@hrx_system//runtime/src/iree/io:file_handle",
+        "@hrx_system//runtime/src/iree/io:parameter_index",
+        "@hrx_system//runtime/src/iree/io:parameter_index_provider",
+        "@hrx_system//runtime/src/iree/io:parameter_provider",
+        "//runtime/src/iree/testing:gtest",
+        "//runtime/src/iree/testing:gtest_main",
+        "//runtime/src/iree/testing:temp_file",
+    ],
+)
+
+iree_runtime_cc_library(
+    name = "parameter_bake",
+    srcs = ["parameter_bake.c"],
+    hdrs = ["parameter_bake.h"],
+    deps = [
+        "//ideogram4:session",
+        "//pipeline:diagnostics",
+        "//pipeline:kernel_library",
+        "//pipeline:parameter_layout",
+        "//pipeline:parameter_slab",
+        "//pipeline:plan",
+        "//stages:vae_parameters",
+        "//tooling:filesystem",
+        "//tooling:runtime",
+        "@hrx_system//runtime/src/iree/base",
+        "@hrx_system//runtime/src/iree/hal",
+        "@hrx_system//runtime/src/iree/io:file_handle",
+        "@hrx_system//runtime/src/iree/io:parameter_index",
+        "@hrx_system//runtime/src/iree/io:parameter_index_provider",
+        "@hrx_system//runtime/src/iree/io:parameter_provider",
+        "@hrx_system//runtime/src/iree/io:stream",
+        "@hrx_system//runtime/src/iree/io/formats/irpa",
+    ],
+)
+
+iree_runtime_cc_binary(
+    name = "id4",
+    srcs = ["main.c"],
+    deps = [
+        ":lora_set",
+        ":lora_variant",
+        ":parameter_bake",
+        "//ideogram4:request",
+        "//ideogram4:session",
+        "//pipeline:diagnostics",
+        "//pipeline:json",
+        "//pipeline:kernel_library",
+        "//pipeline:parameter_slab",
+        "//stages:ideogram4_dit_parameters",
+        "//stages:ideogram4_dit_program",
+        "//tooling:capture",
+        "//tooling:diagnostics",
+        "//tooling:filesystem",
+        "//tooling:image",
+        "//tooling:readback",
+        "//tooling:runtime",
+        "@hrx_system//runtime/src/iree/base",
+        "@hrx_system//runtime/src/iree/base/internal",
+        "@hrx_system//runtime/src/iree/base/tooling:flags",
+        "@hrx_system//runtime/src/iree/hal",
+        "@hrx_system//runtime/src/iree/hal/utils:statistics_sink",
+        "@hrx_system//runtime/src/iree/io:file_handle",
+        "@hrx_system//runtime/src/iree/io:parameter_provider",
+        "@hrx_system//runtime/src/iree/tokenizer",
+        "@hrx_system//runtime/src/iree/tokenizer/format/huggingface:tokenizer_json",
+    ],
+)

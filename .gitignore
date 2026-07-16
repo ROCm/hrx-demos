@@ -1,0 +1,12 @@
+/bazel-*
+/build/
+/cache/
+/.tmp/
+/.bazelrc.local
+/models/
+/*.ppm
+/*.png
+
+__pycache__/
+*.py[cod]
+*.log

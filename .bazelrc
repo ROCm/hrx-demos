@@ -1,0 +1,26 @@
+common --enable_bzlmod
+common --check_direct_dependencies=error
+common --lockfile_mode=error
+
+build --incompatible_strict_action_env
+build --action_env=CCACHE_DISABLE=1
+build --action_env=PATH
+build --guard_against_concurrent_changes
+build --enable_runfiles
+build --incompatible_default_to_explicit_init_py
+
+build --@hrx_system//runtime/config/hal:drivers=local-sync,local-task,null,amdgpu
+build --@hrx_system//loom/config/target:enable=amdgpu,iree_vm,llvmir,spirv,x86
+build --@hrx_system//loom/config/execute:enable=iree_hal,iree_vm
+build --@hrx_system//loom/config/import:enable=
+build --@hrx_system//loom/config/emit:enable=
+
+common --repo_env=IREE_DEPENDENCY_MODE=pinned
+common --repo_env=CC
+common --repo_env=CXX
+common --repo_env=IREE_ROCM_DEPENDENCY_MODE=package
+common --repo_env=IREE_HAL_AMDGPU_DEVICE_TOOLCHAIN=rocm
+common --repo_env=IREE_ROCM_PATH
+
+test --test_output=errors
+try-import %workspace%/.bazelrc.local

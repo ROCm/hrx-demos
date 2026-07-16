@@ -1,0 +1,74 @@
+load("@rules_cc//cc:cc_library.bzl", "cc_library")
+
+package(default_visibility = ["//visibility:public"])
+
+cc_library(
+    name = "gtest",
+    testonly = True,
+    hdrs = [
+        "@hrx_system//runtime/src/iree/testing:gtest.h",
+        "@hrx_system//runtime/src/iree/testing:status_matchers.h",
+    ],
+    deps = [
+        "@com_google_googletest//:gtest",
+        "@hrx_system//runtime/src/iree/base",
+        "@hrx_system//runtime/src:defines",
+    ],
+)
+
+cc_library(
+    name = "gtest_main",
+    testonly = True,
+    deps = [
+        ":gtest",
+        "@com_google_googletest//:gtest_main",
+    ],
+)
+
+cc_library(
+    name = "temp_file",
+    testonly = True,
+    srcs = ["@hrx_system//runtime/src/iree/testing:temp_file.cc"],
+    hdrs = ["@hrx_system//runtime/src/iree/testing:temp_file.h"],
+    deps = [
+        ":gtest",
+        "@hrx_system//runtime/src/iree/base",
+        "@hrx_system//runtime/src:defines",
+    ],
+)
+
+cc_library(
+    name = "benchmark",
+    testonly = True,
+    srcs = ["@hrx_system//runtime/src/iree/testing:benchmark_full.cc"],
+    hdrs = ["@hrx_system//runtime/src/iree/testing:benchmark.h"],
+    deps = [
+        "@com_google_benchmark//:benchmark",
+        "@hrx_system//runtime/src/iree/base",
+        "@hrx_system//runtime/src/iree/base/internal",
+        "@hrx_system//runtime/src:defines",
+    ],
+)
+
+cc_library(
+    name = "benchmark_main",
+    testonly = True,
+    srcs = ["@hrx_system//runtime/src/iree/testing:benchmark_main.c"],
+    deps = [
+        ":benchmark",
+        "@hrx_system//runtime/src/iree/base/tooling:flags",
+        "@hrx_system//runtime/src:defines",
+    ],
+)
+
+cc_library(
+    name = "gbenchmark_harness",
+    testonly = True,
+    hdrs = ["@hrx_system//runtime/src/iree/testing:gbenchmark_harness.h"],
+    deps = [
+        "@com_google_benchmark//:benchmark",
+        "@com_google_benchmark//:benchmark_main",
+        "@hrx_system//runtime/src/iree/base",
+        "@hrx_system//runtime/src:defines",
+    ],
+)

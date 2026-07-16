@@ -1,0 +1,681 @@
+# Copyright 2026 The IREE Authors
+#
+# Licensed under the Apache License v2.0 with LLVM Exceptions.
+# See https://llvm.org/LICENSE.txt for license information.
+# SPDX-License-Identifier: Apache-2.0 WITH LLVM-exception
+
+load("//build_tools:hrx_cc.bzl", "iree_runtime_cc_library")
+load("//build_tools:hrx_cc.bzl", "iree_runtime_cc_benchmark")
+load("//build_tools:hrx_cc.bzl", "iree_runtime_cc_test")
+
+package(
+    default_visibility = ["//visibility:public"],
+    features = ["layering_check"],
+    licenses = ["notice"],  # Apache 2.0
+)
+
+iree_runtime_cc_library(
+    name = "ideogram4_decode",
+    srcs = ["ideogram4_decode.c"],
+    hdrs = ["ideogram4_decode.h"],
+    deps = [
+        ":ideogram4_decode_program",
+        ":vae_parameters",
+        "//pipeline:diagnostics",
+        "//pipeline:kernel_cache",
+        "//pipeline:program",
+        "//pipeline:program_stage",
+        "//pipeline:stage",
+        "@hrx_system//runtime/src/iree/base",
+        "@hrx_system//runtime/src/iree/base/internal:arena",
+        "@hrx_system//runtime/src/iree/hal",
+    ],
+)
+
+iree_runtime_cc_library(
+    name = "ideogram4_dit",
+    srcs = ["ideogram4_dit.c"],
+    hdrs = ["ideogram4_dit.h"],
+    deps = [
+        ":ideogram4_dit_program",
+        "//pipeline:diagnostics",
+        "//pipeline:kernel_cache",
+        "//pipeline:program",
+        "//pipeline:program_stage",
+        "//pipeline:stage",
+        "@hrx_system//runtime/src/iree/base",
+        "@hrx_system//runtime/src/iree/base/internal:arena",
+        "@hrx_system//runtime/src/iree/hal",
+    ],
+)
+
+iree_runtime_cc_library(
+    name = "qwen3_vl",
+    srcs = ["qwen3_vl.c"],
+    hdrs = ["qwen3_vl.h"],
+    deps = [
+        ":qwen3_vl_program",
+        "//pipeline:diagnostics",
+        "//pipeline:kernel_cache",
+        "//pipeline:program",
+        "//pipeline:program_stage",
+        "//pipeline:stage",
+        "@hrx_system//runtime/src/iree/base",
+        "@hrx_system//runtime/src/iree/base/internal:arena",
+        "@hrx_system//runtime/src/iree/hal",
+    ],
+)
+
+iree_runtime_cc_library(
+    name = "sampler",
+    srcs = ["sampler.c"],
+    hdrs = ["sampler.h"],
+    deps = [
+        ":sampler_program",
+        "//pipeline:diagnostics",
+        "//pipeline:kernel_cache",
+        "//pipeline:program",
+        "//pipeline:program_stage",
+        "//pipeline:stage",
+        "@hrx_system//runtime/src/iree/base",
+        "@hrx_system//runtime/src/iree/base/internal:arena",
+        "@hrx_system//runtime/src/iree/hal",
+    ],
+)
+
+iree_runtime_cc_library(
+    name = "vae",
+    srcs = ["vae.c"],
+    hdrs = ["vae.h"],
+    deps = [
+        ":vae_parameters",
+        ":vae_program",
+        "//pipeline:diagnostics",
+        "//pipeline:kernel_cache",
+        "//pipeline:program",
+        "//pipeline:program_stage",
+        "//pipeline:stage",
+        "@hrx_system//runtime/src/iree/base",
+        "@hrx_system//runtime/src/iree/base/internal:arena",
+        "@hrx_system//runtime/src/iree/hal",
+    ],
+)
+
+iree_runtime_cc_library(
+    name = "vae_parameters",
+    srcs = ["vae_parameters.c"],
+    hdrs = ["vae_parameters.h"],
+    deps = [
+        "//pipeline:diagnostics",
+        "//pipeline:kernel_cache",
+        "//pipeline:kernel_library",
+        "//pipeline:plan",
+        "//pipeline:program",
+        "@hrx_system//runtime/src/iree/base",
+        "@hrx_system//runtime/src/iree/hal",
+        "@hrx_system//runtime/src/iree/io:parameter_provider",
+    ],
+)
+
+iree_runtime_cc_library(
+    name = "ideogram4_decode_program",
+    srcs = ["ideogram4_decode_program.c"],
+    hdrs = ["ideogram4_decode_program.h"],
+    deps = [
+        ":vae_program",
+        "//pipeline:kernel_library",
+        "//pipeline:program",
+        "@hrx_system//runtime/src/iree/base",
+        "@hrx_system//runtime/src/iree/hal",
+    ],
+)
+
+iree_runtime_cc_library(
+    name = "ideogram4_dit_program",
+    srcs = [
+        "ideogram4_dit_program.c",
+        "ideogram4_dit_program_block.c",
+        "ideogram4_dit_program_block.h",
+        "ideogram4_dit_program_lora.c",
+        "ideogram4_dit_program_lora.h",
+    ],
+    hdrs = ["ideogram4_dit_program.h"],
+    deps = [
+        "//pipeline:program",
+        "//pipeline:program_matrix",
+        "@hrx_system//runtime/src/iree/base",
+        "@hrx_system//runtime/src/iree/hal",
+    ],
+)
+
+iree_runtime_cc_library(
+    name = "ideogram4_dit_parameters",
+    srcs = ["ideogram4_dit_parameters.c"],
+    hdrs = ["ideogram4_dit_parameters.h"],
+    deps = [
+        ":ideogram4_dit_program",
+        "@hrx_system//runtime/src/iree/base",
+    ],
+)
+
+iree_runtime_cc_library(
+    name = "sampler_program",
+    srcs = ["sampler_program.c"],
+    hdrs = ["sampler_program.h"],
+    deps = [
+        "//pipeline:program",
+        "@hrx_system//runtime/src/iree/base",
+        "@hrx_system//runtime/src/iree/hal",
+    ],
+)
+
+iree_runtime_cc_library(
+    name = "vae_program",
+    srcs = ["vae_program.c"],
+    hdrs = ["vae_program.h"],
+    deps = [
+        ":vae_parameters",
+        "//pipeline:kernel_library",
+        "//pipeline:program",
+        "//pipeline:program_matrix",
+        "@hrx_system//runtime/src/iree/base",
+        "@hrx_system//runtime/src/iree/hal",
+    ],
+)
+
+iree_runtime_cc_library(
+    name = "qwen3_vl_program",
+    srcs = ["qwen3_vl_program.c"],
+    hdrs = ["qwen3_vl_program.h"],
+    deps = [
+        "//pipeline:kernel_library",
+        "//pipeline:program",
+        "//pipeline:program_matrix",
+        "@hrx_system//runtime/src/iree/base",
+        "@hrx_system//runtime/src/iree/hal",
+    ],
+)
+
+iree_runtime_cc_library(
+    name = "smoke",
+    srcs = ["smoke.c"],
+    hdrs = ["smoke.h"],
+    deps = [
+        "//pipeline:diagnostics",
+        "//pipeline:kernel_cache",
+        "//pipeline:kernel_library",
+        "//pipeline:parameter_slab",
+        "//pipeline:plan",
+        "//pipeline:region",
+        "//pipeline:stage",
+        "@hrx_system//runtime/src/iree/base",
+        "@hrx_system//runtime/src/iree/base/internal:arena",
+        "@hrx_system//runtime/src/iree/hal",
+    ],
+)
+
+iree_runtime_cc_library(
+    name = "test_util",
+    testonly = True,
+    srcs = ["test_util.cc"],
+    hdrs = ["test_util.h"],
+    deps = [
+        "//pipeline:diagnostics",
+        "@hrx_system//runtime/src/iree/async",
+        "@hrx_system//runtime/src/iree/async/util:proactor_pool",
+        "@hrx_system//runtime/src/iree/base",
+        "@hrx_system//runtime/src/iree/hal",
+        "@hrx_system//runtime/src/iree/hal/drivers/local_sync:sync_driver",
+        "@hrx_system//runtime/src/iree/hal/testing:mock_device",
+    ],
+)
+
+iree_runtime_cc_library(
+    name = "hal_integration_util",
+    testonly = True,
+    srcs = ["hal_integration_util.cc"],
+    hdrs = ["hal_integration_util.h"],
+    deps = [
+        "//kernels:embedded_loom_sources",
+        "//pipeline:diagnostics",
+        "//pipeline:kernel_cache",
+        "//pipeline:kernel_library",
+        "//pipeline:plan",
+        "//pipeline:program",
+        "@hrx_system//runtime/src/iree/async",
+        "@hrx_system//runtime/src/iree/async/util:proactor_pool",
+        "@hrx_system//runtime/src/iree/base",
+        "@hrx_system//runtime/src/iree/base/internal",
+        "@hrx_system//runtime/src/iree/base/internal:json",
+        "@hrx_system//runtime/src/iree/hal",
+        "@hrx_system//runtime/src/iree/io:file_handle",
+        "@hrx_system//runtime/src/iree/io:parameter_index",
+        "@hrx_system//runtime/src/iree/io:parameter_index_provider",
+        "@hrx_system//runtime/src/iree/io:parameter_provider",
+        "@hrx_system//runtime/src/iree/io:scope_map",
+        "@hrx_system//runtime/src/iree/tooling:device_util",
+        "@hrx_system//runtime/src/iree/tooling:parameter_util",
+    ],
+)
+
+iree_runtime_cc_library(
+    name = "ideogram4_dit_test_util",
+    testonly = True,
+    srcs = ["ideogram4_dit_test_util.cc"],
+    hdrs = ["ideogram4_dit_test_util.h"],
+    deps = [
+        ":hal_integration_util",
+        ":ideogram4_dit_program",
+        "//pipeline:plan",
+        "@hrx_system//runtime/src/iree/base",
+        "@hrx_system//runtime/src/iree/hal",
+    ],
+)
+
+iree_runtime_cc_test(
+    name = "hal_integration_util_test",
+    srcs = ["hal_integration_util_test.cc"],
+    deps = [
+        ":hal_integration_util",
+        "@hrx_system//runtime/src/iree/async",
+        "@hrx_system//runtime/src/iree/async/util:proactor_pool",
+        "@hrx_system//runtime/src/iree/base",
+        "@hrx_system//runtime/src/iree/base/internal",
+        "@hrx_system//runtime/src/iree/hal",
+        "@hrx_system//runtime/src/iree/hal/drivers/local_sync:sync_driver",
+        "//runtime/src/iree/testing:gtest",
+        "//runtime/src/iree/testing:gtest_main",
+    ],
+)
+
+iree_runtime_cc_test(
+    name = "ideogram4_decode_test",
+    srcs = ["ideogram4_decode_test.cc"],
+    deps = [
+        ":ideogram4_decode",
+        ":test_util",
+        "//pipeline:plan",
+        "//pipeline:stage",
+        "@hrx_system//runtime/src/iree/base",
+        "@hrx_system//runtime/src/iree/hal",
+        "//runtime/src/iree/testing:gtest",
+        "//runtime/src/iree/testing:gtest_main",
+    ],
+)
+
+iree_runtime_cc_test(
+    name = "ideogram4_dit_test",
+    srcs = ["ideogram4_dit_test.cc"],
+    deps = [
+        ":ideogram4_dit",
+        ":ideogram4_dit_parameters",
+        ":test_util",
+        "//pipeline:plan",
+        "//pipeline:stage",
+        "@hrx_system//runtime/src/iree/base",
+        "@hrx_system//runtime/src/iree/hal",
+        "//runtime/src/iree/testing:gtest",
+        "//runtime/src/iree/testing:gtest_main",
+    ],
+)
+
+iree_runtime_cc_test(
+    name = "ideogram4_dit_parameters_test",
+    srcs = ["ideogram4_dit_parameters_test.cc"],
+    deps = [
+        ":ideogram4_dit_parameters",
+        "@hrx_system//runtime/src/iree/base",
+        "//runtime/src/iree/testing:gtest",
+        "//runtime/src/iree/testing:gtest_main",
+    ],
+)
+
+iree_runtime_cc_test(
+    name = "qwen3_vl_test",
+    srcs = ["qwen3_vl_test.cc"],
+    deps = [
+        ":qwen3_vl",
+        ":test_util",
+        "//pipeline:kernel_cache",
+        "//pipeline:plan",
+        "//pipeline:stage",
+        "@hrx_system//runtime/src/iree/base",
+        "@hrx_system//runtime/src/iree/hal",
+        "//runtime/src/iree/testing:gtest",
+        "//runtime/src/iree/testing:gtest_main",
+    ],
+)
+
+iree_runtime_cc_test(
+    name = "sampler_test",
+    srcs = ["sampler_test.cc"],
+    deps = [
+        ":sampler",
+        ":test_util",
+        "//pipeline:plan",
+        "//pipeline:stage",
+        "@hrx_system//runtime/src/iree/base",
+        "@hrx_system//runtime/src/iree/hal",
+        "//runtime/src/iree/testing:gtest",
+        "//runtime/src/iree/testing:gtest_main",
+    ],
+)
+
+iree_runtime_cc_test(
+    name = "vae_test",
+    srcs = ["vae_test.cc"],
+    deps = [
+        ":test_util",
+        ":vae",
+        "//pipeline:plan",
+        "//pipeline:stage",
+        "@hrx_system//runtime/src/iree/base",
+        "@hrx_system//runtime/src/iree/hal",
+        "//runtime/src/iree/testing:gtest",
+        "//runtime/src/iree/testing:gtest_main",
+    ],
+)
+
+iree_runtime_cc_test(
+    name = "vae_parameters_test",
+    srcs = ["vae_parameters_test.cc"],
+    deps = [
+        ":vae_parameters",
+        "@hrx_system//runtime/src/iree/base",
+        "//runtime/src/iree/testing:gtest",
+        "//runtime/src/iree/testing:gtest_main",
+    ],
+)
+
+iree_runtime_cc_test(
+    name = "ideogram4_decode_program_test",
+    srcs = ["ideogram4_decode_program_test.cc"],
+    deps = [
+        ":ideogram4_decode_program",
+        "//pipeline:program",
+        "@hrx_system//runtime/src/iree/base",
+        "@hrx_system//runtime/src/iree/base/internal:arena",
+        "//runtime/src/iree/testing:gtest",
+        "//runtime/src/iree/testing:gtest_main",
+    ],
+)
+
+iree_runtime_cc_test(
+    name = "ideogram4_dit_program_test",
+    srcs = ["ideogram4_dit_program_test.cc"],
+    deps = [
+        ":ideogram4_dit_parameters",
+        ":ideogram4_dit_program",
+        "//pipeline:program",
+        "@hrx_system//runtime/src/iree/base",
+        "@hrx_system//runtime/src/iree/base/internal:arena",
+        "//runtime/src/iree/testing:gtest",
+        "//runtime/src/iree/testing:gtest_main",
+    ],
+)
+
+iree_runtime_cc_test(
+    name = "ideogram4_dit_integration_test",
+    srcs = ["ideogram4_dit_integration_test.cc"],
+    tags = [
+        "manual",
+        "requires-gpu",
+    ],
+    deps = [
+        ":hal_integration_util",
+        ":ideogram4_dit",
+        ":ideogram4_dit_parameters",
+        ":ideogram4_dit_test_util",
+        "//pipeline:plan",
+        "//pipeline:stage",
+        "//tooling:capture",
+        "@hrx_system//runtime/src/iree/base",
+        "@hrx_system//runtime/src/iree/base/tooling:flags",
+        "@hrx_system//runtime/src/iree/hal",
+        "@hrx_system//runtime/src/iree/io:file_handle",
+        "@hrx_system//runtime/src/iree/io:parameter_provider",
+        "//runtime/src/iree/testing:gtest",
+        "//runtime/src/iree/testing:gtest_main",
+    ],
+)
+
+iree_runtime_cc_test(
+    name = "ideogram4_decode_integration_test",
+    srcs = ["ideogram4_decode_integration_test.cc"],
+    tags = [
+        "manual",
+        "requires-gpu",
+    ],
+    deps = [
+        ":hal_integration_util",
+        ":ideogram4_decode",
+        "//pipeline:plan",
+        "//pipeline:stage",
+        "@hrx_system//runtime/src/iree/base",
+        "@hrx_system//runtime/src/iree/base/tooling:flags",
+        "@hrx_system//runtime/src/iree/hal",
+        "//runtime/src/iree/testing:gtest",
+        "//runtime/src/iree/testing:gtest_main",
+    ],
+)
+
+iree_runtime_cc_test(
+    name = "ideogram4_decode_fixture_integration_test",
+    srcs = ["ideogram4_decode_fixture_integration_test.cc"],
+    tags = [
+        "manual",
+        "requires-gpu",
+    ],
+    deps = [
+        ":hal_integration_util",
+        ":ideogram4_decode",
+        "//pipeline:plan",
+        "//pipeline:stage",
+        "//tooling:capture",
+        "//tooling:image",
+        "@hrx_system//runtime/src/iree/base",
+        "@hrx_system//runtime/src/iree/base/tooling:flags",
+        "@hrx_system//runtime/src/iree/hal",
+        "@hrx_system//runtime/src/iree/io:file_handle",
+        "//runtime/src/iree/testing:gtest",
+        "//runtime/src/iree/testing:gtest_main",
+    ],
+)
+
+iree_runtime_cc_test(
+    name = "sampler_program_test",
+    srcs = ["sampler_program_test.cc"],
+    deps = [
+        ":sampler_program",
+        "//pipeline:program",
+        "@hrx_system//runtime/src/iree/base",
+        "@hrx_system//runtime/src/iree/base/internal:arena",
+        "//runtime/src/iree/testing:gtest",
+        "//runtime/src/iree/testing:gtest_main",
+    ],
+)
+
+iree_runtime_cc_test(
+    name = "vae_program_test",
+    srcs = ["vae_program_test.cc"],
+    deps = [
+        ":vae_program",
+        "//pipeline:program",
+        "@hrx_system//runtime/src/iree/base",
+        "@hrx_system//runtime/src/iree/base/internal:arena",
+        "//runtime/src/iree/testing:gtest",
+        "//runtime/src/iree/testing:gtest_main",
+    ],
+)
+
+iree_runtime_cc_test(
+    name = "sampler_integration_test",
+    srcs = ["sampler_integration_test.cc"],
+    tags = [
+        "manual",
+        "requires-gpu",
+    ],
+    deps = [
+        ":hal_integration_util",
+        ":sampler",
+        "//pipeline:plan",
+        "//pipeline:stage",
+        "@hrx_system//runtime/src/iree/base",
+        "@hrx_system//runtime/src/iree/base/tooling:flags",
+        "@hrx_system//runtime/src/iree/hal",
+        "//runtime/src/iree/testing:gtest",
+        "//runtime/src/iree/testing:gtest_main",
+    ],
+)
+
+iree_runtime_cc_test(
+    name = "vae_integration_test",
+    srcs = ["vae_integration_test.cc"],
+    tags = [
+        "manual",
+        "requires-gpu",
+    ],
+    deps = [
+        ":hal_integration_util",
+        ":vae",
+        "//pipeline:plan",
+        "//pipeline:stage",
+        "@hrx_system//runtime/src/iree/base",
+        "@hrx_system//runtime/src/iree/base/tooling:flags",
+        "@hrx_system//runtime/src/iree/hal",
+        "//runtime/src/iree/testing:gtest",
+        "//runtime/src/iree/testing:gtest_main",
+    ],
+)
+
+iree_runtime_cc_test(
+    name = "qwen3_vl_program_test",
+    srcs = ["qwen3_vl_program_test.cc"],
+    deps = [
+        ":qwen3_vl_program",
+        ":test_util",
+        "//pipeline:program",
+        "//pipeline:program_plan",
+        "@hrx_system//runtime/src/iree/base",
+        "@hrx_system//runtime/src/iree/base/internal:arena",
+        "@hrx_system//runtime/src/iree/hal",
+        "//runtime/src/iree/testing:gtest",
+        "//runtime/src/iree/testing:gtest_main",
+    ],
+)
+
+iree_runtime_cc_test(
+    name = "qwen3_vl_integration_test",
+    srcs = ["qwen3_vl_integration_test.cc"],
+    tags = [
+        "manual",
+        "requires-gpu",
+    ],
+    deps = [
+        ":hal_integration_util",
+        ":qwen3_vl",
+        "//pipeline:plan",
+        "//pipeline:stage",
+        "//tooling:capture",
+        "@hrx_system//runtime/src/iree/base",
+        "@hrx_system//runtime/src/iree/base/tooling:flags",
+        "@hrx_system//runtime/src/iree/hal",
+        "@hrx_system//runtime/src/iree/io:parameter_provider",
+        "//runtime/src/iree/testing:gtest",
+        "//runtime/src/iree/testing:gtest_main",
+        "//runtime/src/iree/testing:temp_file",
+    ],
+)
+
+iree_runtime_cc_benchmark(
+    name = "smoke_benchmark",
+    srcs = ["smoke_benchmark.cc"],
+    deps = [
+        ":smoke",
+        ":test_util",
+        "//pipeline:plan",
+        "//pipeline:stage",
+        "@hrx_system//runtime/src/iree/base",
+        "@hrx_system//runtime/src/iree/hal",
+        "//runtime/src/iree/testing:gbenchmark_harness",
+    ],
+)
+
+iree_runtime_cc_benchmark(
+    name = "ideogram4_dit_benchmark",
+    srcs = ["ideogram4_dit_benchmark.cc"],
+    tags = [
+        "benchmark",
+        "manual",
+        "requires-gpu",
+    ],
+    deps = [
+        ":hal_integration_util",
+        ":ideogram4_dit",
+        ":ideogram4_dit_parameters",
+        ":ideogram4_dit_test_util",
+        "//pipeline:plan",
+        "//pipeline:stage",
+        "//tooling:filesystem",
+        "//tooling:runtime",
+        "@hrx_system//runtime/src/iree/base",
+        "@hrx_system//runtime/src/iree/base/tooling:flags",
+        "@hrx_system//runtime/src/iree/hal",
+        "@hrx_system//runtime/src/iree/io:file_handle",
+        "@hrx_system//runtime/src/iree/io:parameter_provider",
+        "//runtime/src/iree/testing:benchmark",
+        "//runtime/src/iree/testing:benchmark_main",
+        "@hrx_system//runtime/src/iree/tooling:device_util",
+    ],
+)
+
+iree_runtime_cc_benchmark(
+    name = "qwen3_vl_benchmark",
+    srcs = ["qwen3_vl_benchmark.cc"],
+    tags = [
+        "benchmark",
+        "manual",
+        "requires-gpu",
+    ],
+    deps = [
+        ":hal_integration_util",
+        ":qwen3_vl",
+        "//pipeline:plan",
+        "//pipeline:stage",
+        "//tooling:diagnostics",
+        "//tooling:filesystem",
+        "@hrx_system//runtime/src/iree/base",
+        "@hrx_system//runtime/src/iree/base/tooling:flags",
+        "@hrx_system//runtime/src/iree/hal",
+        "@hrx_system//runtime/src/iree/io:file_handle",
+        "@hrx_system//runtime/src/iree/io:parameter_provider",
+        "//runtime/src/iree/testing:benchmark",
+        "//runtime/src/iree/testing:benchmark_main",
+        "@hrx_system//runtime/src/iree/tooling:device_util",
+    ],
+)
+
+iree_runtime_cc_benchmark(
+    name = "vae_benchmark",
+    srcs = ["vae_benchmark.cc"],
+    tags = [
+        "benchmark",
+        "manual",
+        "requires-gpu",
+    ],
+    deps = [
+        ":hal_integration_util",
+        ":vae",
+        "//pipeline:plan",
+        "//pipeline:stage",
+        "//tooling:filesystem",
+        "@hrx_system//runtime/src/iree/base",
+        "@hrx_system//runtime/src/iree/base/tooling:flags",
+        "@hrx_system//runtime/src/iree/hal",
+        "@hrx_system//runtime/src/iree/io:file_handle",
+        "@hrx_system//runtime/src/iree/io:parameter_provider",
+        "//runtime/src/iree/testing:benchmark",
+        "//runtime/src/iree/testing:benchmark_main",
+        "@hrx_system//runtime/src/iree/tooling:device_util",
+    ],
+)

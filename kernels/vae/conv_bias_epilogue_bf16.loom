@@ -1,0 +1,90 @@
+config.decl @id4.vae.conv_bias_epilogue.row_count : %value: index where [range(%value, 1, 4194304)]
+
+config.decl @id4.vae.conv_bias_epilogue.column_count : %value: index where [range(%value, 1, 4096)]
+
+kernel.def export("id4_vae_conv_bias_epilogue_f32_bf16") @id4_vae_conv_bias_epilogue_f32_bf16() {
+  %unit = index.constant 1 : index
+  %workgroup_size_x = index.constant 256 : index
+  %row_count = config.get @id4.vae.conv_bias_epilogue.row_count : index
+  %column_count = config.get @id4.vae.conv_bias_epilogue.column_count : index
+  %element_count = index.mul %row_count, %column_count : index
+  %rounding = index.sub %workgroup_size_x, %unit : index
+  %rounded = index.add %element_count, %rounding : index
+  %workgroup_count = index.div %rounded, %workgroup_size_x : index
+  kernel.launch.config workgroups(%workgroup_count, %unit, %unit) workgroup_size(%workgroup_size_x, %unit, %unit) : index
+} launch(%input: buffer, %bias: buffer, %output: buffer) {
+  %base = index.constant 0 : offset
+  %workgroup_size_x = index.constant 256 : index
+  %workgroup = kernel.workgroup.id<x> : index
+  %lane = kernel.workitem.id<x> : index
+  %row_count = config.get @id4.vae.conv_bias_epilogue.row_count : index
+  %column_count = config.get @id4.vae.conv_bias_epilogue.column_count : index
+  %element_count = index.mul %row_count, %column_count : index
+  %element = index.madd %workgroup, %workgroup_size_x, %lane : index
+  %element_valid = index.cmp ult, %element, %element_count : index
+  %input_noalias, %bias_noalias, %output_noalias = buffer.assume.noalias %input, %bias, %output : buffer, buffer, buffer
+  %input_global = buffer.assume.memory_space<global> %input_noalias : buffer
+  %bias_global = buffer.assume.memory_space<global> %bias_noalias : buffer
+  %output_global = buffer.assume.memory_space<global> %output_noalias : buffer
+  %input_view = buffer.view %input_global[%base] : buffer -> view<[%element_count]xf32, #dense>
+  %bias_view = buffer.view %bias_global[%base] : buffer -> view<[%column_count]xbf16, #dense>
+  %output_view = buffer.view %output_global[%base] : buffer -> view<[%element_count]xbf16, #dense>
+  scf.if %element_valid {
+    %element_in_bounds = index.assume %element [ge(%element, 0), lt(%element, %element_count)] : index
+    %column0 = index.rem %element_in_bounds, %column_count : index
+    %column = index.assume %column0 [ge(%column0, 0), lt(%column0, %column_count)] : index
+    %input_value = view.load %input_view[%element_in_bounds] : view<[%element_count]xf32, #dense> -> f32
+    %bias_bf16 = view.load %bias_view[%column] : view<[%column_count]xbf16, #dense> -> bf16
+    %bias_value = scalar.extf %bias_bf16 : bf16 to f32
+    %biased = scalar.addf<reassoc|nnan|ninf|nsz> %input_value, %bias_value : f32
+    %output_value = scalar.fptrunc %biased : f32 to bf16
+    view.store %output_value, %output_view[%element_in_bounds] : bf16, view<[%element_count]xbf16, #dense>
+  }
+  kernel.return
+}
+
+kernel.def export("id4_vae_conv_bias_add_epilogue_f32_bf16") @id4_vae_conv_bias_add_epilogue_f32_bf16() {
+  %unit = index.constant 1 : index
+  %workgroup_size_x = index.constant 256 : index
+  %row_count = config.get @id4.vae.conv_bias_epilogue.row_count : index
+  %column_count = config.get @id4.vae.conv_bias_epilogue.column_count : index
+  %element_count = index.mul %row_count, %column_count : index
+  %rounding = index.sub %workgroup_size_x, %unit : index
+  %rounded = index.add %element_count, %rounding : index
+  %workgroup_count = index.div %rounded, %workgroup_size_x : index
+  kernel.launch.config workgroups(%workgroup_count, %unit, %unit) workgroup_size(%workgroup_size_x, %unit, %unit) : index
+} launch(%input: buffer, %bias: buffer, %addend: buffer, %output: buffer) {
+  %base = index.constant 0 : offset
+  %workgroup_size_x = index.constant 256 : index
+  %workgroup = kernel.workgroup.id<x> : index
+  %lane = kernel.workitem.id<x> : index
+  %row_count = config.get @id4.vae.conv_bias_epilogue.row_count : index
+  %column_count = config.get @id4.vae.conv_bias_epilogue.column_count : index
+  %element_count = index.mul %row_count, %column_count : index
+  %element = index.madd %workgroup, %workgroup_size_x, %lane : index
+  %element_valid = index.cmp ult, %element, %element_count : index
+  %input_noalias, %bias_noalias, %addend_noalias, %output_noalias = buffer.assume.noalias %input, %bias, %addend, %output : buffer, buffer, buffer, buffer
+  %input_global = buffer.assume.memory_space<global> %input_noalias : buffer
+  %bias_global = buffer.assume.memory_space<global> %bias_noalias : buffer
+  %addend_global = buffer.assume.memory_space<global> %addend_noalias : buffer
+  %output_global = buffer.assume.memory_space<global> %output_noalias : buffer
+  %input_view = buffer.view %input_global[%base] : buffer -> view<[%element_count]xf32, #dense>
+  %bias_view = buffer.view %bias_global[%base] : buffer -> view<[%column_count]xbf16, #dense>
+  %addend_view = buffer.view %addend_global[%base] : buffer -> view<[%element_count]xbf16, #dense>
+  %output_view = buffer.view %output_global[%base] : buffer -> view<[%element_count]xbf16, #dense>
+  scf.if %element_valid {
+    %element_in_bounds = index.assume %element [ge(%element, 0), lt(%element, %element_count)] : index
+    %column0 = index.rem %element_in_bounds, %column_count : index
+    %column = index.assume %column0 [ge(%column0, 0), lt(%column0, %column_count)] : index
+    %input_value = view.load %input_view[%element_in_bounds] : view<[%element_count]xf32, #dense> -> f32
+    %bias_bf16 = view.load %bias_view[%column] : view<[%column_count]xbf16, #dense> -> bf16
+    %bias_value = scalar.extf %bias_bf16 : bf16 to f32
+    %addend_bf16 = view.load %addend_view[%element_in_bounds] : view<[%element_count]xbf16, #dense> -> bf16
+    %addend_value = scalar.extf %addend_bf16 : bf16 to f32
+    %biased = scalar.addf<reassoc|nnan|ninf|nsz> %input_value, %bias_value : f32
+    %value = scalar.addf<reassoc|nnan|ninf|nsz> %biased, %addend_value : f32
+    %output_value = scalar.fptrunc %value : f32 to bf16
+    view.store %output_value, %output_view[%element_in_bounds] : bf16, view<[%element_count]xbf16, #dense>
+  }
+  kernel.return
+}

@@ -1,0 +1,125 @@
+// Copyright 2026 The IREE Authors
+//
+// Licensed under the Apache License v2.0 with LLVM Exceptions.
+// See https://llvm.org/LICENSE.txt for license information.
+// SPDX-License-Identifier: Apache-2.0 WITH LLVM-exception
+
+#include "stages/ideogram4_dit_parameters.h"
+
+#include "iree/testing/gtest.h"
+#include "iree/testing/status_matchers.h"
+
+namespace {
+
+static id4_ideogram4_dit_model_config_t MakeModelConfig() {
+  return id4_ideogram4_dit_model_config_t{
+      // Number of transformer blocks in the DiT.
+      /*.layer_count=*/3,
+      // Channel count of each VAE latent image token.
+      /*.input_channel_count=*/4,
+      // Transformer hidden-state channel count.
+      /*.hidden_size=*/32,
+      // Feed-forward intermediate channel count.
+      /*.intermediate_size=*/64,
+      // Transformer attention head count.
+      /*.attention_head_count=*/2,
+      // AdaLN conditioning vector channel count.
+      /*.adaln_size=*/4,
+      // Qwen condition feature channel count.
+      /*.llm_feature_count=*/208,
+      // Number of image-indicator embedding rows.
+      /*.image_indicator_count=*/2,
+  };
+}
+
+static const id4_ideogram4_dit_parameter_source_rule_t* FindSourceRule(
+    const id4_ideogram4_dit_parameter_source_rule_list_t& rules,
+    iree_string_view_t key) {
+  for (iree_host_size_t i = 0; i < rules.count; ++i) {
+    if (iree_string_view_equal(rules.values[i].key, key)) {
+      return &rules.values[i];
+    }
+  }
+  return nullptr;
+}
+
+static void ExpectFp8SourceRule(
+    const id4_ideogram4_dit_parameter_source_rule_list_t& rules,
+    iree_string_view_t key) {
+  const id4_ideogram4_dit_parameter_source_rule_t* rule =
+      FindSourceRule(rules, key);
+  ASSERT_NE(rule, nullptr);
+  EXPECT_TRUE(
+      iree_string_view_equal(rule->source_scope, IREE_SV("fp8_source")));
+  EXPECT_EQ(rule->storage, ID4_IDEOGRAM4_DIT_PARAMETER_STORAGE_FP8_E4M3_SCALED);
+}
+
+TEST(Ideogram4DitParameters, ParsesParameterFormatNames) {
+  id4_ideogram4_dit_parameter_format_t format =
+      ID4_IDEOGRAM4_DIT_PARAMETER_FORMAT_INVALID;
+  IREE_ASSERT_OK(
+      id4_ideogram4_dit_parameter_format_parse(IREE_SV("bf16"), &format));
+  EXPECT_EQ(format, ID4_IDEOGRAM4_DIT_PARAMETER_FORMAT_BF16);
+  EXPECT_TRUE(iree_string_view_equal(
+      id4_ideogram4_dit_parameter_format_name(format), IREE_SV("bf16")));
+
+  IREE_ASSERT_OK(
+      id4_ideogram4_dit_parameter_format_parse(IREE_SV("fp8_e4m3"), &format));
+  EXPECT_EQ(format, ID4_IDEOGRAM4_DIT_PARAMETER_FORMAT_FP8_E4M3);
+  EXPECT_TRUE(iree_string_view_equal(
+      id4_ideogram4_dit_parameter_format_name(format), IREE_SV("fp8_e4m3")));
+
+  IREE_EXPECT_STATUS_IS(IREE_STATUS_INVALID_ARGUMENT,
+                        id4_ideogram4_dit_parameter_format_parse(
+                            IREE_SV("unsupported"), &format));
+}
+
+TEST(Ideogram4DitParameters, Bf16FormatProducesNoSourceOverrides) {
+  id4_ideogram4_dit_parameter_source_rule_list_t rules;
+  IREE_ASSERT_OK(id4_ideogram4_dit_parameter_source_rule_list_initialize(
+      ID4_IDEOGRAM4_DIT_PARAMETER_FORMAT_BF16, MakeModelConfig(),
+      iree_string_view_empty(), iree_allocator_system(), &rules));
+  EXPECT_EQ(rules.count, 0u);
+  EXPECT_EQ(rules.values, nullptr);
+  EXPECT_EQ(rules.key_storage, nullptr);
+  id4_ideogram4_dit_parameter_source_rule_list_deinitialize(
+      &rules, iree_allocator_system());
+}
+
+TEST(Ideogram4DitParameters, Fp8E4m3FormatRequiresSourceScope) {
+  id4_ideogram4_dit_parameter_source_rule_list_t rules;
+  IREE_EXPECT_STATUS_IS(
+      IREE_STATUS_INVALID_ARGUMENT,
+      id4_ideogram4_dit_parameter_source_rule_list_initialize(
+          ID4_IDEOGRAM4_DIT_PARAMETER_FORMAT_FP8_E4M3, MakeModelConfig(),
+          iree_string_view_empty(), iree_allocator_system(), &rules));
+}
+
+TEST(Ideogram4DitParameters, Fp8E4m3FormatProducesOfficialSourceRules) {
+  id4_ideogram4_dit_parameter_source_rule_list_t rules;
+  IREE_ASSERT_OK(id4_ideogram4_dit_parameter_source_rule_list_initialize(
+      ID4_IDEOGRAM4_DIT_PARAMETER_FORMAT_FP8_E4M3, MakeModelConfig(),
+      IREE_SV("fp8_source"), iree_allocator_system(), &rules));
+
+  ASSERT_NE(rules.values, nullptr);
+  ASSERT_NE(rules.key_storage, nullptr);
+  EXPECT_EQ(rules.count, 25u);
+  ExpectFp8SourceRule(rules, IREE_SV("layers.0.attention.qkv.weight"));
+  ExpectFp8SourceRule(rules, IREE_SV("layers.1.attention.o.weight"));
+  ExpectFp8SourceRule(rules, IREE_SV("layers.1.feed_forward.w1.weight"));
+  ExpectFp8SourceRule(rules, IREE_SV("layers.2.feed_forward.w3.weight"));
+  ExpectFp8SourceRule(rules, IREE_SV("layers.2.feed_forward.w2.weight"));
+  ExpectFp8SourceRule(rules, IREE_SV("layers.2.adaln_modulation.weight"));
+  ExpectFp8SourceRule(rules, IREE_SV("t_embedding.mlp_in.weight"));
+  ExpectFp8SourceRule(rules, IREE_SV("t_embedding.mlp_out.weight"));
+  ExpectFp8SourceRule(rules, IREE_SV("adaln_proj.weight"));
+  ExpectFp8SourceRule(rules, IREE_SV("input_proj.weight"));
+  ExpectFp8SourceRule(rules, IREE_SV("llm_cond_proj.weight"));
+  ExpectFp8SourceRule(rules, IREE_SV("final_layer.adaln_modulation.weight"));
+  ExpectFp8SourceRule(rules, IREE_SV("final_layer.linear.weight"));
+
+  id4_ideogram4_dit_parameter_source_rule_list_deinitialize(
+      &rules, iree_allocator_system());
+}
+
+}  // namespace

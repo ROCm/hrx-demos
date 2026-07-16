@@ -1,0 +1,95 @@
+amdgpu.target<gfx1100> @gfx1100
+
+config.decl @id4.ideogram4.linear_fp8_bf16_f32_wmma.token_count : %value: index where [range(%value, 16, 131072)]
+
+config.decl @id4.ideogram4.linear_fp8_bf16_f32_wmma.dispatch_token_count : %value: index where [range(%value, 16, 131072), mul(%value, 16)]
+
+config.decl @id4.ideogram4.linear_fp8_bf16_f32_wmma.input_size : %value: index where [range(%value, 16, 131072), mul(%value, 16)]
+
+config.decl @id4.ideogram4.linear_fp8_bf16_f32_wmma.output_size : %value: index where [range(%value, 32, 131072), mul(%value, 32)]
+
+kernel.def export("id4_ideogram4_linear_fp8_bf16_f32_wmma") @id4_ideogram4_linear_fp8_bf16_f32_wmma() {
+  %unit = index.constant 1 : index
+  %sixteen = index.constant 16 : index
+  %thirty_two = index.constant 32 : index
+  %workgroup_size_x = index.constant 32 : index
+  %token_count = config.get @id4.ideogram4.linear_fp8_bf16_f32_wmma.token_count : index
+  %dispatch_token_count = config.get @id4.ideogram4.linear_fp8_bf16_f32_wmma.dispatch_token_count : index
+  %output_size = config.get @id4.ideogram4.linear_fp8_bf16_f32_wmma.output_size : index
+  %token_tile_count = index.div %dispatch_token_count, %sixteen : index
+  %row_tile_count = index.div %output_size, %thirty_two : index
+  kernel.launch.config workgroups(%token_tile_count, %row_tile_count, %unit) workgroup_size(%workgroup_size_x, %unit, %unit) : index
+} launch(%input_bf16: buffer, %weight: buffer, %scale: buffer, %output: buffer) {
+  %token_tile = kernel.workgroup.id<x> : index
+  %row_pair = kernel.workgroup.id<y> : index
+  %lane = kernel.workitem.id<x> : index
+  func.apply<id4.matrix.linear_f8e4m3_column_scale_f32.m16n32>(%input_bf16, %weight, %scale, %output, %token_tile, %row_pair, %lane) : (buffer, buffer, buffer, buffer, index, index, index)
+  kernel.return
+}
+
+func.template<id4.matrix.linear_f8e4m3_column_scale_f32.m16n32> target(@gfx1100) priority(20) @id4_ideogram4_linear_fp8_bf16_f32_wmma_gfx1100(%input_bf16: buffer, %weight: buffer, %scale: buffer, %output: buffer, %token_tile: index, %row_pair: index, %lane: index) {
+  %base = index.constant 0 : offset
+  %zero = index.constant 0 : index
+  %one = index.constant 1 : index
+  %sixteen = index.constant 16 : index
+  %thirty_two = index.constant 32 : index
+  %token_count = config.get @id4.ideogram4.linear_fp8_bf16_f32_wmma.token_count : index
+  %input_size = config.get @id4.ideogram4.linear_fp8_bf16_f32_wmma.input_size : index
+  %output_size = config.get @id4.ideogram4.linear_fp8_bf16_f32_wmma.output_size : index
+  %k_tile_count = index.div %input_size, %sixteen : index
+  %token_origin = index.mul %token_tile, %sixteen : index
+  %row_origin0 = index.mul %row_pair, %thirty_two : index
+  %row_origin1 = index.add %row_origin0, %sixteen : index
+  %m = index.constant 16 : index
+  %n = index.constant 16 : index
+  %k = index.constant 16 : index
+  %weight_layout = encoding.layout.strided [1, %input_size] : encoding<layout>
+  %fp8_storage_schema = encoding.define #matrix_operand<element_format=f8e4m3, payload_elements=1, payload_registers=1, rounding=finite_only> : encoding<schema>
+  %fp8_storage = encoding.define #physical_storage {layout = %weight_layout : encoding<layout>, schema = %fp8_storage_schema : encoding<schema>} : encoding<storage>
+  %output_layout = encoding.layout.strided [1, %token_count] : encoding<layout>
+  %zero_acc = vector.constant 0.0 : vector<8xf32>
+  %input_noalias, %weight_noalias, %scale_noalias, %output_noalias = buffer.assume.noalias %input_bf16, %weight, %scale, %output : buffer, buffer, buffer, buffer
+  %input_global = buffer.assume.memory_space<global> %input_noalias : buffer
+  %weight_global = buffer.assume.memory_space<global> %weight_noalias : buffer
+  %scale_global = buffer.assume.memory_space<global> %scale_noalias : buffer
+  %output_global = buffer.assume.memory_space<global> %output_noalias : buffer
+  %input_aligned = buffer.assume.alignment %input_global {minimum_alignment = 16} : buffer
+  %weight_aligned = buffer.assume.alignment %weight_global {minimum_alignment = 16} : buffer
+  %scale_aligned = buffer.assume.alignment %scale_global {minimum_alignment = 16} : buffer
+  %output_aligned = buffer.assume.alignment %output_global {minimum_alignment = 16} : buffer
+  %input_view = buffer.view %input_aligned[%base] : buffer -> view<[%token_count]x[%input_size]xbf16, #dense>
+  %weight_view = buffer.view %weight_aligned[%base] : buffer -> view<[%input_size]x[%output_size]xf8E4M3, %fp8_storage>
+  %scale_view = buffer.view %scale_aligned[%base] : buffer -> view<[%output_size]xf32, #dense>
+  %output_view = buffer.view %output_aligned[%base] : buffer -> view<[%token_count]x[%output_size]xf32, %output_layout>
+  %lane_column = index.rem %lane, %sixteen : index
+  %column0 = index.add %row_origin0, %lane_column : index
+  %column1 = index.add %row_origin1, %lane_column : index
+  %scale0 = view.load %scale_view[%column0] : view<[%output_size]xf32, #dense> -> f32
+  %scale1 = view.load %scale_view[%column1] : view<[%output_size]xf32, #dense> -> f32
+  %scale0_bf16 = scalar.fptrunc %scale0 : f32 to bf16
+  %scale1_bf16 = scalar.fptrunc %scale1 : f32 to bf16
+  %scale0_f32 = scalar.extf %scale0_bf16 : bf16 to f32
+  %scale1_f32 = scalar.extf %scale1_bf16 : bf16 to f32
+  %scale0_vector = vector.splat %scale0_f32 : vector<16xf32>
+  %scale1_vector = vector.splat %scale1_f32 : vector<16xf32>
+  %init0 = vector.fragment<init> %zero_acc shape [%m, %n] : vector<8xf32>
+  %init1 = vector.fragment<init> %zero_acc shape [%m, %n] : vector<8xf32>
+  %result0, %result1 = scf.for %k_tile = [%zero to %k_tile_count step %one](%acc0 = %init0 : vector<8xf32>, %acc1 = %init1 : vector<8xf32>) -> (vector<8xf32>, vector<8xf32>) {
+    %k_origin = index.mul %k_tile, %sixteen : index
+    %lhs = vector.fragment.load<lhs> %input_view[%token_origin, %k_origin] shape [%m, %k] : view<[%token_count]x[%input_size]xbf16, #dense> -> vector<16xbf16>
+    %rhs0 = vector.fragment.load<rhs> %weight_view[%k_origin, %row_origin0] shape [%k, %n] : view<[%input_size]x[%output_size]xf8E4M3, %fp8_storage> -> vector<16xbf16>
+    %rhs1 = vector.fragment.load<rhs> %weight_view[%k_origin, %row_origin1] shape [%k, %n] : view<[%input_size]x[%output_size]xf8E4M3, %fp8_storage> -> vector<16xbf16>
+    %rhs0_f32 = vector.extf %rhs0 : vector<16xbf16> to vector<16xf32>
+    %rhs1_f32 = vector.extf %rhs1 : vector<16xbf16> to vector<16xf32>
+    %rhs0_scaled_f32 = vector.mulf<reassoc|nnan|ninf|nsz|contract> %rhs0_f32, %scale0_vector : vector<16xf32>
+    %rhs1_scaled_f32 = vector.mulf<reassoc|nnan|ninf|nsz|contract> %rhs1_f32, %scale1_vector : vector<16xf32>
+    %rhs0_scaled = vector.fptrunc %rhs0_scaled_f32 : vector<16xf32> to vector<16xbf16>
+    %rhs1_scaled = vector.fptrunc %rhs1_scaled_f32 : vector<16xf32> to vector<16xbf16>
+    %next0 = vector.mma %lhs, %rhs0_scaled, %acc0 : vector<16xbf16>, vector<16xbf16>, vector<8xf32>
+    %next1 = vector.mma %lhs, %rhs1_scaled, %acc1 : vector<16xbf16>, vector<16xbf16>, vector<8xf32>
+    scf.yield %next0, %next1 : vector<8xf32>, vector<8xf32>
+  }
+  vector.fragment.store<result> %result0, %output_view[%token_origin, %row_origin0] shape [%m, %n] : vector<8xf32>, view<[%token_count]x[%output_size]xf32, %output_layout>
+  vector.fragment.store<result> %result1, %output_view[%token_origin, %row_origin1] shape [%m, %n] : vector<8xf32>, view<[%token_count]x[%output_size]xf32, %output_layout>
+  func.return
+}

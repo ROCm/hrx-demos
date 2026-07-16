@@ -1,0 +1,1316 @@
+// Copyright 2026 The IREE Authors
+//
+// Licensed under the Apache License v2.0 with LLVM Exceptions.
+// See https://llvm.org/LICENSE.txt for license information.
+// SPDX-License-Identifier: Apache-2.0 WITH LLVM-exception
+
+#include "pipeline/program.h"
+
+#include <cstdint>
+#include <cstring>
+#include <string>
+
+#include "iree/testing/gtest.h"
+#include "iree/testing/status_matchers.h"
+
+namespace {
+
+static void ExpectStringViewEqual(iree_string_view_t actual,
+                                  iree_string_view_t expected) {
+  EXPECT_TRUE(iree_string_view_equal(actual, expected))
+      << "actual: " << std::string(actual.data, actual.size)
+      << ", expected: " << std::string(expected.data, expected.size);
+}
+
+class ProgramBuilderScope {
+ public:
+  ProgramBuilderScope() {
+    iree_arena_block_pool_initialize(/*total_block_size=*/4096,
+                                     iree_allocator_system(), &block_pool_);
+    id4_pipeline_program_builder_create_options_t options = {
+        /*.structure_size=*/sizeof(options),
+        /*.next=*/nullptr,
+        /*.program_name=*/IREE_SV("test.forward"),
+        /*.block_pool=*/&block_pool_,
+    };
+    IREE_CHECK_OK(id4_pipeline_program_builder_create(
+        &options, iree_allocator_system(), &builder_));
+  }
+
+  ~ProgramBuilderScope() {
+    DestroyBuilder();
+    iree_arena_block_pool_deinitialize(&block_pool_);
+  }
+
+  id4_pipeline_program_builder_t* builder() { return builder_; }
+
+  void DestroyBuilder() {
+    id4_pipeline_program_builder_destroy(builder_);
+    builder_ = nullptr;
+  }
+
+ private:
+  iree_arena_block_pool_t block_pool_;
+  id4_pipeline_program_builder_t* builder_ = nullptr;
+};
+
+TEST(PipelineProgram, ComputesDenseTensorByteLength) {
+  iree_device_size_t byte_length = 0;
+  IREE_ASSERT_OK(id4_pipeline_program_tensor_byte_length(
+      ID4_PIPELINE_PROGRAM_DTYPE_BF16,
+      id4_pipeline_program_make_shape_rank2(3, 4), &byte_length));
+  EXPECT_EQ(byte_length, 24u);
+
+  EXPECT_EQ(
+      id4_pipeline_program_dtype_byte_length(ID4_PIPELINE_PROGRAM_DTYPE_F32),
+      4u);
+  EXPECT_EQ(id4_pipeline_program_dtype_byte_length(
+                ID4_PIPELINE_PROGRAM_DTYPE_F8_E4M3),
+            1u);
+  EXPECT_EQ(id4_pipeline_program_dtype_byte_length(
+                ID4_PIPELINE_PROGRAM_DTYPE_INVALID),
+            0u);
+
+  id4_pipeline_program_shape_t invalid_shape = {};
+  invalid_shape.rank = 1;
+  invalid_shape.dims[0] = 0;
+  IREE_EXPECT_STATUS_IS(
+      IREE_STATUS_INVALID_ARGUMENT,
+      id4_pipeline_program_tensor_byte_length(ID4_PIPELINE_PROGRAM_DTYPE_F32,
+                                              invalid_shape, &byte_length));
+  IREE_EXPECT_STATUS_IS(
+      IREE_STATUS_INVALID_ARGUMENT,
+      id4_pipeline_program_tensor_byte_length(
+          ID4_PIPELINE_PROGRAM_DTYPE_INVALID,
+          id4_pipeline_program_make_shape_rank1(1), &byte_length));
+}
+
+TEST(PipelineProgram, AuthorsFp8ScaledParameterAsBf16ExecutionTensor) {
+  ProgramBuilderScope builder_scope;
+  id4_pipeline_program_builder_t* builder = builder_scope.builder();
+
+  const id4_pipeline_program_parameter_source_t sources[] = {
+      {
+          /*.source_scope=*/IREE_SV("fp8"),
+          /*.key=*/IREE_SV("linear.weight"),
+          /*.dtype=*/ID4_PIPELINE_PROGRAM_DTYPE_F8_E4M3,
+          /*.shape=*/id4_pipeline_program_make_shape_rank2(4, 4),
+      },
+      {
+          /*.source_scope=*/IREE_SV("fp8"),
+          /*.key=*/IREE_SV("linear.weight_scale"),
+          /*.dtype=*/ID4_PIPELINE_PROGRAM_DTYPE_F32,
+          /*.shape=*/id4_pipeline_program_make_shape_rank1(4),
+      },
+  };
+  id4_pipeline_program_parameter_options_t options = {
+      /*.structure_size=*/sizeof(options),
+      /*.next=*/nullptr,
+      /*.encoding=*/
+      ID4_PIPELINE_PROGRAM_PARAMETER_ENCODING_FP8_E4M3_SCALED_TO_BF16,
+      /*.source_count=*/IREE_ARRAYSIZE(sources),
+      /*.sources=*/sources,
+      /*.key=*/IREE_SV("linear.weight"),
+      /*.dtype=*/ID4_PIPELINE_PROGRAM_DTYPE_BF16,
+      /*.shape=*/id4_pipeline_program_make_shape_rank2(4, 4),
+  };
+  id4_pipeline_program_tensor_t weight = id4_pipeline_program_tensor_invalid();
+  IREE_ASSERT_OK(id4_pipeline_program_parameter(builder, &options, &weight));
+
+  id4_pipeline_program_t* program = nullptr;
+  IREE_ASSERT_OK(id4_pipeline_program_builder_seal(
+      builder, iree_allocator_system(), &program));
+  builder_scope.DestroyBuilder();
+
+  const id4_pipeline_program_tensor_record_t* tensor =
+      id4_pipeline_program_tensor_at(program, weight.ordinal);
+  ASSERT_NE(tensor, nullptr);
+  EXPECT_EQ(tensor->dtype, ID4_PIPELINE_PROGRAM_DTYPE_BF16);
+  EXPECT_EQ(tensor->byte_length, 32u);
+
+  ASSERT_EQ(id4_pipeline_program_operation_count(program), 1u);
+  const id4_pipeline_program_op_t* op =
+      id4_pipeline_program_operation_at(program, 0);
+  ASSERT_NE(op, nullptr);
+  ASSERT_EQ(op->kind, ID4_PIPELINE_PROGRAM_OP_KIND_PARAMETER);
+  EXPECT_EQ(op->payload.parameter.encoding,
+            ID4_PIPELINE_PROGRAM_PARAMETER_ENCODING_FP8_E4M3_SCALED_TO_BF16);
+  ASSERT_EQ(op->payload.parameter.source_count, 2u);
+  EXPECT_EQ(op->payload.parameter.sources[0].dtype,
+            ID4_PIPELINE_PROGRAM_DTYPE_F8_E4M3);
+  EXPECT_EQ(op->payload.parameter.sources[1].dtype,
+            ID4_PIPELINE_PROGRAM_DTYPE_F32);
+
+  id4_pipeline_program_release(program);
+}
+
+TEST(PipelineProgram, AuthorsDirectParameterFromDenseSourceSpans) {
+  ProgramBuilderScope builder_scope;
+  id4_pipeline_program_builder_t* builder = builder_scope.builder();
+
+  const id4_pipeline_program_parameter_source_t sources[] = {
+      {
+          /*.source_scope=*/IREE_SV("model"),
+          /*.key=*/IREE_SV("embedding.weight"),
+          /*.dtype=*/ID4_PIPELINE_PROGRAM_DTYPE_BF16,
+          /*.shape=*/id4_pipeline_program_make_shape_rank2(8, 4),
+      },
+  };
+  const id4_pipeline_program_parameter_source_span_t source_spans[] = {
+      {
+          /*.source_offset=*/3 * 4 * sizeof(uint16_t),
+          /*.target_offset=*/0,
+          /*.length=*/4 * sizeof(uint16_t),
+      },
+      {
+          /*.source_offset=*/5 * 4 * sizeof(uint16_t),
+          /*.target_offset=*/4 * sizeof(uint16_t),
+          /*.length=*/4 * sizeof(uint16_t),
+      },
+  };
+  id4_pipeline_program_parameter_options_t options = {
+      /*.structure_size=*/sizeof(options),
+      /*.next=*/nullptr,
+      /*.encoding=*/ID4_PIPELINE_PROGRAM_PARAMETER_ENCODING_DIRECT,
+      /*.source_count=*/IREE_ARRAYSIZE(sources),
+      /*.sources=*/sources,
+      /*.key=*/IREE_SV("embedding.prompt_rows"),
+      /*.dtype=*/ID4_PIPELINE_PROGRAM_DTYPE_BF16,
+      /*.shape=*/id4_pipeline_program_make_shape_rank2(2, 4),
+      /*.source_span_count=*/IREE_ARRAYSIZE(source_spans),
+      /*.source_spans=*/source_spans,
+  };
+  id4_pipeline_program_tensor_t rows = id4_pipeline_program_tensor_invalid();
+  IREE_ASSERT_OK(id4_pipeline_program_parameter(builder, &options, &rows));
+
+  id4_pipeline_program_t* program = nullptr;
+  IREE_ASSERT_OK(id4_pipeline_program_builder_seal(
+      builder, iree_allocator_system(), &program));
+  builder_scope.DestroyBuilder();
+
+  const id4_pipeline_program_tensor_record_t* tensor =
+      id4_pipeline_program_tensor_at(program, rows.ordinal);
+  ASSERT_NE(tensor, nullptr);
+  ExpectStringViewEqual(tensor->name, IREE_SV("embedding.prompt_rows"));
+  EXPECT_EQ(tensor->dtype, ID4_PIPELINE_PROGRAM_DTYPE_BF16);
+  EXPECT_EQ(tensor->byte_length, 2u * 4u * sizeof(uint16_t));
+
+  ASSERT_EQ(id4_pipeline_program_operation_count(program), 1u);
+  const id4_pipeline_program_op_t* op =
+      id4_pipeline_program_operation_at(program, 0);
+  ASSERT_NE(op, nullptr);
+  ASSERT_EQ(op->kind, ID4_PIPELINE_PROGRAM_OP_KIND_PARAMETER);
+  EXPECT_EQ(op->payload.parameter.encoding,
+            ID4_PIPELINE_PROGRAM_PARAMETER_ENCODING_DIRECT);
+  ASSERT_EQ(op->payload.parameter.source_count, 1u);
+  ExpectStringViewEqual(op->payload.parameter.sources[0].key,
+                        IREE_SV("embedding.weight"));
+  ASSERT_EQ(op->payload.parameter.source_span_count,
+            IREE_ARRAYSIZE(source_spans));
+  EXPECT_EQ(op->payload.parameter.source_spans[0].source_offset,
+            source_spans[0].source_offset);
+  EXPECT_EQ(op->payload.parameter.source_spans[1].target_offset,
+            source_spans[1].target_offset);
+
+  id4_pipeline_program_release(program);
+}
+
+TEST(PipelineProgram, RejectsDirectParameterSourceSpanOutsideSourceTable) {
+  ProgramBuilderScope builder_scope;
+  id4_pipeline_program_builder_t* builder = builder_scope.builder();
+
+  const id4_pipeline_program_parameter_source_t source = {
+      /*.source_scope=*/IREE_SV("model"),
+      /*.key=*/IREE_SV("embedding.weight"),
+      /*.dtype=*/ID4_PIPELINE_PROGRAM_DTYPE_BF16,
+      /*.shape=*/id4_pipeline_program_make_shape_rank2(1, 4),
+  };
+  const id4_pipeline_program_parameter_source_span_t source_span = {
+      /*.source_offset=*/0,
+      /*.target_offset=*/0,
+      /*.length=*/4 * sizeof(uint16_t),
+      /*.source_index=*/1,
+  };
+  const id4_pipeline_program_parameter_options_t options = {
+      /*.structure_size=*/sizeof(options),
+      /*.next=*/nullptr,
+      /*.encoding=*/ID4_PIPELINE_PROGRAM_PARAMETER_ENCODING_DIRECT,
+      /*.source_count=*/1,
+      /*.sources=*/&source,
+      /*.key=*/IREE_SV("embedding.prompt_row"),
+      /*.dtype=*/ID4_PIPELINE_PROGRAM_DTYPE_BF16,
+      /*.shape=*/id4_pipeline_program_make_shape_rank2(1, 4),
+      /*.source_span_count=*/1,
+      /*.source_spans=*/&source_span,
+  };
+  id4_pipeline_program_tensor_t rows = id4_pipeline_program_tensor_invalid();
+  IREE_EXPECT_STATUS_IS(
+      IREE_STATUS_OUT_OF_RANGE,
+      id4_pipeline_program_parameter(builder, &options, &rows));
+}
+
+TEST(PipelineProgram, RetainsSemanticParameterDomainsInFirstUseOrder) {
+  ProgramBuilderScope builder_scope;
+  id4_pipeline_program_builder_t* builder = builder_scope.builder();
+
+  char patchable_domain[] = "lora_patchable";
+  char patchable_key[] = "patchable.weight";
+  const id4_pipeline_program_parameter_source_t patchable_source = {
+      /*.source_scope=*/IREE_SV("model"),
+      /*.key=*/iree_make_cstring_view(patchable_key),
+      /*.dtype=*/ID4_PIPELINE_PROGRAM_DTYPE_BF16,
+      /*.shape=*/id4_pipeline_program_make_shape_rank2(4, 4),
+  };
+  id4_pipeline_program_parameter_options_t patchable_options = {
+      /*.structure_size=*/sizeof(patchable_options),
+      /*.next=*/nullptr,
+      /*.encoding=*/ID4_PIPELINE_PROGRAM_PARAMETER_ENCODING_DIRECT,
+      /*.source_count=*/1,
+      /*.sources=*/&patchable_source,
+      /*.key=*/iree_make_cstring_view(patchable_key),
+      /*.dtype=*/ID4_PIPELINE_PROGRAM_DTYPE_BF16,
+      /*.shape=*/id4_pipeline_program_make_shape_rank2(4, 4),
+      /*.source_span_count=*/0,
+      /*.source_spans=*/nullptr,
+      /*.domain=*/iree_make_cstring_view(patchable_domain),
+  };
+  id4_pipeline_program_tensor_t patchable =
+      id4_pipeline_program_tensor_invalid();
+  IREE_ASSERT_OK(
+      id4_pipeline_program_parameter(builder, &patchable_options, &patchable));
+
+  const id4_pipeline_program_parameter_source_t shared_source = {
+      /*.source_scope=*/IREE_SV("model"),
+      /*.key=*/IREE_SV("shared.weight"),
+      /*.dtype=*/ID4_PIPELINE_PROGRAM_DTYPE_BF16,
+      /*.shape=*/id4_pipeline_program_make_shape_rank2(4, 4),
+  };
+  id4_pipeline_program_parameter_options_t shared_options = patchable_options;
+  shared_options.sources = &shared_source;
+  shared_options.key = shared_source.key;
+  shared_options.domain = iree_string_view_empty();
+  id4_pipeline_program_tensor_t shared = id4_pipeline_program_tensor_invalid();
+  IREE_ASSERT_OK(
+      id4_pipeline_program_parameter(builder, &shared_options, &shared));
+
+  patchable_options.domain = IREE_SV("different_domain");
+  id4_pipeline_program_tensor_t incompatible =
+      id4_pipeline_program_tensor_invalid();
+  IREE_EXPECT_STATUS_IS(IREE_STATUS_INVALID_ARGUMENT,
+                        id4_pipeline_program_parameter(
+                            builder, &patchable_options, &incompatible));
+
+  id4_pipeline_program_t* program = nullptr;
+  IREE_ASSERT_OK(id4_pipeline_program_builder_seal(
+      builder, iree_allocator_system(), &program));
+  memset(patchable_domain, 'x', sizeof(patchable_domain) - 1);
+  memset(patchable_key, 'y', sizeof(patchable_key) - 1);
+  builder_scope.DestroyBuilder();
+
+  ASSERT_EQ(id4_pipeline_program_parameter_domain_count(program), 2u);
+  ExpectStringViewEqual(id4_pipeline_program_parameter_domain_at(program, 0),
+                        IREE_SV("lora_patchable"));
+  EXPECT_TRUE(iree_string_view_is_empty(
+      id4_pipeline_program_parameter_domain_at(program, 1)));
+  ASSERT_EQ(id4_pipeline_program_operation_count(program), 2u);
+  const id4_pipeline_program_op_t* patchable_op =
+      id4_pipeline_program_operation_at(program, 0);
+  ASSERT_NE(patchable_op, nullptr);
+  ExpectStringViewEqual(patchable_op->payload.parameter.domain,
+                        IREE_SV("lora_patchable"));
+
+  id4_pipeline_program_release(program);
+}
+
+TEST(PipelineProgram, AuthorsDirectParameterWithBytePreservingReshape) {
+  ProgramBuilderScope builder_scope;
+  id4_pipeline_program_builder_t* builder = builder_scope.builder();
+
+  const id4_pipeline_program_parameter_source_t source = {
+      /*.source_scope=*/IREE_SV("model"),
+      /*.key=*/IREE_SV("conv.weight.packed"),
+      /*.dtype=*/ID4_PIPELINE_PROGRAM_DTYPE_BF16,
+      /*.shape=*/id4_pipeline_program_make_shape_rank4(8, 3, 3, 4),
+  };
+  id4_pipeline_program_parameter_options_t options = {
+      /*.structure_size=*/sizeof(options),
+      /*.next=*/nullptr,
+      /*.encoding=*/ID4_PIPELINE_PROGRAM_PARAMETER_ENCODING_DIRECT,
+      /*.source_count=*/1,
+      /*.sources=*/&source,
+      /*.key=*/source.key,
+      /*.dtype=*/source.dtype,
+      /*.shape=*/id4_pipeline_program_make_shape_rank2(8, 36),
+  };
+  id4_pipeline_program_tensor_t weight = id4_pipeline_program_tensor_invalid();
+  IREE_ASSERT_OK(id4_pipeline_program_parameter(builder, &options, &weight));
+
+  options.shape = id4_pipeline_program_make_shape_rank2(8, 35);
+  id4_pipeline_program_tensor_t invalid_weight =
+      id4_pipeline_program_tensor_invalid();
+  IREE_EXPECT_STATUS_IS(
+      IREE_STATUS_INVALID_ARGUMENT,
+      id4_pipeline_program_parameter(builder, &options, &invalid_weight));
+}
+
+TEST(PipelineProgram, RejectsDirectParameterSourceSpanReuseMismatch) {
+  ProgramBuilderScope builder_scope;
+  id4_pipeline_program_builder_t* builder = builder_scope.builder();
+
+  const id4_pipeline_program_parameter_source_t sources[] = {
+      {
+          /*.source_scope=*/IREE_SV("model"),
+          /*.key=*/IREE_SV("embedding.weight"),
+          /*.dtype=*/ID4_PIPELINE_PROGRAM_DTYPE_BF16,
+          /*.shape=*/id4_pipeline_program_make_shape_rank2(8, 4),
+      },
+  };
+  const id4_pipeline_program_parameter_source_span_t first_spans[] = {
+      {
+          /*.source_offset=*/0,
+          /*.target_offset=*/0,
+          /*.length=*/4 * sizeof(uint16_t),
+      },
+  };
+  id4_pipeline_program_parameter_options_t options = {
+      /*.structure_size=*/sizeof(options),
+      /*.next=*/nullptr,
+      /*.encoding=*/ID4_PIPELINE_PROGRAM_PARAMETER_ENCODING_DIRECT,
+      /*.source_count=*/IREE_ARRAYSIZE(sources),
+      /*.sources=*/sources,
+      /*.key=*/IREE_SV("embedding.one_row"),
+      /*.dtype=*/ID4_PIPELINE_PROGRAM_DTYPE_BF16,
+      /*.shape=*/id4_pipeline_program_make_shape_rank2(1, 4),
+      /*.source_span_count=*/IREE_ARRAYSIZE(first_spans),
+      /*.source_spans=*/first_spans,
+  };
+  id4_pipeline_program_tensor_t rows = id4_pipeline_program_tensor_invalid();
+  IREE_ASSERT_OK(id4_pipeline_program_parameter(builder, &options, &rows));
+
+  const id4_pipeline_program_parameter_source_span_t second_spans[] = {
+      {
+          /*.source_offset=*/4 * sizeof(uint16_t),
+          /*.target_offset=*/0,
+          /*.length=*/4 * sizeof(uint16_t),
+      },
+  };
+  options.source_spans = second_spans;
+  IREE_EXPECT_STATUS_IS(
+      IREE_STATUS_INVALID_ARGUMENT,
+      id4_pipeline_program_parameter(builder, &options, &rows));
+}
+
+TEST(PipelineProgram, AuthorsProgramAndSealsImmutableCopies) {
+  ProgramBuilderScope builder_scope;
+  id4_pipeline_program_builder_t* builder = builder_scope.builder();
+
+  id4_pipeline_program_tensor_t input = id4_pipeline_program_tensor_invalid();
+  id4_pipeline_program_import_tensor_options_t input_options = {
+      /*.structure_size=*/sizeof(input_options),
+      /*.next=*/nullptr,
+      /*.flags=*/ID4_PIPELINE_PROGRAM_IMPORT_TENSOR_FLAG_INITIALIZED,
+      /*.name=*/IREE_SV("hidden_states.input"),
+      /*.dtype=*/ID4_PIPELINE_PROGRAM_DTYPE_F32,
+      /*.shape=*/id4_pipeline_program_make_shape_rank2(1, 4),
+  };
+  IREE_ASSERT_OK(
+      id4_pipeline_program_import_tensor(builder, &input_options, &input));
+
+  id4_pipeline_program_tensor_t weight = id4_pipeline_program_tensor_invalid();
+  const id4_pipeline_program_parameter_source_t weight_sources[] = {
+      {
+          /*.source_scope=*/IREE_SV(""),
+          /*.key=*/IREE_SV("model.layers.0.linear.weight"),
+          /*.dtype=*/ID4_PIPELINE_PROGRAM_DTYPE_BF16,
+          /*.shape=*/id4_pipeline_program_make_shape_rank2(4, 4),
+      },
+  };
+  id4_pipeline_program_parameter_options_t weight_options = {
+      /*.structure_size=*/sizeof(weight_options),
+      /*.next=*/nullptr,
+      /*.encoding=*/ID4_PIPELINE_PROGRAM_PARAMETER_ENCODING_DIRECT,
+      /*.source_count=*/IREE_ARRAYSIZE(weight_sources),
+      /*.sources=*/weight_sources,
+      /*.key=*/IREE_SV("model.layers.0.linear.weight"),
+      /*.dtype=*/ID4_PIPELINE_PROGRAM_DTYPE_BF16,
+      /*.shape=*/id4_pipeline_program_make_shape_rank2(4, 4),
+  };
+  IREE_ASSERT_OK(
+      id4_pipeline_program_parameter(builder, &weight_options, &weight));
+
+  id4_pipeline_program_tensor_t output = id4_pipeline_program_tensor_invalid();
+  id4_pipeline_program_acquire_tensor_options_t output_options = {
+      /*.structure_size=*/sizeof(output_options),
+      /*.next=*/nullptr,
+      /*.name=*/IREE_SV("hidden_states.linear"),
+      /*.dtype=*/ID4_PIPELINE_PROGRAM_DTYPE_F32,
+      /*.shape=*/id4_pipeline_program_make_shape_rank2(1, 4),
+  };
+  IREE_ASSERT_OK(
+      id4_pipeline_program_acquire_tensor(builder, &output_options, &output));
+
+  id4_pipeline_kernel_config_binding_t config_bindings[] = {
+      id4_pipeline_make_kernel_config_binding(IREE_SV("@batch"), IREE_SV("1")),
+      id4_pipeline_make_kernel_config_binding(IREE_SV("@hidden_size"),
+                                              IREE_SV("4")),
+  };
+  id4_pipeline_program_dispatch_binding_t bindings[] = {
+      id4_pipeline_program_read(input),
+      id4_pipeline_program_read(weight),
+      id4_pipeline_program_write(output),
+  };
+  char semantic_family[] = "matrix";
+  const iree_string_pair_t semantic_attributes[] = {
+      iree_make_string_pair(IREE_SV("semantic.family"),
+                            iree_make_cstring_view(semantic_family)),
+      iree_make_cstring_pair("matrix.m", "1"),
+  };
+  id4_pipeline_program_dispatch_loom_options_t dispatch_options = {
+      /*.structure_size=*/sizeof(dispatch_options),
+      /*.next=*/nullptr,
+      /*.name=*/IREE_SV("block0.linear"),
+      /*.kernel=*/
+      id4_pipeline_make_kernel_ref(IREE_SV("test/linear"), IREE_SV("linear")),
+      /*.config_binding_count=*/IREE_ARRAYSIZE(config_bindings),
+      /*.config_bindings=*/config_bindings,
+      /*.binding_count=*/IREE_ARRAYSIZE(bindings),
+      /*.bindings=*/bindings,
+      /*.semantic_attributes=*/
+      {
+          /*.count=*/IREE_ARRAYSIZE(semantic_attributes),
+          /*.pairs=*/semantic_attributes,
+      },
+  };
+  IREE_ASSERT_OK(
+      id4_pipeline_program_dispatch_loom(builder, &dispatch_options));
+  semantic_family[0] = 'x';
+
+  id4_pipeline_program_tap_options_t tap_options = {
+      /*.structure_size=*/sizeof(tap_options),
+      /*.next=*/nullptr,
+      /*.name=*/IREE_SV("block0.linear.output"),
+      /*.tensor=*/output,
+  };
+  IREE_ASSERT_OK(id4_pipeline_program_tap(builder, &tap_options));
+
+  id4_pipeline_program_barrier_options_t barrier_options = {
+      /*.structure_size=*/sizeof(barrier_options),
+      /*.next=*/nullptr,
+      /*.name=*/IREE_SV("block0.after_linear"),
+  };
+  IREE_ASSERT_OK(id4_pipeline_program_barrier(builder, &barrier_options));
+
+  id4_pipeline_program_export_options_t export_options = {
+      /*.structure_size=*/sizeof(export_options),
+      /*.next=*/nullptr,
+      /*.name=*/IREE_SV("hidden_states.output"),
+      /*.tensor=*/output,
+  };
+  IREE_ASSERT_OK(id4_pipeline_program_export(builder, &export_options));
+
+  id4_pipeline_program_t* program = nullptr;
+  IREE_ASSERT_OK(id4_pipeline_program_builder_seal(
+      builder, iree_allocator_system(), &program));
+  builder_scope.DestroyBuilder();
+
+  ExpectStringViewEqual(id4_pipeline_program_name(program),
+                        IREE_SV("test.forward"));
+  EXPECT_EQ(id4_pipeline_program_tensor_count(program), 3u);
+  EXPECT_EQ(id4_pipeline_program_operation_count(program), 7u);
+
+  const id4_pipeline_program_tensor_record_t* input_record =
+      id4_pipeline_program_tensor_at(program, input.ordinal);
+  ASSERT_NE(input_record, nullptr);
+  ExpectStringViewEqual(input_record->name, IREE_SV("hidden_states.input"));
+  EXPECT_EQ(input_record->dtype, ID4_PIPELINE_PROGRAM_DTYPE_F32);
+  EXPECT_EQ(input_record->byte_length, 16u);
+  EXPECT_EQ(input_record->producer_operation_ordinal, 0u);
+
+  const id4_pipeline_program_tensor_record_t* weight_record =
+      id4_pipeline_program_tensor_at(program, weight.ordinal);
+  ASSERT_NE(weight_record, nullptr);
+  ExpectStringViewEqual(weight_record->name,
+                        IREE_SV("model.layers.0.linear.weight"));
+  EXPECT_EQ(weight_record->dtype, ID4_PIPELINE_PROGRAM_DTYPE_BF16);
+  EXPECT_EQ(weight_record->byte_length, 32u);
+  EXPECT_EQ(weight_record->producer_operation_ordinal, 1u);
+
+  const id4_pipeline_program_op_t* dispatch =
+      id4_pipeline_program_operation_at(program, 3);
+  ASSERT_NE(dispatch, nullptr);
+  ASSERT_EQ(dispatch->kind, ID4_PIPELINE_PROGRAM_OP_KIND_DISPATCH_LOOM);
+  ExpectStringViewEqual(dispatch->payload.dispatch_loom.name,
+                        IREE_SV("block0.linear"));
+  ExpectStringViewEqual(dispatch->payload.dispatch_loom.kernel.module_path,
+                        IREE_SV("test/linear"));
+  ExpectStringViewEqual(dispatch->payload.dispatch_loom.kernel.function_name,
+                        IREE_SV("linear"));
+  ASSERT_EQ(dispatch->payload.dispatch_loom.config_binding_count, 2u);
+  ExpectStringViewEqual(dispatch->payload.dispatch_loom.config_bindings[0].key,
+                        IREE_SV("@batch"));
+  ExpectStringViewEqual(dispatch->payload.dispatch_loom.config_bindings[1].key,
+                        IREE_SV("@hidden_size"));
+  ASSERT_EQ(dispatch->payload.dispatch_loom.binding_count, 3u);
+  EXPECT_EQ(dispatch->payload.dispatch_loom.bindings[0].tensor.ordinal,
+            input.ordinal);
+  EXPECT_EQ(dispatch->payload.dispatch_loom.bindings[1].tensor.ordinal,
+            weight.ordinal);
+  EXPECT_EQ(dispatch->payload.dispatch_loom.bindings[2].access,
+            ID4_PIPELINE_PROGRAM_TENSOR_ACCESS_WRITE);
+  ASSERT_EQ(dispatch->payload.dispatch_loom.semantic_attributes.count, 2u);
+  ExpectStringViewEqual(
+      dispatch->payload.dispatch_loom.semantic_attributes.pairs[0].key,
+      IREE_SV("semantic.family"));
+  ExpectStringViewEqual(
+      dispatch->payload.dispatch_loom.semantic_attributes.pairs[0].value,
+      IREE_SV("matrix"));
+  ExpectStringViewEqual(
+      dispatch->payload.dispatch_loom.semantic_attributes.pairs[1].key,
+      IREE_SV("matrix.m"));
+  ExpectStringViewEqual(
+      dispatch->payload.dispatch_loom.semantic_attributes.pairs[1].value,
+      IREE_SV("1"));
+
+  const id4_pipeline_program_op_t* exported =
+      id4_pipeline_program_operation_at(program, 6);
+  ASSERT_NE(exported, nullptr);
+  ASSERT_EQ(exported->kind, ID4_PIPELINE_PROGRAM_OP_KIND_EXPORT);
+  EXPECT_EQ(exported->payload.export_value.tensor.ordinal, output.ordinal);
+
+  id4_pipeline_program_release(program);
+}
+
+TEST(PipelineProgram, AuthorsRegionCut) {
+  ProgramBuilderScope builder_scope;
+  id4_pipeline_program_builder_t* builder = builder_scope.builder();
+
+  id4_pipeline_program_region_cut_options_t cut_options = {
+      /*.structure_size=*/sizeof(cut_options),
+      /*.next=*/nullptr,
+      /*.name=*/IREE_SV("layer0.after_attention"),
+  };
+  IREE_ASSERT_OK(id4_pipeline_program_region_cut(builder, &cut_options));
+  IREE_EXPECT_STATUS_IS(IREE_STATUS_ALREADY_EXISTS,
+                        id4_pipeline_program_region_cut(builder, &cut_options));
+
+  id4_pipeline_program_t* program = nullptr;
+  IREE_ASSERT_OK(id4_pipeline_program_builder_seal(
+      builder, iree_allocator_system(), &program));
+  builder_scope.DestroyBuilder();
+
+  ASSERT_EQ(id4_pipeline_program_operation_count(program), 1u);
+  const id4_pipeline_program_op_t* cut =
+      id4_pipeline_program_operation_at(program, 0);
+  ASSERT_NE(cut, nullptr);
+  ASSERT_EQ(cut->kind, ID4_PIPELINE_PROGRAM_OP_KIND_REGION_CUT);
+  ExpectStringViewEqual(cut->payload.region_cut.name,
+                        IREE_SV("layer0.after_attention"));
+
+  id4_pipeline_program_release(program);
+}
+
+TEST(PipelineProgram, InternsRepeatedParameterDeclarations) {
+  ProgramBuilderScope builder_scope;
+  id4_pipeline_program_builder_t* builder = builder_scope.builder();
+
+  const id4_pipeline_program_parameter_source_t weight_sources[] = {
+      {
+          /*.source_scope=*/IREE_SV(""),
+          /*.key=*/IREE_SV("model.layers.0.linear.weight"),
+          /*.dtype=*/ID4_PIPELINE_PROGRAM_DTYPE_BF16,
+          /*.shape=*/id4_pipeline_program_make_shape_rank2(4, 4),
+      },
+  };
+  id4_pipeline_program_parameter_options_t weight_options = {
+      /*.structure_size=*/sizeof(weight_options),
+      /*.next=*/nullptr,
+      /*.encoding=*/ID4_PIPELINE_PROGRAM_PARAMETER_ENCODING_DIRECT,
+      /*.source_count=*/IREE_ARRAYSIZE(weight_sources),
+      /*.sources=*/weight_sources,
+      /*.key=*/IREE_SV("model.layers.0.linear.weight"),
+      /*.dtype=*/ID4_PIPELINE_PROGRAM_DTYPE_BF16,
+      /*.shape=*/id4_pipeline_program_make_shape_rank2(4, 4),
+  };
+  id4_pipeline_program_tensor_t first_weight =
+      id4_pipeline_program_tensor_invalid();
+  IREE_ASSERT_OK(
+      id4_pipeline_program_parameter(builder, &weight_options, &first_weight));
+
+  id4_pipeline_program_tensor_t second_weight =
+      id4_pipeline_program_tensor_invalid();
+  IREE_ASSERT_OK(
+      id4_pipeline_program_parameter(builder, &weight_options, &second_weight));
+  EXPECT_EQ(second_weight.ordinal, first_weight.ordinal);
+
+  id4_pipeline_program_parameter_options_t incompatible_weight_options =
+      weight_options;
+  incompatible_weight_options.shape =
+      id4_pipeline_program_make_shape_rank2(8, 4);
+  id4_pipeline_program_tensor_t incompatible_weight =
+      id4_pipeline_program_tensor_invalid();
+  IREE_EXPECT_STATUS_IS(
+      IREE_STATUS_INVALID_ARGUMENT,
+      id4_pipeline_program_parameter(builder, &incompatible_weight_options,
+                                     &incompatible_weight));
+
+  id4_pipeline_program_t* program = nullptr;
+  IREE_ASSERT_OK(id4_pipeline_program_builder_seal(
+      builder, iree_allocator_system(), &program));
+  builder_scope.DestroyBuilder();
+
+  EXPECT_EQ(id4_pipeline_program_tensor_count(program), 1u);
+  EXPECT_EQ(id4_pipeline_program_operation_count(program), 1u);
+  const id4_pipeline_program_op_t* op =
+      id4_pipeline_program_operation_at(program, 0);
+  ASSERT_NE(op, nullptr);
+  EXPECT_EQ(op->kind, ID4_PIPELINE_PROGRAM_OP_KIND_PARAMETER);
+
+  id4_pipeline_program_release(program);
+}
+
+TEST(PipelineProgram, AuthorsConstantTensorWithOwnedData) {
+  ProgramBuilderScope builder_scope;
+  id4_pipeline_program_builder_t* builder = builder_scope.builder();
+
+  float values[] = {1.0f, 2.0f};
+  id4_pipeline_program_tensor_t constant =
+      id4_pipeline_program_tensor_invalid();
+  id4_pipeline_program_constant_options_t constant_options = {
+      /*.structure_size=*/sizeof(constant_options),
+      /*.next=*/nullptr,
+      /*.name=*/IREE_SV("test.constant"),
+      /*.dtype=*/ID4_PIPELINE_PROGRAM_DTYPE_F32,
+      /*.shape=*/id4_pipeline_program_make_shape_rank1(2),
+      /*.data=*/iree_make_const_byte_span(values, sizeof(values)),
+  };
+  IREE_ASSERT_OK(
+      id4_pipeline_program_constant(builder, &constant_options, &constant));
+  values[0] = 9.0f;
+
+  id4_pipeline_program_t* program = nullptr;
+  IREE_ASSERT_OK(id4_pipeline_program_builder_seal(
+      builder, iree_allocator_system(), &program));
+  builder_scope.DestroyBuilder();
+
+  ASSERT_EQ(id4_pipeline_program_tensor_count(program), 1u);
+  const id4_pipeline_program_tensor_record_t* record =
+      id4_pipeline_program_tensor_at(program, constant.ordinal);
+  ASSERT_NE(record, nullptr);
+  ExpectStringViewEqual(record->name, IREE_SV("test.constant"));
+  EXPECT_EQ(record->byte_length, sizeof(values));
+
+  ASSERT_EQ(id4_pipeline_program_operation_count(program), 1u);
+  const id4_pipeline_program_op_t* op =
+      id4_pipeline_program_operation_at(program, 0);
+  ASSERT_NE(op, nullptr);
+  ASSERT_EQ(op->kind, ID4_PIPELINE_PROGRAM_OP_KIND_CONSTANT);
+  ASSERT_EQ(op->payload.constant.data_length, sizeof(values));
+  const float* copied_values =
+      reinterpret_cast<const float*>(op->payload.constant.data);
+  EXPECT_EQ(copied_values[0], 1.0f);
+  EXPECT_EQ(copied_values[1], 2.0f);
+
+  id4_pipeline_program_release(program);
+}
+
+TEST(PipelineProgram, RejectsUninitializedReadsAndCaptures) {
+  ProgramBuilderScope builder_scope;
+  id4_pipeline_program_builder_t* builder = builder_scope.builder();
+
+  id4_pipeline_program_tensor_t scratch = id4_pipeline_program_tensor_invalid();
+  id4_pipeline_program_acquire_tensor_options_t scratch_options = {
+      /*.structure_size=*/sizeof(scratch_options),
+      /*.next=*/nullptr,
+      /*.name=*/IREE_SV("scratch"),
+      /*.dtype=*/ID4_PIPELINE_PROGRAM_DTYPE_F32,
+      /*.shape=*/id4_pipeline_program_make_shape_rank1(4),
+  };
+  IREE_ASSERT_OK(
+      id4_pipeline_program_acquire_tensor(builder, &scratch_options, &scratch));
+
+  id4_pipeline_program_dispatch_binding_t read_binding =
+      id4_pipeline_program_read(scratch);
+  id4_pipeline_program_dispatch_loom_options_t read_dispatch_options = {
+      /*.structure_size=*/sizeof(read_dispatch_options),
+      /*.next=*/nullptr,
+      /*.name=*/IREE_SV("read_scratch"),
+      /*.kernel=*/
+      id4_pipeline_make_kernel_ref(IREE_SV("test/read"), IREE_SV("read")),
+      /*.config_binding_count=*/0,
+      /*.config_bindings=*/nullptr,
+      /*.binding_count=*/1,
+      /*.bindings=*/&read_binding,
+  };
+  IREE_EXPECT_STATUS_IS(
+      IREE_STATUS_FAILED_PRECONDITION,
+      id4_pipeline_program_dispatch_loom(builder, &read_dispatch_options));
+
+  id4_pipeline_program_tap_options_t tap_options = {
+      /*.structure_size=*/sizeof(tap_options),
+      /*.next=*/nullptr,
+      /*.name=*/IREE_SV("scratch.before_write"),
+      /*.tensor=*/scratch,
+  };
+  IREE_EXPECT_STATUS_IS(IREE_STATUS_FAILED_PRECONDITION,
+                        id4_pipeline_program_tap(builder, &tap_options));
+
+  id4_pipeline_program_export_options_t export_options = {
+      /*.structure_size=*/sizeof(export_options),
+      /*.next=*/nullptr,
+      /*.name=*/IREE_SV("scratch.output"),
+      /*.tensor=*/scratch,
+  };
+  IREE_EXPECT_STATUS_IS(IREE_STATUS_FAILED_PRECONDITION,
+                        id4_pipeline_program_export(builder, &export_options));
+
+  id4_pipeline_program_dispatch_binding_t write_binding =
+      id4_pipeline_program_write(scratch);
+  id4_pipeline_program_dispatch_loom_options_t write_dispatch_options = {
+      /*.structure_size=*/sizeof(write_dispatch_options),
+      /*.next=*/nullptr,
+      /*.name=*/IREE_SV("write_scratch"),
+      /*.kernel=*/
+      id4_pipeline_make_kernel_ref(IREE_SV("test/write"), IREE_SV("write")),
+      /*.config_binding_count=*/0,
+      /*.config_bindings=*/nullptr,
+      /*.binding_count=*/1,
+      /*.bindings=*/&write_binding,
+  };
+  IREE_ASSERT_OK(
+      id4_pipeline_program_dispatch_loom(builder, &write_dispatch_options));
+  IREE_ASSERT_OK(id4_pipeline_program_tap(builder, &tap_options));
+  IREE_ASSERT_OK(id4_pipeline_program_export(builder, &export_options));
+
+  builder_scope.DestroyBuilder();
+}
+
+TEST(PipelineProgram, ExternalOutputImportRequiresWriteBeforeExport) {
+  ProgramBuilderScope builder_scope;
+  id4_pipeline_program_builder_t* builder = builder_scope.builder();
+
+  id4_pipeline_program_tensor_t output = id4_pipeline_program_tensor_invalid();
+  id4_pipeline_program_import_tensor_options_t output_options = {
+      /*.structure_size=*/sizeof(output_options),
+      /*.next=*/nullptr,
+      /*.flags=*/0,
+      /*.name=*/IREE_SV("stage.output"),
+      /*.dtype=*/ID4_PIPELINE_PROGRAM_DTYPE_F32,
+      /*.shape=*/id4_pipeline_program_make_shape_rank1(4),
+  };
+  IREE_ASSERT_OK(
+      id4_pipeline_program_import_tensor(builder, &output_options, &output));
+
+  id4_pipeline_program_dispatch_binding_t read_binding =
+      id4_pipeline_program_read(output);
+  id4_pipeline_program_dispatch_loom_options_t read_dispatch_options = {
+      /*.structure_size=*/sizeof(read_dispatch_options),
+      /*.next=*/nullptr,
+      /*.name=*/IREE_SV("read_output"),
+      /*.kernel=*/
+      id4_pipeline_make_kernel_ref(IREE_SV("test/read"), IREE_SV("read")),
+      /*.config_binding_count=*/0,
+      /*.config_bindings=*/nullptr,
+      /*.binding_count=*/1,
+      /*.bindings=*/&read_binding,
+  };
+  IREE_EXPECT_STATUS_IS(
+      IREE_STATUS_FAILED_PRECONDITION,
+      id4_pipeline_program_dispatch_loom(builder, &read_dispatch_options));
+
+  id4_pipeline_program_export_options_t export_options = {
+      /*.structure_size=*/sizeof(export_options),
+      /*.next=*/nullptr,
+      /*.name=*/IREE_SV("stage.output"),
+      /*.tensor=*/output,
+  };
+  IREE_EXPECT_STATUS_IS(IREE_STATUS_FAILED_PRECONDITION,
+                        id4_pipeline_program_export(builder, &export_options));
+
+  id4_pipeline_program_dispatch_binding_t write_binding =
+      id4_pipeline_program_write(output);
+  id4_pipeline_program_dispatch_loom_options_t write_dispatch_options = {
+      /*.structure_size=*/sizeof(write_dispatch_options),
+      /*.next=*/nullptr,
+      /*.name=*/IREE_SV("write_output"),
+      /*.kernel=*/
+      id4_pipeline_make_kernel_ref(IREE_SV("test/write"), IREE_SV("write")),
+      /*.config_binding_count=*/0,
+      /*.config_bindings=*/nullptr,
+      /*.binding_count=*/1,
+      /*.bindings=*/&write_binding,
+  };
+  IREE_ASSERT_OK(
+      id4_pipeline_program_dispatch_loom(builder, &write_dispatch_options));
+  IREE_ASSERT_OK(id4_pipeline_program_export(builder, &export_options));
+
+  builder_scope.DestroyBuilder();
+}
+
+TEST(PipelineProgram, SubviewRequiresLocalBoundsAndEpochSeparation) {
+  ProgramBuilderScope builder_scope;
+  id4_pipeline_program_builder_t* builder = builder_scope.builder();
+
+  id4_pipeline_program_tensor_t imported =
+      id4_pipeline_program_tensor_invalid();
+  id4_pipeline_program_import_tensor_options_t import_options = {
+      /*.structure_size=*/sizeof(import_options),
+      /*.next=*/nullptr,
+      /*.flags=*/ID4_PIPELINE_PROGRAM_IMPORT_TENSOR_FLAG_INITIALIZED,
+      /*.name=*/IREE_SV("imported"),
+      /*.dtype=*/ID4_PIPELINE_PROGRAM_DTYPE_F32,
+      /*.shape=*/id4_pipeline_program_make_shape_rank1(16),
+  };
+  IREE_ASSERT_OK(
+      id4_pipeline_program_import_tensor(builder, &import_options, &imported));
+  id4_pipeline_program_subview_tensor_options_t imported_subview_options = {
+      /*.structure_size=*/sizeof(imported_subview_options),
+      /*.next=*/nullptr,
+      /*.flags=*/0,
+      /*.name=*/IREE_SV("imported.subview"),
+      /*.source=*/imported,
+      /*.source_byte_offset=*/0,
+      /*.shape=*/id4_pipeline_program_make_shape_rank1(8),
+  };
+  id4_pipeline_program_tensor_t subview = id4_pipeline_program_tensor_invalid();
+  IREE_EXPECT_STATUS_IS(IREE_STATUS_INVALID_ARGUMENT,
+                        id4_pipeline_program_subview_tensor(
+                            builder, &imported_subview_options, &subview));
+
+  id4_pipeline_program_tensor_t scratch = id4_pipeline_program_tensor_invalid();
+  id4_pipeline_program_acquire_tensor_options_t acquire_options = {
+      /*.structure_size=*/sizeof(acquire_options),
+      /*.next=*/nullptr,
+      /*.name=*/IREE_SV("scratch"),
+      /*.dtype=*/ID4_PIPELINE_PROGRAM_DTYPE_F32,
+      /*.shape=*/id4_pipeline_program_make_shape_rank1(16),
+  };
+  IREE_ASSERT_OK(
+      id4_pipeline_program_acquire_tensor(builder, &acquire_options, &scratch));
+  id4_pipeline_program_subview_tensor_options_t out_of_bounds_options = {
+      /*.structure_size=*/sizeof(out_of_bounds_options),
+      /*.next=*/nullptr,
+      /*.flags=*/0,
+      /*.name=*/IREE_SV("scratch.out_of_bounds"),
+      /*.source=*/scratch,
+      /*.source_byte_offset=*/48,
+      /*.shape=*/id4_pipeline_program_make_shape_rank1(8),
+  };
+  IREE_EXPECT_STATUS_IS(IREE_STATUS_OUT_OF_RANGE,
+                        id4_pipeline_program_subview_tensor(
+                            builder, &out_of_bounds_options, &subview));
+
+  id4_pipeline_program_dispatch_binding_t write =
+      id4_pipeline_program_write(scratch);
+  id4_pipeline_program_dispatch_loom_options_t write_options = {
+      /*.structure_size=*/sizeof(write_options),
+      /*.next=*/nullptr,
+      /*.name=*/IREE_SV("initialize_scratch"),
+      /*.kernel=*/
+      id4_pipeline_make_kernel_ref(IREE_SV("test/write"), IREE_SV("write")),
+      /*.config_binding_count=*/0,
+      /*.config_bindings=*/nullptr,
+      /*.binding_count=*/1,
+      /*.bindings=*/&write,
+  };
+  IREE_ASSERT_OK(id4_pipeline_program_dispatch_loom(builder, &write_options));
+
+  id4_pipeline_program_subview_tensor_options_t subview_options = {
+      /*.structure_size=*/sizeof(subview_options),
+      /*.next=*/nullptr,
+      /*.flags=*/ID4_PIPELINE_PROGRAM_SUBVIEW_TENSOR_FLAG_DISCARD_CONTENTS,
+      /*.name=*/IREE_SV("scratch.lower_half"),
+      /*.source=*/scratch,
+      /*.source_byte_offset=*/0,
+      /*.shape=*/id4_pipeline_program_make_shape_rank1(8),
+  };
+  IREE_EXPECT_STATUS_IS(
+      IREE_STATUS_FAILED_PRECONDITION,
+      id4_pipeline_program_subview_tensor(builder, &subview_options, &subview));
+  id4_pipeline_program_barrier_options_t barrier_options = {
+      /*.structure_size=*/sizeof(barrier_options),
+      /*.next=*/nullptr,
+      /*.name=*/IREE_SV("before_subview"),
+  };
+  IREE_ASSERT_OK(id4_pipeline_program_barrier(builder, &barrier_options));
+  IREE_ASSERT_OK(
+      id4_pipeline_program_subview_tensor(builder, &subview_options, &subview));
+
+  id4_pipeline_program_t* program = nullptr;
+  IREE_ASSERT_OK(id4_pipeline_program_builder_seal(
+      builder, iree_allocator_system(), &program));
+  const id4_pipeline_program_tensor_record_t* record =
+      id4_pipeline_program_tensor_at(program, subview.ordinal);
+  ASSERT_NE(record, nullptr);
+  EXPECT_EQ(record->storage_root_ordinal, scratch.ordinal);
+  EXPECT_EQ(record->storage_byte_offset, 0u);
+  EXPECT_EQ(record->byte_length, 32u);
+  const id4_pipeline_program_op_t* operation =
+      id4_pipeline_program_operation_at(program,
+                                        record->producer_operation_ordinal);
+  ASSERT_NE(operation, nullptr);
+  EXPECT_EQ(operation->kind, ID4_PIPELINE_PROGRAM_OP_KIND_SUBVIEW);
+  EXPECT_EQ(operation->payload.subview.source.ordinal, scratch.ordinal);
+  id4_pipeline_program_release(program);
+}
+
+TEST(PipelineProgram, DestructiveAliasWriteConsumesOverlappingNames) {
+  ProgramBuilderScope builder_scope;
+  id4_pipeline_program_builder_t* builder = builder_scope.builder();
+
+  id4_pipeline_program_tensor_t scratch = id4_pipeline_program_tensor_invalid();
+  id4_pipeline_program_acquire_tensor_options_t acquire_options = {
+      /*.structure_size=*/sizeof(acquire_options),
+      /*.next=*/nullptr,
+      /*.name=*/IREE_SV("scratch"),
+      /*.dtype=*/ID4_PIPELINE_PROGRAM_DTYPE_F32,
+      /*.shape=*/id4_pipeline_program_make_shape_rank1(16),
+  };
+  IREE_ASSERT_OK(
+      id4_pipeline_program_acquire_tensor(builder, &acquire_options, &scratch));
+  id4_pipeline_program_dispatch_binding_t initialize =
+      id4_pipeline_program_write(scratch);
+  id4_pipeline_program_dispatch_loom_options_t initialize_options = {
+      /*.structure_size=*/sizeof(initialize_options),
+      /*.next=*/nullptr,
+      /*.name=*/IREE_SV("initialize_scratch"),
+      /*.kernel=*/
+      id4_pipeline_make_kernel_ref(IREE_SV("test/write"), IREE_SV("write")),
+      /*.config_binding_count=*/0,
+      /*.config_bindings=*/nullptr,
+      /*.binding_count=*/1,
+      /*.bindings=*/&initialize,
+  };
+  IREE_ASSERT_OK(
+      id4_pipeline_program_dispatch_loom(builder, &initialize_options));
+  id4_pipeline_program_barrier_options_t barrier_options = {
+      /*.structure_size=*/sizeof(barrier_options),
+      /*.next=*/nullptr,
+      /*.name=*/IREE_SV("before_destructive_alias"),
+  };
+  IREE_ASSERT_OK(id4_pipeline_program_barrier(builder, &barrier_options));
+
+  id4_pipeline_program_tensor_t lower_half =
+      id4_pipeline_program_tensor_invalid();
+  id4_pipeline_program_subview_tensor_options_t subview_options = {
+      /*.structure_size=*/sizeof(subview_options),
+      /*.next=*/nullptr,
+      /*.flags=*/ID4_PIPELINE_PROGRAM_SUBVIEW_TENSOR_FLAG_DISCARD_CONTENTS,
+      /*.name=*/IREE_SV("scratch.lower_half"),
+      /*.source=*/scratch,
+      /*.source_byte_offset=*/0,
+      /*.shape=*/id4_pipeline_program_make_shape_rank1(8),
+  };
+  IREE_ASSERT_OK(id4_pipeline_program_subview_tensor(builder, &subview_options,
+                                                     &lower_half));
+
+  id4_pipeline_program_dispatch_binding_t undeclared_bindings[] = {
+      id4_pipeline_program_read(scratch),
+      id4_pipeline_program_write(lower_half),
+  };
+  id4_pipeline_program_dispatch_loom_options_t undeclared_options = {
+      /*.structure_size=*/sizeof(undeclared_options),
+      /*.next=*/nullptr,
+      /*.name=*/IREE_SV("undeclared_alias"),
+      /*.kernel=*/
+      id4_pipeline_make_kernel_ref(IREE_SV("test/alias"), IREE_SV("alias")),
+      /*.config_binding_count=*/0,
+      /*.config_bindings=*/nullptr,
+      /*.binding_count=*/IREE_ARRAYSIZE(undeclared_bindings),
+      /*.bindings=*/undeclared_bindings,
+  };
+  IREE_EXPECT_STATUS_IS(
+      IREE_STATUS_FAILED_PRECONDITION,
+      id4_pipeline_program_dispatch_loom(builder, &undeclared_options));
+
+  id4_pipeline_program_dispatch_binding_t partial_alias_binding =
+      id4_pipeline_program_write_range(lower_half, 0, 16);
+  partial_alias_binding.flags |=
+      ID4_PIPELINE_PROGRAM_DISPATCH_BINDING_FLAG_DESTRUCTIVE_ALIAS_WRITE;
+  id4_pipeline_program_dispatch_loom_options_t partial_alias_options = {
+      /*.structure_size=*/sizeof(partial_alias_options),
+      /*.next=*/nullptr,
+      /*.name=*/IREE_SV("partial_destructive_alias"),
+      /*.kernel=*/
+      id4_pipeline_make_kernel_ref(IREE_SV("test/write"), IREE_SV("write")),
+      /*.config_binding_count=*/0,
+      /*.config_bindings=*/nullptr,
+      /*.binding_count=*/1,
+      /*.bindings=*/&partial_alias_binding,
+  };
+  IREE_EXPECT_STATUS_IS(
+      IREE_STATUS_INVALID_ARGUMENT,
+      id4_pipeline_program_dispatch_loom(builder, &partial_alias_options));
+
+  id4_pipeline_program_dispatch_binding_t destructive_bindings[] = {
+      id4_pipeline_program_read(scratch),
+      id4_pipeline_program_write_alias(lower_half),
+  };
+  id4_pipeline_program_dispatch_loom_options_t destructive_options = {
+      /*.structure_size=*/sizeof(destructive_options),
+      /*.next=*/nullptr,
+      /*.name=*/IREE_SV("destructive_alias"),
+      /*.kernel=*/
+      id4_pipeline_make_kernel_ref(IREE_SV("test/alias"), IREE_SV("alias")),
+      /*.config_binding_count=*/0,
+      /*.config_bindings=*/nullptr,
+      /*.binding_count=*/IREE_ARRAYSIZE(destructive_bindings),
+      /*.bindings=*/destructive_bindings,
+  };
+  IREE_ASSERT_OK(
+      id4_pipeline_program_dispatch_loom(builder, &destructive_options));
+
+  id4_pipeline_program_dispatch_binding_t read_scratch =
+      id4_pipeline_program_read(scratch);
+  id4_pipeline_program_dispatch_loom_options_t read_scratch_options = {
+      /*.structure_size=*/sizeof(read_scratch_options),
+      /*.next=*/nullptr,
+      /*.name=*/IREE_SV("read_consumed_scratch"),
+      /*.kernel=*/
+      id4_pipeline_make_kernel_ref(IREE_SV("test/read"), IREE_SV("read")),
+      /*.config_binding_count=*/0,
+      /*.config_bindings=*/nullptr,
+      /*.binding_count=*/1,
+      /*.bindings=*/&read_scratch,
+  };
+  IREE_EXPECT_STATUS_IS(
+      IREE_STATUS_FAILED_PRECONDITION,
+      id4_pipeline_program_dispatch_loom(builder, &read_scratch_options));
+
+  id4_pipeline_program_dispatch_binding_t read_lower_half =
+      id4_pipeline_program_read(lower_half);
+  id4_pipeline_program_dispatch_loom_options_t read_lower_half_options = {
+      /*.structure_size=*/sizeof(read_lower_half_options),
+      /*.next=*/nullptr,
+      /*.name=*/IREE_SV("read_alias_output"),
+      /*.kernel=*/
+      id4_pipeline_make_kernel_ref(IREE_SV("test/read"), IREE_SV("read")),
+      /*.config_binding_count=*/0,
+      /*.config_bindings=*/nullptr,
+      /*.binding_count=*/1,
+      /*.bindings=*/&read_lower_half,
+  };
+  IREE_ASSERT_OK(
+      id4_pipeline_program_dispatch_loom(builder, &read_lower_half_options));
+}
+
+TEST(PipelineProgram, RejectsAmbiguousIdentitiesAndInvalidHandles) {
+  ProgramBuilderScope builder_scope;
+  id4_pipeline_program_builder_t* builder = builder_scope.builder();
+
+  id4_pipeline_program_tensor_t input = id4_pipeline_program_tensor_invalid();
+  id4_pipeline_program_import_tensor_options_t input_options = {
+      /*.structure_size=*/sizeof(input_options),
+      /*.next=*/nullptr,
+      /*.flags=*/ID4_PIPELINE_PROGRAM_IMPORT_TENSOR_FLAG_INITIALIZED,
+      /*.name=*/IREE_SV("hidden_states"),
+      /*.dtype=*/ID4_PIPELINE_PROGRAM_DTYPE_F32,
+      /*.shape=*/id4_pipeline_program_make_shape_rank1(4),
+  };
+  IREE_ASSERT_OK(
+      id4_pipeline_program_import_tensor(builder, &input_options, &input));
+
+  const id4_pipeline_program_parameter_source_t duplicate_parameter_sources[] =
+      {
+          {
+              /*.source_scope=*/IREE_SV(""),
+              /*.key=*/IREE_SV("hidden_states"),
+              /*.dtype=*/ID4_PIPELINE_PROGRAM_DTYPE_F32,
+              /*.shape=*/id4_pipeline_program_make_shape_rank1(4),
+          },
+      };
+  id4_pipeline_program_parameter_options_t duplicate_parameter_options = {
+      /*.structure_size=*/sizeof(duplicate_parameter_options),
+      /*.next=*/nullptr,
+      /*.encoding=*/ID4_PIPELINE_PROGRAM_PARAMETER_ENCODING_DIRECT,
+      /*.source_count=*/IREE_ARRAYSIZE(duplicate_parameter_sources),
+      /*.sources=*/duplicate_parameter_sources,
+      /*.key=*/IREE_SV("hidden_states"),
+      /*.dtype=*/ID4_PIPELINE_PROGRAM_DTYPE_F32,
+      /*.shape=*/id4_pipeline_program_make_shape_rank1(4),
+  };
+  id4_pipeline_program_tensor_t duplicate =
+      id4_pipeline_program_tensor_invalid();
+  IREE_EXPECT_STATUS_IS(IREE_STATUS_ALREADY_EXISTS,
+                        id4_pipeline_program_parameter(
+                            builder, &duplicate_parameter_options, &duplicate));
+
+  id4_pipeline_program_tap_options_t invalid_tap_options = {
+      /*.structure_size=*/sizeof(invalid_tap_options),
+      /*.next=*/nullptr,
+      /*.name=*/IREE_SV("invalid"),
+      /*.tensor=*/id4_pipeline_program_tensor_invalid(),
+  };
+  IREE_EXPECT_STATUS_IS(
+      IREE_STATUS_INVALID_ARGUMENT,
+      id4_pipeline_program_tap(builder, &invalid_tap_options));
+
+  id4_pipeline_program_export_options_t export_options = {
+      /*.structure_size=*/sizeof(export_options),
+      /*.next=*/nullptr,
+      /*.name=*/IREE_SV("hidden_states.output"),
+      /*.tensor=*/input,
+  };
+  IREE_ASSERT_OK(id4_pipeline_program_export(builder, &export_options));
+  IREE_EXPECT_STATUS_IS(IREE_STATUS_ALREADY_EXISTS,
+                        id4_pipeline_program_export(builder, &export_options));
+
+  builder_scope.DestroyBuilder();
+}
+
+TEST(PipelineProgram, ComplementaryFillsEstablishTensorInitialization) {
+  ProgramBuilderScope builder_scope;
+  id4_pipeline_program_builder_t* builder = builder_scope.builder();
+
+  id4_pipeline_program_tensor_t scratch = id4_pipeline_program_tensor_invalid();
+  id4_pipeline_program_acquire_tensor_options_t acquire_options = {
+      /*.structure_size=*/sizeof(acquire_options),
+      /*.next=*/nullptr,
+      /*.name=*/IREE_SV("scratch"),
+      /*.dtype=*/ID4_PIPELINE_PROGRAM_DTYPE_U32,
+      /*.shape=*/id4_pipeline_program_make_shape_rank1(4),
+  };
+  IREE_ASSERT_OK(
+      id4_pipeline_program_acquire_tensor(builder, &acquire_options, &scratch));
+
+  id4_pipeline_program_fill_options_t lower_fill_options = {
+      /*.structure_size=*/sizeof(lower_fill_options),
+      /*.next=*/nullptr,
+      /*.name=*/IREE_SV("fill_lower"),
+      /*.target=*/scratch,
+      /*.target_range=*/{/*.offset=*/0, /*.length=*/8},
+      /*.pattern=*/{0x34, 0x12, 0, 0},
+      /*.pattern_length=*/2,
+      /*.flags=*/IREE_HAL_FILL_FLAG_NONE,
+  };
+  IREE_ASSERT_OK(id4_pipeline_program_fill(builder, &lower_fill_options));
+
+  id4_pipeline_program_barrier_options_t first_barrier_options = {
+      /*.structure_size=*/sizeof(first_barrier_options),
+      /*.next=*/nullptr,
+      /*.name=*/IREE_SV("after_lower"),
+  };
+  IREE_ASSERT_OK(id4_pipeline_program_barrier(builder, &first_barrier_options));
+
+  id4_pipeline_program_dispatch_binding_t read_binding =
+      id4_pipeline_program_read(scratch);
+  id4_pipeline_program_dispatch_loom_options_t read_options = {
+      /*.structure_size=*/sizeof(read_options),
+      /*.next=*/nullptr,
+      /*.name=*/IREE_SV("read_scratch"),
+      /*.kernel=*/
+      id4_pipeline_make_kernel_ref(IREE_SV("test/read"), IREE_SV("read")),
+      /*.config_binding_count=*/0,
+      /*.config_bindings=*/nullptr,
+      /*.binding_count=*/1,
+      /*.bindings=*/&read_binding,
+  };
+  IREE_EXPECT_STATUS_IS(
+      IREE_STATUS_FAILED_PRECONDITION,
+      id4_pipeline_program_dispatch_loom(builder, &read_options));
+
+  id4_pipeline_program_fill_options_t upper_fill_options = {
+      /*.structure_size=*/sizeof(upper_fill_options),
+      /*.next=*/nullptr,
+      /*.name=*/IREE_SV("fill_upper"),
+      /*.target=*/scratch,
+      /*.target_range=*/{/*.offset=*/8, /*.length=*/8},
+      /*.pattern=*/{0x78, 0x56, 0, 0},
+      /*.pattern_length=*/2,
+      /*.flags=*/IREE_HAL_FILL_FLAG_NONE,
+  };
+  IREE_ASSERT_OK(id4_pipeline_program_fill(builder, &upper_fill_options));
+
+  id4_pipeline_program_barrier_options_t second_barrier_options = {
+      /*.structure_size=*/sizeof(second_barrier_options),
+      /*.next=*/nullptr,
+      /*.name=*/IREE_SV("after_upper"),
+  };
+  IREE_ASSERT_OK(
+      id4_pipeline_program_barrier(builder, &second_barrier_options));
+  IREE_ASSERT_OK(id4_pipeline_program_dispatch_loom(builder, &read_options));
+
+  id4_pipeline_program_t* program = nullptr;
+  IREE_ASSERT_OK(id4_pipeline_program_builder_seal(
+      builder, iree_allocator_system(), &program));
+  builder_scope.DestroyBuilder();
+
+  ASSERT_EQ(id4_pipeline_program_operation_count(program), 6u);
+  const id4_pipeline_program_op_t* lower_fill =
+      id4_pipeline_program_operation_at(program, 1);
+  ASSERT_NE(lower_fill, nullptr);
+  ASSERT_EQ(lower_fill->kind, ID4_PIPELINE_PROGRAM_OP_KIND_FILL);
+  ExpectStringViewEqual(lower_fill->payload.fill.name, IREE_SV("fill_lower"));
+  EXPECT_EQ(lower_fill->payload.fill.target.ordinal, scratch.ordinal);
+  EXPECT_EQ(lower_fill->payload.fill.target_range.offset, 0u);
+  EXPECT_EQ(lower_fill->payload.fill.target_range.length, 8u);
+  EXPECT_EQ(lower_fill->payload.fill.pattern[0], 0x34u);
+  EXPECT_EQ(lower_fill->payload.fill.pattern[1], 0x12u);
+  EXPECT_EQ(lower_fill->payload.fill.pattern_length, 2u);
+
+  id4_pipeline_program_release(program);
+}
+
+TEST(PipelineProgram, SubviewPreservesPartialInitializationCoverage) {
+  ProgramBuilderScope builder_scope;
+  id4_pipeline_program_builder_t* builder = builder_scope.builder();
+
+  id4_pipeline_program_tensor_t scratch = id4_pipeline_program_tensor_invalid();
+  id4_pipeline_program_acquire_tensor_options_t acquire_options = {
+      /*.structure_size=*/sizeof(acquire_options),
+      /*.next=*/nullptr,
+      /*.name=*/IREE_SV("scratch"),
+      /*.dtype=*/ID4_PIPELINE_PROGRAM_DTYPE_U32,
+      /*.shape=*/id4_pipeline_program_make_shape_rank1(4),
+  };
+  IREE_ASSERT_OK(
+      id4_pipeline_program_acquire_tensor(builder, &acquire_options, &scratch));
+
+  id4_pipeline_program_fill_options_t fill_options = {
+      /*.structure_size=*/sizeof(fill_options),
+      /*.next=*/nullptr,
+      /*.name=*/IREE_SV("fill_lower"),
+      /*.target=*/scratch,
+      /*.target_range=*/{/*.offset=*/0, /*.length=*/8},
+      /*.pattern=*/{0, 0, 0, 0},
+      /*.pattern_length=*/4,
+      /*.flags=*/IREE_HAL_FILL_FLAG_NONE,
+  };
+  IREE_ASSERT_OK(id4_pipeline_program_fill(builder, &fill_options));
+
+  id4_pipeline_program_barrier_options_t barrier_options = {
+      /*.structure_size=*/sizeof(barrier_options),
+      /*.next=*/nullptr,
+      /*.name=*/IREE_SV("after_fill"),
+  };
+  IREE_ASSERT_OK(id4_pipeline_program_barrier(builder, &barrier_options));
+
+  id4_pipeline_program_tensor_t lower = id4_pipeline_program_tensor_invalid();
+  id4_pipeline_program_subview_tensor_options_t subview_options = {
+      /*.structure_size=*/sizeof(subview_options),
+      /*.next=*/nullptr,
+      /*.flags=*/0,
+      /*.name=*/IREE_SV("lower"),
+      /*.source=*/scratch,
+      /*.source_byte_offset=*/0,
+      /*.shape=*/id4_pipeline_program_make_shape_rank1(2),
+  };
+  IREE_ASSERT_OK(
+      id4_pipeline_program_subview_tensor(builder, &subview_options, &lower));
+
+  id4_pipeline_program_dispatch_binding_t read_binding =
+      id4_pipeline_program_read(lower);
+  id4_pipeline_program_dispatch_loom_options_t read_options = {
+      /*.structure_size=*/sizeof(read_options),
+      /*.next=*/nullptr,
+      /*.name=*/IREE_SV("read_lower"),
+      /*.kernel=*/
+      id4_pipeline_make_kernel_ref(IREE_SV("test/read"), IREE_SV("read")),
+      /*.config_binding_count=*/0,
+      /*.config_bindings=*/nullptr,
+      /*.binding_count=*/1,
+      /*.bindings=*/&read_binding,
+  };
+  IREE_ASSERT_OK(id4_pipeline_program_dispatch_loom(builder, &read_options));
+}
+
+}  // namespace

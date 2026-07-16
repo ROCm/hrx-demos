@@ -1,0 +1,251 @@
+# Copyright 2026 The IREE Authors
+#
+# Licensed under the Apache License v2.0 with LLVM Exceptions.
+# See https://llvm.org/LICENSE.txt for license information.
+# SPDX-License-Identifier: Apache-2.0 WITH LLVM-exception
+
+load("@rules_python//python:defs.bzl", "py_binary", "py_library", "py_test")
+load("//build_tools:hrx_cc.bzl", "iree_runtime_cc_library")
+load("//build_tools:hrx_cc.bzl", "iree_runtime_cc_test")
+
+package(
+    default_visibility = ["//visibility:public"],
+    licenses = ["notice"],
+)
+
+iree_runtime_cc_library(
+    name = "capture",
+    srcs = ["capture.c"],
+    hdrs = ["capture.h"],
+    deps = [
+        ":filesystem",
+        "//pipeline:json",
+        "//pipeline:plan",
+        "//pipeline:region",
+        "@hrx_system//runtime/src/iree/base",
+        "@hrx_system//runtime/src/iree/hal",
+    ],
+)
+
+iree_runtime_cc_library(
+    name = "filesystem",
+    srcs = ["filesystem.c"],
+    hdrs = ["filesystem.h"],
+    deps = ["@hrx_system//runtime/src/iree/base"],
+)
+
+iree_runtime_cc_library(
+    name = "diagnostics",
+    srcs = ["diagnostics.c"],
+    hdrs = ["diagnostics.h"],
+    deps = [
+        ":filesystem",
+        "//pipeline:diagnostics",
+        "//pipeline:json",
+        "@hrx_system//runtime/src/iree/base",
+    ],
+)
+
+iree_runtime_cc_library(
+    name = "image",
+    srcs = ["image.c"],
+    hdrs = ["image.h"],
+    deps = [
+        "//pipeline:plan",
+        "@hrx_system//runtime/src/iree/base",
+    ],
+)
+
+iree_runtime_cc_library(
+    name = "readback",
+    srcs = ["readback.c"],
+    hdrs = ["readback.h"],
+    deps = [
+        "@hrx_system//runtime/src/iree/base",
+        "@hrx_system//runtime/src/iree/hal",
+        "@hrx_system//runtime/src/iree/io:file_handle",
+    ],
+)
+
+iree_runtime_cc_library(
+    name = "runtime",
+    srcs = ["runtime.c"],
+    hdrs = ["runtime.h"],
+    deps = [
+        "//kernels:embedded_loom_sources",
+        "//pipeline:kernel_cache",
+        "//pipeline:kernel_library",
+        "//pipeline:stage",
+        "@hrx_system//runtime/src/iree/async",
+        "@hrx_system//runtime/src/iree/async/util:proactor_pool",
+        "@hrx_system//runtime/src/iree/base",
+        "@hrx_system//runtime/src/iree/hal",
+        "@hrx_system//runtime/src/iree/io:parameter_index",
+        "@hrx_system//runtime/src/iree/io:parameter_index_provider",
+        "@hrx_system//runtime/src/iree/io:parameter_provider",
+        "@hrx_system//runtime/src/iree/io:scope_map",
+        "@hrx_system//runtime/src/iree/tooling:device_util",
+        "@hrx_system//runtime/src/iree/tooling:parameter_util",
+    ],
+)
+
+iree_runtime_cc_test(
+    name = "capture_test",
+    srcs = ["capture_test.cc"],
+    deps = [
+        ":capture",
+        "//pipeline:diagnostics",
+        "//pipeline:plan",
+        "//stages:test_util",
+        "@hrx_system//runtime/src/iree/base",
+        "@hrx_system//runtime/src/iree/hal",
+        "//runtime/src/iree/testing:gtest",
+        "//runtime/src/iree/testing:gtest_main",
+        "//runtime/src/iree/testing:temp_file",
+    ],
+)
+
+iree_runtime_cc_test(
+    name = "filesystem_test",
+    srcs = ["filesystem_test.cc"],
+    deps = [
+        ":filesystem",
+        "@hrx_system//runtime/src/iree/base",
+        "//runtime/src/iree/testing:gtest",
+        "//runtime/src/iree/testing:gtest_main",
+        "//runtime/src/iree/testing:temp_file",
+    ],
+)
+
+iree_runtime_cc_test(
+    name = "diagnostics_test",
+    srcs = ["diagnostics_test.cc"],
+    deps = [
+        ":diagnostics",
+        "//pipeline:diagnostics",
+        "@hrx_system//runtime/src/iree/base",
+        "@hrx_system//runtime/src/iree/hal",
+        "//runtime/src/iree/testing:gtest",
+        "//runtime/src/iree/testing:gtest_main",
+        "//runtime/src/iree/testing:temp_file",
+    ],
+)
+
+iree_runtime_cc_test(
+    name = "image_test",
+    srcs = ["image_test.cc"],
+    deps = [
+        ":image",
+        "@hrx_system//runtime/src/iree/base",
+        "//runtime/src/iree/testing:gtest",
+        "//runtime/src/iree/testing:gtest_main",
+        "//runtime/src/iree/testing:temp_file",
+    ],
+)
+
+iree_runtime_cc_test(
+    name = "readback_test",
+    srcs = ["readback_test.cc"],
+    deps = [
+        ":readback",
+        "//stages:test_util",
+        "@hrx_system//runtime/src/iree/base",
+        "@hrx_system//runtime/src/iree/hal",
+        "//runtime/src/iree/testing:gtest",
+        "//runtime/src/iree/testing:gtest_main",
+    ],
+)
+
+iree_runtime_cc_test(
+    name = "runtime_test",
+    srcs = ["runtime_test.cc"],
+    deps = [
+        ":runtime",
+        "//pipeline:kernel_library",
+        "@hrx_system//runtime/src/iree/base",
+        "@hrx_system//runtime/src/iree/hal",
+        "@hrx_system//runtime/src/iree/io:parameter_provider",
+        "//runtime/src/iree/testing:gtest",
+        "//runtime/src/iree/testing:gtest_main",
+    ],
+)
+
+py_library(
+    name = "dispatch_profile_join_lib",
+    srcs = ["dispatch_profile_join.py"],
+    imports = ["."],
+)
+
+py_binary(
+    name = "dispatch_profile_join",
+    srcs = ["dispatch_profile_join.py"],
+    deps = [":dispatch_profile_join_lib"],
+)
+
+py_test(
+    name = "dispatch_profile_join_test",
+    srcs = ["dispatch_profile_join_test.py"],
+    deps = [":dispatch_profile_join_lib"],
+)
+
+py_library(
+    name = "dispatch_profile_compare_lib",
+    srcs = ["dispatch_profile_compare.py"],
+    imports = ["."],
+    deps = [":dispatch_profile_join_lib"],
+)
+
+py_binary(
+    name = "dispatch_profile_compare",
+    srcs = ["dispatch_profile_compare.py"],
+    deps = [":dispatch_profile_compare_lib"],
+)
+
+py_test(
+    name = "dispatch_profile_compare_test",
+    srcs = ["dispatch_profile_compare_test.py"],
+    deps = [
+        ":dispatch_profile_compare_lib",
+        ":dispatch_profile_join_lib",
+    ],
+)
+
+py_library(
+    name = "fixture_compare_lib",
+    srcs = ["fixture_compare.py"],
+    imports = ["."],
+    deps = ["//build_tools:trace_reduce_lib"],
+)
+
+py_binary(
+    name = "fixture_compare",
+    srcs = ["fixture_compare.py"],
+    deps = [":fixture_compare_lib"],
+)
+
+py_test(
+    name = "fixture_compare_test",
+    srcs = ["fixture_compare_test.py"],
+    deps = [
+        ":fixture_compare_lib",
+        "//build_tools:trace_reduce_lib",
+    ],
+)
+
+py_library(
+    name = "acceptance_scorecard_lib",
+    srcs = ["acceptance_scorecard.py"],
+    imports = ["."],
+)
+
+py_binary(
+    name = "acceptance_scorecard",
+    srcs = ["acceptance_scorecard.py"],
+    deps = [":acceptance_scorecard_lib"],
+)
+
+py_test(
+    name = "acceptance_scorecard_test",
+    srcs = ["acceptance_scorecard_test.py"],
+    deps = [":acceptance_scorecard_lib"],
+)

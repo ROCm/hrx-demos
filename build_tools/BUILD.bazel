@@ -1,0 +1,101 @@
+# Copyright 2026 The IREE Authors
+#
+# Licensed under the Apache License v2.0 with LLVM Exceptions.
+# See https://llvm.org/LICENSE.txt for license information.
+# SPDX-License-Identifier: Apache-2.0 WITH LLVM-exception
+
+load("@rules_python//python:defs.bzl", "py_binary", "py_library", "py_test")
+
+package(
+    default_visibility = ["//visibility:public"],
+    licenses = ["notice"],
+)
+
+py_library(
+    name = "trace_reduce_lib",
+    srcs = ["trace_reduce.py"],
+    imports = ["."],
+)
+
+py_binary(
+    name = "generate_fixture",
+    srcs = ["generate_fixture.py"],
+    data = ["//reference:fixture_plans"],
+    deps = [":trace_reduce_lib"],
+)
+
+py_binary(
+    name = "generation_benchmark_summary",
+    srcs = [
+        "generation_benchmark_summary.py",
+        "smoke_test.py",
+    ],
+    imports = ["."],
+)
+
+py_binary(
+    name = "smoke_test",
+    srcs = ["smoke_test.py"],
+    data = ["//binding/cli:id4"],
+)
+
+py_binary(
+    name = "trace_reduce",
+    srcs = ["trace_reduce.py"],
+)
+
+py_binary(
+    name = "trace_inventory",
+    srcs = ["trace_inventory.py"],
+    deps = [":trace_reduce_lib"],
+)
+
+py_test(
+    name = "generate_fixture_test",
+    srcs = [
+        "generate_fixture.py",
+        "generate_fixture_test.py",
+    ],
+    deps = [":trace_reduce_lib"],
+)
+
+py_test(
+    name = "generation_benchmark_summary_test",
+    srcs = [
+        "generation_benchmark_summary.py",
+        "generation_benchmark_summary_test.py",
+        "smoke_test.py",
+    ],
+    imports = ["."],
+)
+
+py_test(
+    name = "presubmit_test",
+    srcs = [
+        "presubmit.py",
+        "presubmit_test.py",
+    ],
+)
+
+py_test(
+    name = "smoke_test_test",
+    srcs = [
+        "smoke_test.py",
+        "smoke_test_test.py",
+    ],
+)
+
+py_test(
+    name = "trace_reduce_test",
+    srcs = ["trace_reduce_test.py"],
+    deps = [":trace_reduce_lib"],
+)
+
+py_test(
+    name = "trace_inventory_test",
+    srcs = [
+        "trace_inventory.py",
+        "trace_inventory_test.py",
+    ],
+    deps = [":trace_reduce_lib"],
+)

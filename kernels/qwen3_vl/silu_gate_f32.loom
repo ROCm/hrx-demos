@@ -1,0 +1,84 @@
+config.decl @id4.qwen3_vl.silu_gate.token_count : %value: index where [range(%value, 1, 65536)]
+
+config.decl @id4.qwen3_vl.silu_gate.intermediate_size : %value: index where [range(%value, 1, 65536)]
+
+kernel.def export("id4_qwen3_vl_silu_gate_f32") @id4_qwen3_vl_silu_gate_f32() {
+  %unit = index.constant 1 : index
+  %workgroup_size_x = index.constant 256 : index
+  %token_count = config.get @id4.qwen3_vl.silu_gate.token_count : index
+  %intermediate_size = config.get @id4.qwen3_vl.silu_gate.intermediate_size : index
+  %element_count = index.mul %token_count, %intermediate_size : index
+  %rounding = index.sub %workgroup_size_x, %unit : index
+  %rounded = index.add %element_count, %rounding : index
+  %workgroups_x = index.div %rounded, %workgroup_size_x : index
+  kernel.launch.config workgroups(%workgroups_x, %unit, %unit) workgroup_size(%workgroup_size_x, %unit, %unit) : index
+} launch(%gate: buffer, %up: buffer, %output: buffer) {
+  %base = index.constant 0 : offset
+  %workgroup = kernel.workgroup.id<x> : index
+  %lane = kernel.workitem.id<x> : index
+  %workgroup_size_x = index.constant 256 : index
+  %token_count = config.get @id4.qwen3_vl.silu_gate.token_count : index
+  %intermediate_size = config.get @id4.qwen3_vl.silu_gate.intermediate_size : index
+  %element_count = index.mul %token_count, %intermediate_size : index
+  %element_index = index.madd %workgroup, %workgroup_size_x, %lane : index
+  %in_bounds = index.cmp ult, %element_index, %element_count : index
+  %gate_noalias, %up_noalias, %output_noalias = buffer.assume.noalias %gate, %up, %output : buffer, buffer, buffer
+  %gate_global = buffer.assume.memory_space<global> %gate_noalias : buffer
+  %up_global = buffer.assume.memory_space<global> %up_noalias : buffer
+  %output_global = buffer.assume.memory_space<global> %output_noalias : buffer
+  %gate_view = buffer.view %gate_global[%base] : buffer -> view<[%token_count]x[%intermediate_size]xf32, #dense>
+  %up_view = buffer.view %up_global[%base] : buffer -> view<[%token_count]x[%intermediate_size]xf32, #dense>
+  %output_view = buffer.view %output_global[%base] : buffer -> view<[%token_count]x[%intermediate_size]xf32, #dense>
+  scf.if %in_bounds {
+    %token = index.div %element_index, %intermediate_size : index
+    %channel = index.rem %element_index, %intermediate_size : index
+    %gate_value = view.load %gate_view[%token, %channel] : view<[%token_count]x[%intermediate_size]xf32, #dense> -> f32
+    %up_value = view.load %up_view[%token, %channel] : view<[%token_count]x[%intermediate_size]xf32, #dense> -> f32
+    %gate_silu = scalar.siluf %gate_value : f32
+    %value = scalar.mulf<reassoc|nnan|ninf|nsz|contract> %gate_silu, %up_value : f32
+    view.store %value, %output_view[%token, %channel] : f32, view<[%token_count]x[%intermediate_size]xf32, #dense>
+  }
+  kernel.return
+}
+
+kernel.def export("id4_qwen3_vl_silu_gate_bf16") @id4_qwen3_vl_silu_gate_bf16() {
+  %unit = index.constant 1 : index
+  %workgroup_size_x = index.constant 256 : index
+  %token_count = config.get @id4.qwen3_vl.silu_gate.token_count : index
+  %intermediate_size = config.get @id4.qwen3_vl.silu_gate.intermediate_size : index
+  %element_count = index.mul %token_count, %intermediate_size : index
+  %rounding = index.sub %workgroup_size_x, %unit : index
+  %rounded = index.add %element_count, %rounding : index
+  %workgroups_x = index.div %rounded, %workgroup_size_x : index
+  kernel.launch.config workgroups(%workgroups_x, %unit, %unit) workgroup_size(%workgroup_size_x, %unit, %unit) : index
+} launch(%gate: buffer, %up: buffer, %output: buffer) {
+  %base = index.constant 0 : offset
+  %workgroup = kernel.workgroup.id<x> : index
+  %lane = kernel.workitem.id<x> : index
+  %workgroup_size_x = index.constant 256 : index
+  %token_count = config.get @id4.qwen3_vl.silu_gate.token_count : index
+  %intermediate_size = config.get @id4.qwen3_vl.silu_gate.intermediate_size : index
+  %element_count = index.mul %token_count, %intermediate_size : index
+  %element_index = index.madd %workgroup, %workgroup_size_x, %lane : index
+  %in_bounds = index.cmp ult, %element_index, %element_count : index
+  %gate_noalias, %up_noalias, %output_noalias = buffer.assume.noalias %gate, %up, %output : buffer, buffer, buffer
+  %gate_global = buffer.assume.memory_space<global> %gate_noalias : buffer
+  %up_global = buffer.assume.memory_space<global> %up_noalias : buffer
+  %output_global = buffer.assume.memory_space<global> %output_noalias : buffer
+  %gate_view = buffer.view %gate_global[%base] : buffer -> view<[%token_count]x[%intermediate_size]xbf16, #dense>
+  %up_view = buffer.view %up_global[%base] : buffer -> view<[%token_count]x[%intermediate_size]xbf16, #dense>
+  %output_view = buffer.view %output_global[%base] : buffer -> view<[%token_count]x[%intermediate_size]xbf16, #dense>
+  scf.if %in_bounds {
+    %token = index.div %element_index, %intermediate_size : index
+    %channel = index.rem %element_index, %intermediate_size : index
+    %gate_value_bf16 = view.load %gate_view[%token, %channel] : view<[%token_count]x[%intermediate_size]xbf16, #dense> -> bf16
+    %up_value_bf16 = view.load %up_view[%token, %channel] : view<[%token_count]x[%intermediate_size]xbf16, #dense> -> bf16
+    %gate_value = scalar.extf %gate_value_bf16 : bf16 to f32
+    %up_value = scalar.extf %up_value_bf16 : bf16 to f32
+    %gate_silu = scalar.siluf %gate_value : f32
+    %value = scalar.mulf<reassoc|nnan|ninf|nsz|contract> %gate_silu, %up_value : f32
+    %rounded = scalar.fptrunc %value : f32 to bf16
+    view.store %rounded, %output_view[%token, %channel] : bf16, view<[%token_count]x[%intermediate_size]xbf16, #dense>
+  }
+  kernel.return
+}
