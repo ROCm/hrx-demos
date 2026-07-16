@@ -28,6 +28,10 @@ on:
 permissions:
   contents: read
 
+defaults:
+  run:
+    shell: bash
+
 jobs:
   build_python_wheel:
     name: ${{ inputs.name }}
@@ -37,7 +41,9 @@ jobs:
       image: ghcr.io/rocm/therock_build_manylinux_x86_64@sha256:702a5133851e6d1daf1207d2c9fbb01c2667914a5b6dc5a01faeb3ce66ea6421
     env:
       HRX_OUTPUT_DIR: ${{ github.workspace }}/build/wheel
+      HRX_BUILD_PYTHON: /opt/python/cp312-cp312/bin/python3
       HRX_PYTHON: ${{ github.workspace }}/build/wheel/python/bin/python3
+      HRX_BAZEL_BIN_DIR: ${{ github.workspace }}/build/wheel/tools/bin
       HRX_RELEASE_TYPE: ${{ inputs.release_type }}
       HRX_RUN_ID: ${{ inputs.run_id }}
       HRX_ARTIFACT_SET: ${{ inputs.artifact_set }}
@@ -46,6 +52,8 @@ jobs:
       HRX_DOWNLOAD_CACHE_DIR: ${{ github.workspace }}/build/wheel/downloads
       HRX_DEMOS_PACKAGE_VERSION: ${{ inputs.package_version }}
       PIP_CACHE_DIR: ${{ github.workspace }}/build/wheel/caches/pip
+      BAZELISK_HOME: ${{ github.workspace }}/build/wheel/caches/bazelisk
+      BAZEL: ${{ github.workspace }}/build/wheel/tools/bin/bazel
       WHEEL_DIST_DIR: ${{ github.workspace }}/build/wheel/dist
       WHEEL_OUTPUT_DIR: ${{ github.workspace }}/build/wheel/wheelhouse
     steps:
@@ -60,22 +68,30 @@ jobs:
       - name: Fetch ROCm toolchain
         run: bash .github/scripts/fetch_rocm_toolchain.sh
 
-      - name: Install Python build frontend
+      - name: Check Python build frontend
         run: |
-          python3 --version
-          python3 -m pip install --upgrade build
+          "${HRX_BUILD_PYTHON}" --version
+          "${HRX_BUILD_PYTHON}" -m build --version
 
       - name: Install Bazel host tools
         run: |
-          python3 third_party/hrx-system/dev.py bazel setup --venv
-          echo "${GITHUB_WORKSPACE}/third_party/hrx-system/.venv/bin" \
-            >>"${GITHUB_PATH}"
+          mkdir -p "${HRX_BAZEL_BIN_DIR}"
+          "${HRX_BUILD_PYTHON}" \
+            third_party/hrx-system/build_tools/devtools/install.py \
+            --group bazel \
+            --bin-dir "${HRX_BAZEL_BIN_DIR}"
+          "${HRX_BUILD_PYTHON}" \
+            third_party/hrx-system/build_tools/devtools/install.py \
+            --group bazel \
+            --bin-dir "${HRX_BAZEL_BIN_DIR}" \
+            --check
 
       - name: Check build environment
         run: |
-          bazel --version
+          "${HRX_BUILD_PYTHON}" --version
+          "${BAZEL}" --version
           "${CC}" --version
-          python3 -m auditwheel --version
+          /usr/local/bin/auditwheel --version
           test -n "${AUDITWHEEL_PLAT:-}"
           test -d "${HRX_ROCM_ROOT}/include"
           test -f "${HRX_ROCM_ROOT}/lib/libhsa-runtime64.so.1"
@@ -83,19 +99,21 @@ jobs:
 
       - name: Configure Bazel
         run: |
-          python3 build_tools/setup_python.py \
+          "${HRX_BUILD_PYTHON}" build_tools/setup_python.py \
             --rocm="${HRX_ROCM_ROOT}" \
-            --bazel="$(command -v bazel)"
+            --bazel="${BAZEL}"
 
       - name: Build Linux wheel
-        run: python3 -m build --wheel --outdir "${WHEEL_DIST_DIR}"
+        run: >-
+          "${HRX_BUILD_PYTHON}" -m build --wheel
+          --outdir "${WHEEL_DIST_DIR}"
 
       - name: Inspect Linux wheel
-        run: python3 -m auditwheel show "${WHEEL_DIST_DIR}"/*.whl
+        run: /usr/local/bin/auditwheel show "${WHEEL_DIST_DIR}"/*.whl
 
       - name: Repair manylinux wheel
         run: |
-          python3 -m auditwheel repair \
+          /usr/local/bin/auditwheel repair \
             --plat "${AUDITWHEEL_PLAT}" \
             --wheel-dir "${WHEEL_OUTPUT_DIR}" \
             "${WHEEL_DIST_DIR}"/*.whl
@@ -113,8 +131,9 @@ jobs:
             echo "Repaired wheel is not tagged manylinux: ${wheels[0]}" >&2
             exit 1
           fi
-          python3 -m auditwheel show "${wheels[0]}"
-          python3 -m pip install --force-reinstall --no-deps "${wheels[0]}"
+          /usr/local/bin/auditwheel show "${wheels[0]}"
+          "${HRX_BUILD_PYTHON}" -m pip install \
+            --force-reinstall --no-deps "${wheels[0]}"
           hrx-id4 --help >/dev/null
           hrx-info --help >/dev/null
 

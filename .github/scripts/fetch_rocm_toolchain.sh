@@ -8,10 +8,11 @@
 set -euo pipefail
 
 : "${HRX_OUTPUT_DIR:?}"
+: "${HRX_BUILD_PYTHON:?}"
 : "${HRX_PYTHON:?}"
 : "${HRX_ROCM_ROOT:?}"
 
-python3 -m venv "${HRX_OUTPUT_DIR}/python"
+"${HRX_BUILD_PYTHON}" -m venv "${HRX_OUTPUT_DIR}/python"
 "${HRX_PYTHON}" -m pip install --upgrade pip boto3 zstandard
 "${HRX_PYTHON}" \
   third_party/hrx-system/build_tools/ci_core_linux.py fetch-rocm
