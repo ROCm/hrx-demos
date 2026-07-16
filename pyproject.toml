@@ -1,0 +1,39 @@
+[build-system]
+requires = [
+  "setuptools>=77",
+  "wheel>=0.45",
+]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "hrx-demos"
+version = "0.1.0"
+description = "Production-shaped applications built on the HRX runtime"
+readme = "README.md"
+requires-python = ">=3.9"
+license = "Apache-2.0 WITH LLVM-exception"
+license-files = ["LICENSE"]
+authors = [
+  {name = "The HRX Authors"},
+]
+classifiers = [
+  "Development Status :: 3 - Alpha",
+  "Environment :: Console",
+  "Operating System :: POSIX :: Linux",
+  "Programming Language :: Python :: 3",
+  "Topic :: Scientific/Engineering :: Artificial Intelligence",
+]
+
+[project.scripts]
+hrx-id4 = "hrx_demos.id4:main"
+hrx-info = "hrx_demos.info:main"
+
+[project.urls]
+Homepage = "https://github.com/ROCm/hrx-demos"
+Repository = "https://github.com/ROCm/hrx-demos"
+
+[tool.setuptools]
+packages = ["hrx_demos"]
+
+[tool.setuptools.package-dir]
+hrx_demos = "binding/python"

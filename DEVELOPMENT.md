@@ -87,6 +87,49 @@ prompt directly with `--prompt`, and repeatable
 [quickstart](docs/quickstart.md) has complete commands and the current hardware,
 output, first-run, and model-layout constraints.
 
+## Python Wheel Development
+
+The Python package is a thin launcher distribution over Bazel-built native
+executables. It contains no CPython extension ABI and is tagged `py3-none`, but
+it is platform-specific because it includes Linux x86-64 executables and ROCm
+runtime libraries.
+
+Install Bazelisk under the containing workspace's untracked `programs/`
+directory when Bazel 9.1 is not already available:
+
+```bash
+mkdir -p programs/bazel/bin programs/bazel/cache
+curl -fL https://github.com/bazelbuild/bazelisk/releases/download/v1.29.0/bazelisk-linux-amd64 \
+  -o programs/bazel/bin/bazel
+echo '5a408715e932c0250d28bd84555f12edbf70117de42f9181691c736eacc4a992  programs/bazel/bin/bazel' \
+  | sha256sum --check
+chmod +x programs/bazel/bin/bazel
+USE_BAZEL_VERSION=9.1.0 BAZELISK_HOME="$PWD/programs/bazel/cache" \
+  programs/bazel/bin/bazel --version
+```
+
+From the `hrx-demos` checkout, configure and build the wheel:
+
+```bash
+export BAZEL=/path/to/programs/bazel/bin/bazel
+python build_tools/setup_python.py \
+  --rocm=/path/to/rocm \
+  --bazel="$BAZEL"
+python -m pip install build
+python -m build --wheel
+```
+
+`setup_python.py` validates an existing compatible `.bazelrc.local`. It will
+not replace incompatible user settings unless passed `--force`. Wheel assembly
+runs the optimized Bazel build for `//binding/cli:id4` and
+`@hrx_system//libhrx/tools:hrx-info`, then stages the executables and the ROCm
+runtime payload into setuptools' build directory. Generated native files never
+enter the source package directory.
+
+At runtime, `hrx-id4` and `hrx-info` default to the wheel's HSA and AQL profile
+libraries. Setting `IREE_HAL_AMDGPU_LIBHSA_PATH` explicitly opts out of that
+default and leaves the caller's library search configuration unchanged.
+
 ## Source References
 
 Primary public references:
