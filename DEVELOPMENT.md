@@ -127,8 +127,8 @@ default and leaves the caller's library search configuration unchanged.
 The package version defaults to `0.1.0`. Set
 `HRX_DEMOS_PACKAGE_VERSION=<pep440-version>` to override it for an automated
 build. The reusable CI workflow exposes this as its `package_version` input so
-a future tag-based release can provide the release version without modifying
-the source tree.
+the tag-based release workflow can provide the release version without
+modifying the source tree.
 
 ### Manylinux CI
 
@@ -149,7 +149,23 @@ installs it into a fresh venv without an index or source checkout, checks
 package-consumer validation separate from the manylinux build environment.
 The `ci_python_wheel.yml` caller runs this flow for pull requests and pushes to
 `main` or `main-staging`, and exposes the ROCm and package-version inputs for
-manual dispatch. Publishing to PyPI remains a separate release workflow.
+manual dispatch.
+
+### GitHub Releases
+
+Push a semantic version tag whose value without an optional `v` prefix is also
+a valid PEP 440 version:
+
+```bash
+git tag v0.1.0
+git push origin v0.1.0
+```
+
+The `release_python_wheel.yml` workflow builds and smoke-tests the wheel, then
+creates a GitHub release with the manylinux x86-64 wheel attached. Tags such as
+`v0.2.0-rc.1` produce a canonical `0.2.0rc1` wheel and a GitHub prerelease.
+Rerunning a tag replaces the existing wheel asset. Publishing to PyPI is an
+offline, separate operation and is not performed by GitHub Actions.
 
 ## Source References
 

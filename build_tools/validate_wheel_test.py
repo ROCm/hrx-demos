@@ -25,6 +25,14 @@ class ValidateWheelTest(unittest.TestCase):
     def _valid_files(self) -> dict[str, bytes]:
         prefix = validate_wheel.NATIVE_LIBRARY_PREFIX
         return {
+            "hrx_demos-0.1.0.dist-info/METADATA": (
+                "Metadata-Version: 2.4\n"
+                "Name: hrx-demos\n"
+                "Version: 0.1.0\n"
+                "Description-Content-Type: text/markdown\n"
+                "\n"
+                + validate_wheel.README_PATH.read_text(encoding="utf-8")
+            ).encode(),
             prefix + "libhsa-runtime64.so.1": b"hsa",
             prefix + "libhsa-amd-aqlprofile64.so.1": b"aql",
             prefix + "librocprofiler-register.so.0": b"profiler",
@@ -61,6 +69,21 @@ class ValidateWheelTest(unittest.TestCase):
             files["hrx_demos.libs/librocm_sysdeps_elf-deadbeef.so.1"] = b"copy"
             wheel = self._write_wheel(Path(temporary_directory), files)
             with self.assertRaisesRegex(RuntimeError, "auditwheel grafted"):
+                validate_wheel.validate_wheel(wheel)
+
+    def test_rejects_stale_long_description(self):
+        with tempfile.TemporaryDirectory() as temporary_directory:
+            files = self._valid_files()
+            files["hrx_demos-0.1.0.dist-info/METADATA"] = (
+                b"Metadata-Version: 2.4\n"
+                b"Name: hrx-demos\n"
+                b"Version: 0.1.0\n"
+                b"Description-Content-Type: text/markdown\n"
+                b"\n"
+                b"stale README\n"
+            )
+            wheel = self._write_wheel(Path(temporary_directory), files)
+            with self.assertRaisesRegex(RuntimeError, "does not match README.md"):
                 validate_wheel.validate_wheel(wheel)
 
 

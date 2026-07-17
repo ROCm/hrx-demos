@@ -1,15 +1,18 @@
 #!/usr/bin/env python3
-"""Validates the native runtime layout of an HRX Demos wheel."""
+"""Validates the package metadata and native layout of an HRX Demos wheel."""
 
 from __future__ import annotations
 
 import argparse
+import email.parser
 import hashlib
 import zipfile
 from collections import defaultdict
 from pathlib import Path
 
 
+REPO_ROOT = Path(__file__).resolve().parents[1]
+README_PATH = REPO_ROOT / "README.md"
 NATIVE_LIBRARY_PREFIX = "hrx_demos/_native/lib/"
 REQUIRED_RUNTIME_LIBRARIES = {
     NATIVE_LIBRARY_PREFIX + "libhsa-runtime64.so.1",
@@ -27,6 +30,24 @@ def validate_wheel(path: Path) -> tuple[int, int]:
     native_libraries: list[str] = []
     with zipfile.ZipFile(path) as wheel:
         names = set(wheel.namelist())
+        metadata_paths = sorted(
+            name for name in names if name.endswith(".dist-info/METADATA")
+        )
+        if len(metadata_paths) != 1:
+            raise RuntimeError(
+                f"wheel must contain one METADATA file, found {metadata_paths!r}"
+            )
+        metadata = email.parser.BytesParser().parsebytes(
+            wheel.read(metadata_paths[0])
+        )
+        if metadata["Description-Content-Type"] != "text/markdown":
+            raise RuntimeError(
+                "wheel long description must have content type text/markdown"
+            )
+        expected_description = README_PATH.read_text(encoding="utf-8")
+        if metadata.get_payload() != expected_description:
+            raise RuntimeError("wheel long description does not match README.md")
+
         missing = sorted(REQUIRED_RUNTIME_LIBRARIES - names)
         if missing:
             raise RuntimeError(
