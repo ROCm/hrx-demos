@@ -39,6 +39,7 @@ export_env() {
 
 append_path "${HRX_ROCM_ROOT}/lib/llvm/bin"
 append_path "${HRX_ROCM_ROOT}/bin"
+export_env "HRX_AUDITWHEEL_LD_LIBRARY_PATH" "${LD_LIBRARY_PATH:-}"
 export_env "CC" "${HRX_ROCM_ROOT}/lib/llvm/bin/clang"
 export_env "CXX" "${HRX_ROCM_ROOT}/lib/llvm/bin/clang++"
 export_env "CMAKE_PREFIX_PATH" \

@@ -113,11 +113,16 @@ jobs:
           --outdir "${WHEEL_DIST_DIR}"
 
       - name: Inspect Linux wheel
-        run: /usr/local/bin/auditwheel show "${WHEEL_DIST_DIR}"/*.whl
+        run: |
+          "${HRX_BUILD_PYTHON}" build_tools/validate_wheel.py \
+            "${WHEEL_DIST_DIR}"/*.whl
+          env LD_LIBRARY_PATH="${HRX_AUDITWHEEL_LD_LIBRARY_PATH}" \
+            /usr/local/bin/auditwheel show "${WHEEL_DIST_DIR}"/*.whl
 
       - name: Repair manylinux wheel
         run: |
-          /usr/local/bin/auditwheel repair \
+          env LD_LIBRARY_PATH="${HRX_AUDITWHEEL_LD_LIBRARY_PATH}" \
+            /usr/local/bin/auditwheel repair \
             --plat "${AUDITWHEEL_PLAT}" \
             --wheel-dir "${WHEEL_OUTPUT_DIR}" \
             "${WHEEL_DIST_DIR}"/*.whl
@@ -135,6 +140,7 @@ jobs:
             echo "Repaired wheel is not tagged manylinux: ${wheels[0]}" >&2
             exit 1
           fi
+          "${HRX_BUILD_PYTHON}" build_tools/validate_wheel.py "${wheels[0]}"
           /usr/local/bin/auditwheel show "${wheels[0]}"
           "${HRX_BUILD_PYTHON}" -m pip install \
             --force-reinstall --no-deps "${wheels[0]}"

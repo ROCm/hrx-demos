@@ -124,7 +124,10 @@ not replace incompatible user settings unless passed `--force`. Wheel assembly
 runs the optimized Bazel build for `//binding/cli:id4` and
 `@hrx_system//libhrx/tools:hrx-info`, then stages the executables and the ROCm
 runtime payload into setuptools' build directory. Generated native files never
-enter the source package directory.
+enter the source package directory. The runtime payload is computed by walking
+ELF `DT_NEEDED` entries with ROCm's `llvm-readelf`. Each required ROCm library
+is copied once under the SONAME requested by the dynamic loader; unversioned
+linker names, full-version aliases, and unrelated sysdeps are not packaged.
 
 At runtime, `hrx-id4` and `hrx-info` default to the wheel's HSA and AQL profile
 libraries. Setting `IREE_HAL_AMDGPU_LIBHSA_PATH` explicitly opts out of that
@@ -144,9 +147,12 @@ fetcher as HRX. Its ROCm defaults are the latest complete nightly Linux release
 artifact run, the `core` artifact set, and the `release` artifact variant. Pass
 `run_id` to reproduce a specific TheRock build.
 
-The workflow builds the ordinary `linux_x86_64` wheel, repairs it to the pinned
-container's `AUDITWHEEL_PLAT`, installs it, and exercises both console scripts.
-The repaired wheel is uploaded as the `hrx-demos-wheel-linux-x86_64` artifact.
+The workflow builds the ordinary `linux_x86_64` wheel, validates its native
+payload, and repairs it to the pinned container's `AUDITWHEEL_PLAT`. Auditwheel
+runs without the source ROCm directories on its library search path so it uses
+the closure already in the wheel instead of grafting duplicate copies. The
+workflow installs the result, exercises both console scripts, and uploads it as
+the `hrx-demos-wheel-linux-x86_64` artifact.
 The `ci_python_wheel.yml` caller runs this flow for pull requests and pushes to
 `main` or `main-staging`, and exposes the ROCm and package-version inputs for
 manual dispatch. Publishing to PyPI remains a separate release workflow.

@@ -43,10 +43,12 @@ python -m build --wheel
 python -m pip install dist/hrx_demos-0.1.0-py3-none-linux_x86_64.whl
 ```
 
-This development wheel bundles the HSA runtime and its ROCm support libraries.
-Local builds deliberately use a `linux_x86_64` platform tag. CI builds in
-HRX's pinned manylinux container, repairs the wheel with auditwheel, and
-publishes the manylinux wheel as a workflow artifact.
+This development wheel bundles the HSA runtime and its required ROCm support
+library closure. Libraries are stored once under their stable runtime SONAMEs;
+development linker aliases and unrelated ROCm sysdeps are excluded. Local
+builds deliberately use a `linux_x86_64` platform tag. CI builds in HRX's
+pinned manylinux container, repairs the wheel with auditwheel, and publishes
+the manylinux wheel as a workflow artifact.
 
 ## Build From Source
 
