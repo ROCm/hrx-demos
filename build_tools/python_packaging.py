@@ -6,11 +6,12 @@ import hashlib
 import json
 import os
 import platform
+import re
 import shlex
 import shutil
 import subprocess
 from pathlib import Path
-from typing import Iterable, Optional
+from typing import Callable, Iterable, Optional
 
 from setuptools import Distribution
 from setuptools.command.bdist_wheel import bdist_wheel
@@ -23,12 +24,20 @@ BAZEL_TARGETS = (
     "//binding/cli:id4",
     "@hrx_system//libhrx/tools:hrx-info",
 )
-ROCM_LIBRARY_GLOBS = (
-    "lib/libhsa-runtime64.so*",
-    "lib/libhsa-amd-aqlprofile64.so*",
-    "lib/libhsakmt.so*",
-    "lib/librocprofiler-register.so*",
-    "lib/rocm_sysdeps/lib/*.so*",
+BAZEL_BUILD_OPTIONS = ("--config=production",)
+ROCM_RUNTIME_ROOTS = (
+    "lib/libhsa-runtime64.so.1",
+    "lib/libhsa-amd-aqlprofile64.so.1",
+)
+ROCM_LIBRARY_DIRS = (
+    "lib",
+    "lib/rocm_sysdeps/lib",
+    "lib/llvm/lib",
+)
+ROCM_LIBRARY_PREFIXES = (
+    "libamd",
+    "libhsa",
+    "libroc",
 )
 ROCM_DOCUMENTS = (
     "share/doc/rocr/LICENSE.md",
@@ -36,6 +45,7 @@ ROCM_DOCUMENTS = (
     "share/doc/rocprofiler-register/LICENSE.md",
     "share/therock/therock_manifest.json",
 )
+NeededLibraries = Callable[[Path], tuple[str, ...]]
 
 
 def package_version() -> str:
@@ -114,7 +124,7 @@ def _run(command: list[str]) -> None:
 
 def _query_bazel_output(bazel: Path, target: str) -> Path:
     result = subprocess.run(
-        [str(bazel), "cquery", "-c", "opt", "--output=files", target],
+        [str(bazel), "cquery", *BAZEL_BUILD_OPTIONS, "--output=files", target],
         cwd=REPO_ROOT,
         check=True,
         text=True,
@@ -135,7 +145,7 @@ def _query_bazel_output(bazel: Path, target: str) -> Path:
 
 def build_native_executables(bazel: Path) -> dict[str, Path]:
     """Builds and locates the native executables included in the wheel."""
-    _run([str(bazel), "build", "-c", "opt", *BAZEL_TARGETS])
+    _run([str(bazel), "build", *BAZEL_BUILD_OPTIONS, *BAZEL_TARGETS])
     return {
         "hrx-id4": _query_bazel_output(bazel, BAZEL_TARGETS[0]),
         "hrx-info": _query_bazel_output(bazel, BAZEL_TARGETS[1]),
@@ -145,6 +155,95 @@ def build_native_executables(bazel: Path) -> dict[str, Path]:
 def _copy_file(source: Path, destination: Path) -> None:
     destination.parent.mkdir(parents=True, exist_ok=True)
     shutil.copy2(source.resolve(), destination)
+
+
+def _find_llvm_readelf(rocm_root: Path) -> Path:
+    for relative_name in (
+        "lib/llvm/bin/llvm-readelf",
+        "llvm/bin/llvm-readelf",
+        "bin/llvm-readelf",
+    ):
+        candidate = rocm_root / relative_name
+        if candidate.is_file() and os.access(candidate, os.X_OK):
+            # llvm-readelf may be a multicall symlink to llvm-readobj. Preserve
+            # argv[0], which selects the readelf-compatible output format.
+            return candidate
+    raise RuntimeError(f"ROCm llvm-readelf was not found under {rocm_root}")
+
+
+def _read_needed_libraries(readelf: Path, library: Path) -> tuple[str, ...]:
+    result = subprocess.run(
+        [str(readelf), "--dynamic-table", str(library)],
+        check=True,
+        text=True,
+        stdout=subprocess.PIPE,
+        stderr=subprocess.PIPE,
+    )
+    return tuple(
+        match.group(1)
+        for match in re.finditer(
+            r"\(NEEDED\).*Shared library: \[([^]]+)\]", result.stdout
+        )
+    )
+
+
+def _find_rocm_library(rocm_root: Path, library_name: str) -> Optional[Path]:
+    for relative_directory in ROCM_LIBRARY_DIRS:
+        candidate = rocm_root / relative_directory / library_name
+        if candidate.is_file():
+            return candidate
+    return None
+
+
+def resolve_rocm_runtime_payload(
+    rocm_root: Path,
+    *,
+    needed_libraries: Optional[NeededLibraries] = None,
+) -> dict[Path, Path]:
+    """Resolves the bundled ROCm ELF closure by loader-visible names."""
+    dependency_reader = needed_libraries
+    if dependency_reader is None:
+        readelf = _find_llvm_readelf(rocm_root)
+
+        def dependency_reader(path: Path) -> tuple[str, ...]:
+            return _read_needed_libraries(readelf, path)
+
+    payload: dict[Path, Path] = {}
+    resolved_sources: dict[Path, Path] = {}
+    pending: list[tuple[Path, Path]] = []
+    for relative_name in ROCM_RUNTIME_ROOTS:
+        source = rocm_root / relative_name
+        if not source.is_file():
+            raise RuntimeError(f"Required ROCm runtime library is missing: {source}")
+        pending.append((Path(relative_name), source))
+
+    while pending:
+        relative_name, source = pending.pop()
+        real_source = source.resolve()
+        existing_name = resolved_sources.get(real_source)
+        if existing_name is not None and existing_name != relative_name:
+            raise RuntimeError(
+                f"ROCm runtime library {real_source} is required as both "
+                f"{existing_name} and {relative_name}; wheel aliases are unsupported"
+            )
+        if relative_name in payload:
+            continue
+        payload[relative_name] = real_source
+        resolved_sources[real_source] = relative_name
+
+        for dependency_name in dependency_reader(real_source):
+            dependency = _find_rocm_library(rocm_root, dependency_name)
+            if dependency is None:
+                if dependency_name.startswith(ROCM_LIBRARY_PREFIXES):
+                    raise RuntimeError(
+                        f"ROCm dependency {dependency_name} required by {source} "
+                        f"was not found under {rocm_root}"
+                    )
+                continue
+            dependency_relative = dependency.relative_to(rocm_root)
+            pending.append((dependency_relative, dependency))
+
+    return dict(sorted(payload.items(), key=lambda item: item[0].as_posix()))
 
 
 def _sha256(path: Path) -> str:
@@ -169,6 +268,8 @@ def stage_native_payload(
     native_root: Path,
     executables: dict[str, Path],
     rocm_root: Path,
+    *,
+    needed_libraries: Optional[NeededLibraries] = None,
 ) -> list[Path]:
     """Stages Bazel tools and the redistributable ROCm runtime payload."""
     if native_root.exists():
@@ -180,15 +281,13 @@ def stage_native_payload(
         _copy_file(source, destination)
         destination.chmod(destination.stat().st_mode | 0o111)
 
+    runtime_payload = resolve_rocm_runtime_payload(
+        rocm_root, needed_libraries=needed_libraries
+    )
     copied_rocm_paths: set[str] = set()
-    for pattern in ROCM_LIBRARY_GLOBS:
-        for source in sorted(rocm_root.glob(pattern)):
-            relative_path = source.relative_to(rocm_root)
-            _copy_file(source, native_root / relative_path)
-            copied_rocm_paths.add(relative_path.as_posix())
-
-    if not any(path.startswith("lib/libhsa-runtime64.so") for path in copied_rocm_paths):
-        raise RuntimeError(f"No HSA runtime libraries found under {rocm_root}")
+    for relative_path, source in runtime_payload.items():
+        _copy_file(source, native_root / relative_path)
+        copied_rocm_paths.add(relative_path.as_posix())
 
     for relative_name in ROCM_DOCUMENTS:
         source = rocm_root / relative_name
@@ -258,9 +357,7 @@ class BazelBuildPy(build_py):
             shutil.rmtree(package_root)
         super().run()
         native_root = package_root / "_native"
-        self._native_outputs = stage_native_payload(
-            native_root, executables, rocm_root
-        )
+        self._native_outputs = stage_native_payload(native_root, executables, rocm_root)
 
     def get_outputs(self, include_bytecode: int = 1) -> list[str]:
         outputs = super().get_outputs(include_bytecode)

@@ -1,6 +1,6 @@
 # HRX Demos
 
-Standalone, production-shaped applications built on
+Standalone, demo applications built on
 [HRX](https://github.com/ROCm/hrx-system). The first application is an
 Ideogram 4 text-to-image implementation with direct AMDGPU execution, Loom
 kernels, dynamic structured prompts, compact FP8 checkpoints, and LoRA support.
@@ -11,30 +11,69 @@ structured request and emits an image through the `hrx-id4` command-line tool.
 
 ## Performance
 
-Reproducible latency, throughput, and memory results will be published here.
-The current implementation has completed 1024x1024 FP8 generation on a Radeon
-Pro W7900 with an observed physical VRAM peak of approximately 25.8 GiB.
-
-## Supported GPUs
-
-| GPU | Architecture | Status |
-| --- | --- | --- |
-| Radeon Pro W7900 | gfx1100 | Verified |
-
-Other AMD GPUs are not yet part of the supported and measured configuration.
+Performance data coming soon.
 
 ## Installation
 
-Manylinux wheels will be the primary distribution under the `hrx-demos`
-package name. PyPI publication is not part of the current release.
+`hrx-demos` is available on PyPI. Install it with using your favorite python
+package manager:
 
 ```bash
 pip install hrx-demos
 ```
 
-The current source tree can produce a Python-minor-independent, Linux x86-64
-wheel. From a clone with initialized submodules, configure the local ROCm and
-Bazel paths once and then build:
+## Available Demos
+
+### Ideogram-4 FP8
+
+#### Download models (see docs/quickstart.md for full details):
+
+```
+# ideogram-4 must have its license accepted:
+#   https://huggingface.co/ideogram-ai/ideogram-4-fp8
+hf download ideogram-ai/ideogram-4-fp8 \
+  transformer/diffusion_pytorch_model.safetensors \
+  unconditional_transformer/diffusion_pytorch_model.safetensors \
+  --revision ee79a7237b519f1402ceacf952f30c8a31ec5073 \
+  --local-dir models/ideogram-4-fp8
+
+# Qwen with stock, block-scaled FP8 checkpoints
+hf download Qwen/Qwen3-VL-8B-Instruct-FP8 \
+  tokenizer.json \
+  model.safetensors.index.json \
+  model-00001-of-00002.safetensors \
+  model-00002-of-00002.safetensors \
+  --revision 9cdc6310a8cb770ce18efaf4e9935334512aee45 \
+  --local-dir models/qwen3-vl-8b-instruct-fp8
+
+# Accept the FLUX.2 non-commercial license and download its
+# single-file autoencoder: 
+#   https://huggingface.co/black-forest-labs/FLUX.2-dev
+hf download black-forest-labs/FLUX.2-dev \
+  ae.safetensors \
+  --revision 26afe3a78bb242c0a8bb181dcc8937bb16e5c66c \
+  --local-dir models/flux2-dev
+```
+
+#### Generate an Image from Sample Flags
+
+You may copy the flag and prompt files and customize as desired. The defaults
+assume you are in a PWD with a models/ sub-directory as downloaded above.
+
+```bash
+hrx-id4 \
+  --flagfile=docs/ideogram4-fp8.flags \
+  --device=amdgpu:// \
+  --prompt_json_file=docs/requests/long_1024.json \
+  --output=ideogram4.ppm
+```
+
+## Building From Source
+
+### Python Wheels
+
+Python wheels are typically built in a manylinux container but can be built for
+your machine:
 
 ```bash
 python build_tools/setup_python.py --rocm=/path/to/rocm
@@ -43,12 +82,10 @@ python -m build --wheel
 python -m pip install dist/hrx_demos-0.1.0-py3-none-linux_x86_64.whl
 ```
 
-This development wheel bundles the HSA runtime and its ROCm support libraries.
-Local builds deliberately use a `linux_x86_64` platform tag. CI builds in
-HRX's pinned manylinux container, repairs the wheel with auditwheel, and
-publishes the manylinux wheel as a workflow artifact.
+This development wheel bundles the HSA runtime and its required ROCm support
+library closure.
 
-## Build From Source
+### Building for Development
 
 Clone with submodules, select a ROCm installation, and build with Bazel 9.1:
 
@@ -58,7 +95,7 @@ cd hrx-demos
 export IREE_ROCM_PATH=/path/to/rocm
 export CC="$IREE_ROCM_PATH/lib/llvm/bin/clang"
 export CXX="$IREE_ROCM_PATH/lib/llvm/bin/clang++"
-bazel build -c opt //binding/cli:id4
+bazel run -c opt //binding/cli:id4
 ```
 
 To develop against a local HRX checkout instead of the pinned submodule:
@@ -67,25 +104,9 @@ To develop against a local HRX checkout instead of the pinned submodule:
 bazel build --override_module=iree=/path/to/hrx-system -c opt //binding/cli:id4
 ```
 
-The setup command uses Bazel from `BAZEL`, `PATH`, or a containing workspace's
-`programs/bazel/bin/bazel`. It validates Bazel 9.1 and writes the ignored
-`.bazelrc.local` with the selected ROCm root and compilers. See
+The setup command uses Bazel from `BAZEL`, `PATH`. It validates Bazel 9.1 and 
+writes the ignored `.bazelrc.local` with the selected ROCm root and compilers. See
 [DEVELOPMENT.md](DEVELOPMENT.md) for the pinned Bazelisk installation command.
-
-## Quick Start
-
-The model weights are gated. Accept the
-[Ideogram 4 FP8 license](https://huggingface.co/ideogram-ai/ideogram-4-fp8),
-download the required checkpoints as described in the
-[quickstart](docs/quickstart.md), then generate an image:
-
-```bash
-hrx-id4 \
-  --flagfile=docs/ideogram4-fp8.flags \
-  --device=amdgpu:// \
-  --prompt_json_file=docs/requests/long_1024.json \
-  --output=ideogram4.ppm
-```
 
 ## Documentation
 

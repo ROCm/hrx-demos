@@ -56,16 +56,7 @@ the CLI:
 
 ```bash
 bazel build \
-  -c opt \
-  --features=thin_lto \
-  --copt=-O3 \
-  --cxxopt=-O3 \
-  --host_copt=-O3 \
-  --host_cxxopt=-O3 \
-  --copt=-march=native \
-  --cxxopt=-march=native \
-  --host_copt=-march=native \
-  --host_cxxopt=-march=native \
+  --config=production_native \
   //binding/cli:id4
 ```
 
@@ -121,10 +112,13 @@ python -m build --wheel
 
 `setup_python.py` validates an existing compatible `.bazelrc.local`. It will
 not replace incompatible user settings unless passed `--force`. Wheel assembly
-runs the optimized Bazel build for `//binding/cli:id4` and
+runs Bazel with the portable `production` config for `//binding/cli:id4` and
 `@hrx_system//libhrx/tools:hrx-info`, then stages the executables and the ROCm
 runtime payload into setuptools' build directory. Generated native files never
-enter the source package directory.
+enter the source package directory. The runtime payload is computed by walking
+ELF `DT_NEEDED` entries with ROCm's `llvm-readelf`. Each required ROCm library
+is copied once under the SONAME requested by the dynamic loader; unversioned
+linker names, full-version aliases, and unrelated sysdeps are not packaged.
 
 At runtime, `hrx-id4` and `hrx-info` default to the wheel's HSA and AQL profile
 libraries. Setting `IREE_HAL_AMDGPU_LIBHSA_PATH` explicitly opts out of that
@@ -133,8 +127,8 @@ default and leaves the caller's library search configuration unchanged.
 The package version defaults to `0.1.0`. Set
 `HRX_DEMOS_PACKAGE_VERSION=<pep440-version>` to override it for an automated
 build. The reusable CI workflow exposes this as its `package_version` input so
-a future tag-based release can provide the release version without modifying
-the source tree.
+the tag-based release workflow can provide the release version without
+modifying the source tree.
 
 ### Manylinux CI
 
@@ -144,12 +138,34 @@ fetcher as HRX. Its ROCm defaults are the latest complete nightly Linux release
 artifact run, the `core` artifact set, and the `release` artifact variant. Pass
 `run_id` to reproduce a specific TheRock build.
 
-The workflow builds the ordinary `linux_x86_64` wheel, repairs it to the pinned
-container's `AUDITWHEEL_PLAT`, installs it, and exercises both console scripts.
-The repaired wheel is uploaded as the `hrx-demos-wheel-linux-x86_64` artifact.
+The workflow builds the ordinary `linux_x86_64` wheel, validates its native
+payload, and repairs it to the pinned container's `AUDITWHEEL_PLAT`. Auditwheel
+runs without the source ROCm directories on its library search path so it uses
+the closure already in the wheel instead of grafting duplicate copies. The
+build job uploads the result as the `hrx-demos-wheel-linux-x86_64` artifact. A
+dependent smoke job downloads that artifact on a clean Ubuntu 24.04 CPU runner,
+installs it into a fresh venv without an index or source checkout, checks
+`hrx-id4 --help`, and runs the `hrx-info` CPU device tests. This keeps
+package-consumer validation separate from the manylinux build environment.
 The `ci_python_wheel.yml` caller runs this flow for pull requests and pushes to
 `main` or `main-staging`, and exposes the ROCm and package-version inputs for
-manual dispatch. Publishing to PyPI remains a separate release workflow.
+manual dispatch.
+
+### GitHub Releases
+
+Push a semantic version tag whose value without an optional `v` prefix is also
+a valid PEP 440 version:
+
+```bash
+git tag v0.1.0
+git push origin v0.1.0
+```
+
+The `release_python_wheel.yml` workflow builds and smoke-tests the wheel, then
+creates a GitHub release with the manylinux x86-64 wheel attached. Tags such as
+`v0.2.0-rc.1` produce a canonical `0.2.0rc1` wheel and a GitHub prerelease.
+Rerunning a tag replaces the existing wheel asset. Publishing to PyPI is an
+offline, separate operation and is not performed by GitHub Actions.
 
 ## Source References
 

@@ -27,6 +27,58 @@ class PythonPackagingTest(unittest.TestCase):
         ):
             self.assertEqual(python_packaging.package_version(), "0.2.0.dev1")
 
+    def test_queries_bazel_output_with_production_config(self):
+        with tempfile.TemporaryDirectory() as temporary_directory:
+            output = Path(temporary_directory) / "hrx-id4"
+            output.write_bytes(b"")
+            completed_process = python_packaging.subprocess.CompletedProcess(
+                [], 0, stdout=f"{output}\n"
+            )
+            with mock.patch.object(
+                python_packaging.subprocess,
+                "run",
+                return_value=completed_process,
+            ) as run:
+                self.assertEqual(
+                    python_packaging._query_bazel_output(
+                        Path("/path/to/bazel"), "//binding/cli:id4"
+                    ),
+                    output,
+                )
+
+            self.assertEqual(
+                run.call_args.args[0],
+                [
+                    "/path/to/bazel",
+                    "cquery",
+                    "--config=production",
+                    "--output=files",
+                    "//binding/cli:id4",
+                ],
+            )
+
+    def test_builds_native_executables_with_production_config(self):
+        outputs = [Path("/tmp/hrx-id4"), Path("/tmp/hrx-info")]
+        with (
+            mock.patch.object(python_packaging, "_run") as run,
+            mock.patch.object(
+                python_packaging, "_query_bazel_output", side_effect=outputs
+            ),
+        ):
+            self.assertEqual(
+                python_packaging.build_native_executables(Path("/path/to/bazel")),
+                {"hrx-id4": outputs[0], "hrx-info": outputs[1]},
+            )
+
+        run.assert_called_once_with(
+            [
+                "/path/to/bazel",
+                "build",
+                "--config=production",
+                *python_packaging.BAZEL_TARGETS,
+            ]
+        )
+
     def test_reads_last_repo_env_value(self):
         with tempfile.TemporaryDirectory() as temporary_directory:
             bazelrc = Path(temporary_directory) / ".bazelrc.local"
@@ -44,19 +96,60 @@ class PythonPackagingTest(unittest.TestCase):
                 },
             )
 
-    def test_stages_executables_rocm_layout_and_manifest(self):
+    def test_preserves_llvm_readelf_multicall_name(self):
+        with tempfile.TemporaryDirectory() as temporary_directory:
+            rocm_root = Path(temporary_directory)
+            binary_dir = rocm_root / "lib" / "llvm" / "bin"
+            binary_dir.mkdir(parents=True)
+            readobj = binary_dir / "llvm-readobj"
+            readobj.write_bytes(b"")
+            readobj.chmod(0o755)
+            readelf = binary_dir / "llvm-readelf"
+            readelf.symlink_to(readobj.name)
+
+            self.assertEqual(python_packaging._find_llvm_readelf(rocm_root), readelf)
+
+    def test_parses_needed_libraries(self):
+        output = """
+  0x0000000000000001 (NEEDED) Shared library: [libone.so.1]
+  0x0000000000000001 (NEEDED) Shared library: [libtwo.so.2]
+"""
+        with mock.patch.object(
+            python_packaging.subprocess,
+            "run",
+            return_value=python_packaging.subprocess.CompletedProcess(
+                [], 0, stdout=output, stderr=""
+            ),
+        ):
+            self.assertEqual(
+                python_packaging._read_needed_libraries(
+                    Path("llvm-readelf"), Path("library.so")
+                ),
+                ("libone.so.1", "libtwo.so.2"),
+            )
+
+    def test_stages_only_rocm_runtime_dependency_closure(self):
         with tempfile.TemporaryDirectory() as temporary_directory:
             root = Path(temporary_directory)
             rocm_root = root / "rocm"
             hsa_versioned = rocm_root / "lib" / "libhsa-runtime64.so.1.2.3"
             hsa_versioned.parent.mkdir(parents=True)
             hsa_versioned.write_bytes(b"hsa")
-            (rocm_root / "lib" / "libhsa-runtime64.so.1").symlink_to(
-                hsa_versioned.name
+            (rocm_root / "lib" / "libhsa-runtime64.so.1").symlink_to(hsa_versioned.name)
+            aql_versioned = rocm_root / "lib" / "libhsa-amd-aqlprofile64.so.1.0.0"
+            aql_versioned.write_bytes(b"aql")
+            (rocm_root / "lib" / "libhsa-amd-aqlprofile64.so.1").symlink_to(
+                aql_versioned.name
             )
-            sysdep = rocm_root / "lib" / "rocm_sysdeps" / "lib" / "libdep.so.1"
+            profiler = rocm_root / "lib" / "librocprofiler-register.so.0"
+            profiler.write_bytes(b"profiler")
+            sysdep = (
+                rocm_root / "lib" / "rocm_sysdeps" / "lib" / "librocm_sysdeps_dep.so.1"
+            )
             sysdep.parent.mkdir(parents=True)
             sysdep.write_bytes(b"dep")
+            unrelated = sysdep.parent / "librocm_sysdeps_unrelated.so.1"
+            unrelated.write_bytes(b"unrelated")
             license_path = rocm_root / "share" / "doc" / "rocr" / "LICENSE.md"
             license_path.parent.mkdir(parents=True)
             license_path.write_text("license", encoding="utf-8")
@@ -70,6 +163,13 @@ class PythonPackagingTest(unittest.TestCase):
                 native_root,
                 {"hrx-id4": id4, "hrx-info": info},
                 rocm_root,
+                needed_libraries=lambda path: {
+                    "libhsa-runtime64.so.1.2.3": (
+                        "librocprofiler-register.so.0",
+                        "librocm_sysdeps_dep.so.1",
+                        "libc.so.6",
+                    ),
+                }.get(path.name, ()),
             )
 
             self.assertTrue((native_root / "bin" / "hrx-id4").is_file())
@@ -78,7 +178,18 @@ class PythonPackagingTest(unittest.TestCase):
             self.assertFalse(staged_hsa.is_symlink())
             self.assertEqual(staged_hsa.read_bytes(), b"hsa")
             self.assertTrue(
-                (native_root / "lib" / "rocm_sysdeps" / "lib" / "libdep.so.1").is_file()
+                (
+                    native_root
+                    / "lib"
+                    / "rocm_sysdeps"
+                    / "lib"
+                    / "librocm_sysdeps_dep.so.1"
+                ).is_file()
+            )
+            self.assertFalse((native_root / "lib" / hsa_versioned.name).exists())
+            self.assertFalse((native_root / "lib" / aql_versioned.name).exists())
+            self.assertFalse(
+                (native_root / "lib" / "rocm_sysdeps" / "lib" / unrelated.name).exists()
             )
             self.assertTrue((native_root / "licenses" / "rocr-LICENSE.md").is_file())
             self.assertIn(native_root / "manifest.json", outputs)
@@ -88,6 +199,24 @@ class PythonPackagingTest(unittest.TestCase):
             manifest_paths = {entry["path"] for entry in manifest["files"]}
             self.assertIn("bin/hrx-id4", manifest_paths)
             self.assertIn("lib/libhsa-runtime64.so.1", manifest_paths)
+
+    def test_rejects_missing_rocm_dependency(self):
+        with tempfile.TemporaryDirectory() as temporary_directory:
+            rocm_root = Path(temporary_directory)
+            library_dir = rocm_root / "lib"
+            library_dir.mkdir(parents=True)
+            (library_dir / "libhsa-runtime64.so.1").write_bytes(b"hsa")
+            (library_dir / "libhsa-amd-aqlprofile64.so.1").write_bytes(b"aql")
+
+            with self.assertRaisesRegex(RuntimeError, "librocm_missing.so.1"):
+                python_packaging.resolve_rocm_runtime_payload(
+                    rocm_root,
+                    needed_libraries=lambda path: (
+                        ("librocm_missing.so.1",)
+                        if path.name == "libhsa-runtime64.so.1"
+                        else ()
+                    ),
+                )
 
 
 if __name__ == "__main__":

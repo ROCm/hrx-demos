@@ -12,14 +12,11 @@ _LIBHSA_ENV = "IREE_HAL_AMDGPU_LIBHSA_PATH"
 _LIBAQLPROFILE_ENV = "IREE_HAL_AMDGPU_LIBAQLPROFILE_PATH"
 
 
-def _first_existing(directory: Path, names: tuple[str, ...]) -> Path:
-    for name in names:
-        candidate = directory / name
-        if candidate.is_file():
-            return candidate
-    raise RuntimeError(
-        "HRX wheel is missing a required runtime library: " + ", ".join(names)
-    )
+def _required_library(directory: Path, name: str) -> Path:
+    candidate = directory / name
+    if candidate.is_file():
+        return candidate
+    raise RuntimeError(f"HRX wheel is missing a required runtime library: {name}")
 
 
 def native_environment(
@@ -32,20 +29,11 @@ def native_environment(
 
     if _LIBHSA_ENV not in result:
         result[_LIBHSA_ENV] = str(
-            _first_existing(
-                library_dir,
-                ("libhsa-runtime64.so.1", "libhsa-runtime64.so"),
-            )
+            _required_library(library_dir, "libhsa-runtime64.so.1")
         )
-        aqlprofile_names = (
-            "libhsa-amd-aqlprofile64.so.1",
-            "libhsa-amd-aqlprofile64.so",
-        )
-        for name in aqlprofile_names:
-            candidate = library_dir / name
-            if candidate.is_file():
-                result.setdefault(_LIBAQLPROFILE_ENV, str(candidate))
-                break
+        aqlprofile = library_dir / "libhsa-amd-aqlprofile64.so.1"
+        if aqlprofile.is_file():
+            result.setdefault(_LIBAQLPROFILE_ENV, str(aqlprofile))
 
         search_paths = [
             str(library_dir),
