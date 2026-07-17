@@ -160,8 +160,8 @@ jobs:
       actions: read
       contents: read
     env:
-      WHEEL_DOWNLOAD_DIR: ${{ runner.temp }}/hrx-demos-wheel
-      SMOKE_VENV: ${{ runner.temp }}/hrx-demos-smoke
+      WHEEL_DOWNLOAD_DIR: ${{ github.workspace }}/build/smoke/wheel
+      SMOKE_VENV: ${{ github.workspace }}/build/smoke/venv
     steps:
       - name: Download manylinux wheel
         uses: actions/download-artifact@37930b1c2abaa49bbe596cd826c3c89aef350131 # v7.0.0
