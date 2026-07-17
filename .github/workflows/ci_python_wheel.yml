@@ -46,6 +46,7 @@ jobs:
     name: Python / manylinux wheel
     uses: ./.github/workflows/build_python_wheel.yml
     permissions:
+      actions: read
       contents: read
     with:
       name: manylinux x86-64

@@ -151,8 +151,11 @@ The workflow builds the ordinary `linux_x86_64` wheel, validates its native
 payload, and repairs it to the pinned container's `AUDITWHEEL_PLAT`. Auditwheel
 runs without the source ROCm directories on its library search path so it uses
 the closure already in the wheel instead of grafting duplicate copies. The
-workflow installs the result, exercises both console scripts, and uploads it as
-the `hrx-demos-wheel-linux-x86_64` artifact.
+build job uploads the result as the `hrx-demos-wheel-linux-x86_64` artifact. A
+dependent smoke job downloads that artifact on a clean Ubuntu 24.04 CPU runner,
+installs it into a fresh venv without an index or source checkout, checks
+`hrx-id4 --help`, and runs the `hrx-info` CPU device tests. This keeps
+package-consumer validation separate from the manylinux build environment.
 The `ci_python_wheel.yml` caller runs this flow for pull requests and pushes to
 `main` or `main-staging`, and exposes the ROCm and package-version inputs for
 manual dispatch. Publishing to PyPI remains a separate release workflow.

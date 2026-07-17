@@ -26,6 +26,7 @@ on:
         default: 0.1.0
 
 permissions:
+  actions: read
   contents: read
 
 defaults:
@@ -142,10 +143,6 @@ jobs:
           fi
           "${HRX_BUILD_PYTHON}" build_tools/validate_wheel.py "${wheels[0]}"
           /usr/local/bin/auditwheel show "${wheels[0]}"
-          "${HRX_BUILD_PYTHON}" -m pip install \
-            --force-reinstall --no-deps "${wheels[0]}"
-          hrx-id4 --help >/dev/null
-          hrx-info --help >/dev/null
 
       - name: Upload manylinux wheel
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
@@ -153,3 +150,78 @@ jobs:
           name: hrx-demos-wheel-linux-x86_64
           path: build/wheel/wheelhouse/*.whl
           if-no-files-found: error
+
+  smoke_test_python_wheel:
+    name: Smoke / Ubuntu 24.04
+    needs: build_python_wheel
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    permissions:
+      actions: read
+      contents: read
+    env:
+      WHEEL_DOWNLOAD_DIR: ${{ runner.temp }}/hrx-demos-wheel
+      SMOKE_VENV: ${{ runner.temp }}/hrx-demos-smoke
+    steps:
+      - name: Download manylinux wheel
+        uses: actions/download-artifact@37930b1c2abaa49bbe596cd826c3c89aef350131 # v7.0.0
+        with:
+          name: hrx-demos-wheel-linux-x86_64
+          path: ${{ env.WHEEL_DOWNLOAD_DIR }}
+
+      - name: Select wheel artifact
+        run: |
+          shopt -s nullglob
+          wheels=("${WHEEL_DOWNLOAD_DIR}"/*.whl)
+          if [[ "${#wheels[@]}" -ne 1 ]]; then
+            echo "Expected one wheel, found ${#wheels[@]}" >&2
+            printf '  %s\n' "${wheels[@]}" >&2
+            exit 1
+          fi
+          if [[ "$(basename "${wheels[0]}")" != *manylinux* ]]; then
+            echo "Downloaded wheel is not tagged manylinux: ${wheels[0]}" >&2
+            exit 1
+          fi
+          echo "WHEEL_PATH=${wheels[0]}" >>"${GITHUB_ENV}"
+
+      - name: Install wheel in clean environment
+        run: |
+          python3 --version
+          python3 -m venv "${SMOKE_VENV}"
+          "${SMOKE_VENV}/bin/python" -m pip install \
+            --disable-pip-version-check \
+            --no-index \
+            --no-deps \
+            "${WHEEL_PATH}"
+          "${SMOKE_VENV}/bin/python" - <<'PY'
+          import importlib.metadata
+          import hrx_demos
+
+          print(f"hrx-demos {importlib.metadata.version('hrx-demos')}")
+          print(f"package: {hrx_demos.__file__}")
+          PY
+
+      - name: Run installed console scripts
+        run: |
+          clean_env=(
+            env
+            -u HSA_OVERRIDE_GFX_VERSION
+            -u IREE_HAL_AMDGPU_LIBAQLPROFILE_PATH
+            -u IREE_HAL_AMDGPU_LIBHSA_PATH
+            -u LD_LIBRARY_PATH
+          )
+
+          id4_help="$("${clean_env[@]}" "${SMOKE_VENV}/bin/hrx-id4" --help)"
+          grep -F "Experimental Ideogram 4 HAL pipeline runner." <<<"${id4_help}"
+
+          info_output="$("${clean_env[@]}" "${SMOKE_VENV}/bin/hrx-info")"
+          printf '%s\n' "${info_output}"
+          grep -F "CPU accelerator:" <<<"${info_output}"
+          grep -F "(local-task)" <<<"${info_output}"
+
+          cpu_test_output="$(
+            "${clean_env[@]}" "${SMOKE_VENV}/bin/hrx-info" \
+              --device=cpu:0 --test=all
+          )"
+          printf '%s\n' "${cpu_test_output}"
+          grep -F "All tests PASSED" <<<"${cpu_test_output}"
