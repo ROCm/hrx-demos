@@ -9,6 +9,19 @@ build --guard_against_concurrent_changes
 build --enable_runfiles
 build --incompatible_default_to_explicit_init_py
 
+build:production -c opt
+build:production --features=thin_lto
+build:production --copt=-O3
+build:production --cxxopt=-O3
+build:production --host_copt=-O3
+build:production --host_cxxopt=-O3
+
+build:production_native --config=production
+build:production_native --copt=-march=native
+build:production_native --cxxopt=-march=native
+build:production_native --host_copt=-march=native
+build:production_native --host_cxxopt=-march=native
+
 build --@hrx_system//runtime/config/hal:drivers=local-sync,local-task,null,amdgpu
 build --@hrx_system//loom/config/target:enable=amdgpu,iree_vm,llvmir,spirv,x86
 build --@hrx_system//loom/config/execute:enable=iree_hal,iree_vm

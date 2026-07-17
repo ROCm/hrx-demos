@@ -27,6 +27,58 @@ class PythonPackagingTest(unittest.TestCase):
         ):
             self.assertEqual(python_packaging.package_version(), "0.2.0.dev1")
 
+    def test_queries_bazel_output_with_production_config(self):
+        with tempfile.TemporaryDirectory() as temporary_directory:
+            output = Path(temporary_directory) / "hrx-id4"
+            output.write_bytes(b"")
+            completed_process = python_packaging.subprocess.CompletedProcess(
+                [], 0, stdout=f"{output}\n"
+            )
+            with mock.patch.object(
+                python_packaging.subprocess,
+                "run",
+                return_value=completed_process,
+            ) as run:
+                self.assertEqual(
+                    python_packaging._query_bazel_output(
+                        Path("/path/to/bazel"), "//binding/cli:id4"
+                    ),
+                    output,
+                )
+
+            self.assertEqual(
+                run.call_args.args[0],
+                [
+                    "/path/to/bazel",
+                    "cquery",
+                    "--config=production",
+                    "--output=files",
+                    "//binding/cli:id4",
+                ],
+            )
+
+    def test_builds_native_executables_with_production_config(self):
+        outputs = [Path("/tmp/hrx-id4"), Path("/tmp/hrx-info")]
+        with (
+            mock.patch.object(python_packaging, "_run") as run,
+            mock.patch.object(
+                python_packaging, "_query_bazel_output", side_effect=outputs
+            ),
+        ):
+            self.assertEqual(
+                python_packaging.build_native_executables(Path("/path/to/bazel")),
+                {"hrx-id4": outputs[0], "hrx-info": outputs[1]},
+            )
+
+        run.assert_called_once_with(
+            [
+                "/path/to/bazel",
+                "build",
+                "--config=production",
+                *python_packaging.BAZEL_TARGETS,
+            ]
+        )
+
     def test_reads_last_repo_env_value(self):
         with tempfile.TemporaryDirectory() as temporary_directory:
             bazelrc = Path(temporary_directory) / ".bazelrc.local"

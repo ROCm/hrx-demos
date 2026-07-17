@@ -27,21 +27,13 @@ export IREE_ROCM_PATH=/opt/rocm
 export CC="$IREE_ROCM_PATH/lib/llvm/bin/clang"
 export CXX="$IREE_ROCM_PATH/lib/llvm/bin/clang++"
 bazel build \
-  -c opt \
-  --features=thin_lto \
-  --copt=-O3 \
-  --cxxopt=-O3 \
-  --host_copt=-O3 \
-  --host_cxxopt=-O3 \
-  --copt=-march=native \
-  --cxxopt=-march=native \
-  --host_copt=-march=native \
-  --host_cxxopt=-march=native \
+  --config=production_native \
   //binding/cli:id4
 ```
 
-These are the host optimization flags used for the reported performance lane;
-`-march=native` discovers the build host's CPU and does not select a GPU. The
+The `production_native` config enables ThinLTO and `-O3`, then tunes the target
+and host tools for the build host's CPU with `-march=native`. It does not select
+a GPU. Use the portable `production` config for redistributable binaries. The
 optimized executable is `bazel-bin/binding/cli/id4`.
 
 ## Download The Models

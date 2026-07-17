@@ -56,16 +56,7 @@ the CLI:
 
 ```bash
 bazel build \
-  -c opt \
-  --features=thin_lto \
-  --copt=-O3 \
-  --cxxopt=-O3 \
-  --host_copt=-O3 \
-  --host_cxxopt=-O3 \
-  --copt=-march=native \
-  --cxxopt=-march=native \
-  --host_copt=-march=native \
-  --host_cxxopt=-march=native \
+  --config=production_native \
   //binding/cli:id4
 ```
 
@@ -121,7 +112,7 @@ python -m build --wheel
 
 `setup_python.py` validates an existing compatible `.bazelrc.local`. It will
 not replace incompatible user settings unless passed `--force`. Wheel assembly
-runs the optimized Bazel build for `//binding/cli:id4` and
+runs Bazel with the portable `production` config for `//binding/cli:id4` and
 `@hrx_system//libhrx/tools:hrx-info`, then stages the executables and the ROCm
 runtime payload into setuptools' build directory. Generated native files never
 enter the source package directory. The runtime payload is computed by walking

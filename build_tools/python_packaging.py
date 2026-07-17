@@ -24,6 +24,7 @@ BAZEL_TARGETS = (
     "//binding/cli:id4",
     "@hrx_system//libhrx/tools:hrx-info",
 )
+BAZEL_BUILD_OPTIONS = ("--config=production",)
 ROCM_RUNTIME_ROOTS = (
     "lib/libhsa-runtime64.so.1",
     "lib/libhsa-amd-aqlprofile64.so.1",
@@ -123,7 +124,7 @@ def _run(command: list[str]) -> None:
 
 def _query_bazel_output(bazel: Path, target: str) -> Path:
     result = subprocess.run(
-        [str(bazel), "cquery", "-c", "opt", "--output=files", target],
+        [str(bazel), "cquery", *BAZEL_BUILD_OPTIONS, "--output=files", target],
         cwd=REPO_ROOT,
         check=True,
         text=True,
@@ -144,7 +145,7 @@ def _query_bazel_output(bazel: Path, target: str) -> Path:
 
 def build_native_executables(bazel: Path) -> dict[str, Path]:
     """Builds and locates the native executables included in the wheel."""
-    _run([str(bazel), "build", "-c", "opt", *BAZEL_TARGETS])
+    _run([str(bazel), "build", *BAZEL_BUILD_OPTIONS, *BAZEL_TARGETS])
     return {
         "hrx-id4": _query_bazel_output(bazel, BAZEL_TARGETS[0]),
         "hrx-info": _query_bazel_output(bazel, BAZEL_TARGETS[1]),
