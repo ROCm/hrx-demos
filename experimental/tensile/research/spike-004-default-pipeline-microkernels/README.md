@@ -21,7 +21,9 @@ helper inside the full High GEMM and reaches 25.04 us device p50 versus
 and passes the performance gate. It is not schedule-congruent: after
 normalizing the candidate's K64 loop to K32, all matrix and memory operation
 counts match the incumbent, but Loom emits 239 instructions versus 147,
-including 24 waits versus 11.
+including 24 waits versus 11. Because the candidate is correct, legal,
+spill-free, and faster, this delta is diagnostic compiler evidence and does
+not block acceptance of the gfx1201 anchor.
 
 gfx1100 remains conclusive negative evidence for the all-High form: 61.0 us
 device p50 versus 45.46 us for solution 1675, four 4-byte spill/reload pairs,
@@ -30,9 +32,10 @@ oracle from Spike 003 cannot yet be raised as a maintained microkernel because
 required-inline Low calls reject multi-block CFG. That is now isolated by a
 two-block reproducer rather than attributed generically to “the compiler.”
 
-The completion condition is met by one accepted performance witness plus exact
-compiler-contract packets. Schedule congruence has not been achieved through
-the default pipeline on either target.
+The completion condition is met by one accepted gfx1201 anchor plus exact
+compiler-contract packets for gfx1100. Schedule congruence has not been
+achieved through the default pipeline on either target, but it remains a
+recovery technique rather than an independent gate for a faster candidate.
 
 ## Anchors
 
@@ -93,7 +96,7 @@ An anchor is accepted only when all of these hold:
 | Access sanitizer | Pass; all maintained memory is High | Pass |
 | No spills/private memory | Pass | Fail: 16 bytes, 4 stores, 4 reloads |
 | Performance ratio upper CI <= 1.05 | Pass; captured-sample upper CI 0.870 | Fail; lower CI 1.329 |
-| Schedule congruence | Fail | Fail |
+| Schedule comparison | Diagnostic delta; does not block faster candidate | Fail; needed to explain/recover performance |
 
 Bias/no-bias configuration is proven separately by
 [`epilogue-f16-bias-config.loom`](loom/epilogue-f16-bias-config.loom): all

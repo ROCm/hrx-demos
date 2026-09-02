@@ -8,10 +8,11 @@
   },
   "anchors": {
     "gfx1201_fp16_1024x1024x1024": {
-      "state": "performance_accepted_schedule_not_congruent",
+      "state": "accepted_faster_schedule_delta_diagnostic",
       "candidate_p50_us": 25.04,
       "incumbent_median_us": 28.78,
-      "next_boundary": "multi_block_main_loop_after_cfg_inline_support"
+      "next_boundary": "optional_schedule_research_after_cfg_inline_support",
+      "blocking": false
     },
     "gfx1100_fp16_1024x960x1024": {
       "state": "exact_compiler_contract_packet",

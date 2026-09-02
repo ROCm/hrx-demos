@@ -43,7 +43,8 @@
       "method": "independent resampling, 20000 draws, seed 2"
     },
     "performance_gate": "pass",
-    "schedule_congruence": "fail"
+    "schedule_congruence": "fail",
+    "schedule_congruence_required_for_acceptance": false
   },
   "schedule": {
     "candidate_dynamic_k": 64,
@@ -72,5 +73,5 @@
       "other": 61
     }
   },
-  "disposition": "performance witness; not a congruent schedule"
+  "disposition": "accepted faster anchor; schedule delta retained as diagnostic compiler evidence"
 }

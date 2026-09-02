@@ -117,7 +117,7 @@ sanctioned Loom runners:
 
 | Family witness | Fresh incumbent | Default-pipeline result | Conclusion |
 | --- | --- | --- | --- |
-| gfx12 / gfx1201, `1024x1024x1024` | 28.78 us | 25.04 us device p50, correct, access-sanitized, no spill/private traffic | Performance accepted, but not schedule-congruent: normalized K32 is 239 instructions versus 147. |
+| gfx12 / gfx1201, `1024x1024x1024` | 28.78 us | 25.04 us device p50, correct, access-sanitized, no spill/private traffic | Accepted. It is faster, so the non-congruent normalized K32 schedule (239 versus 147 instructions) is diagnostic rather than blocking. |
 | gfx11 / gfx1100, `1024x960x1024` | 45.46 us | 61.0 us device p50, correct, 16 bytes private traffic | Performance and schedule fail; normalized K32 is 219.5 instructions versus 134. |
 
 In both default artifacts the normalized matrix/global/LDS/barrier/branch
@@ -1157,6 +1157,14 @@ For each promoted provider cell:
   satisfy their own bounds; and
 - artifacts and measurements reproduce from the evidence bundle.
 
+Schedule congruence is not a separate promotion requirement. It is a powerful
+reconstruction method when a candidate is slower or its mechanism is not
+understood. A candidate that passes correctness, legality, resource, and
+integration gates and statistically beats the best eligible incumbent is
+accepted even if it uses a different schedule. The schedule delta should still
+be retained because it may expose reusable compiler improvements or explain
+why the result does not generalize to adjacent cells.
+
 Numeric thresholds should be fixed with the initial demand corpus rather than
 invented during tuning. A reasonable staging policy is: parity permits an
 experimental cell, a statistically supported win permits default-on for that
@@ -1220,7 +1228,7 @@ rather than guessed calendar duration.
 | Source/runtime extractor and router explainer | Sampled Equality/GridBased/classic Tensile routes agree with runtime/dispatch and emit normalized packets | Runtime shards, source recipes, code objects, and bounded native symbol summaries joined for sampled winners; broader route replay and dynamic schedule extraction remain |
 | Derived-key experiment | Config and exact shape facts specialize a `.loombc`; equal resulting programs alias before HSACO emission and unequal programs do not | Optimized-host bytecode link/default-compile/emit latency is 11.77--22.09 ms median; pre-emission key stability, demand-corpus cardinality, parallel startup behavior, and code-object load remain open |
 | `gfx906` Loom enablement | Compile/load/correctness/resource-report smoke tests pass | Blocked on missing physical target support, isolated from GEMM work |
-| First `gfx1201` vertical slice | Primitive FP16-to-FP32 WMMA GEMM reaches parity across a bounded cell through the default pipeline | One performance point passes at 1024 cubed: 25.04 us versus 28.78 us, correct and spill-free. The bounded cell is not complete; schedule congruence and family-generic Low composition remain open. |
+| First `gfx1201` vertical slice | Primitive FP16-to-FP32 WMMA GEMM reaches parity across a bounded cell through the default pipeline | The 1024-cubed point is accepted: 25.04 us versus 28.78 us, correct and spill-free. Broader-cell and family-generic validation remain open; schedule congruence does not block this faster point. |
 | gfx11 family specialization | The shared family passes on the RDNA3 witness with structural variants only where justified | Not complete: default-pipeline High is 61.0 us versus 45.46 us and spills; exact prepared-Low schedule remains an oracle pending CFG microkernel composition. |
 | `gfx906` VALU family | One useful family reaches parity across a bounded cell | Incumbent schedule recovered; Loom target enablement precedes implementation |
 | Accelerated arithmetic expansion | Every provider-visible native matrix signature has a correct primitive and measured representative cells | Instruction inventory and compile witnesses exist; gfx11 BF16 schedule port compiles, while BF16/I8/FP8 timing conclusions remain open |

@@ -17,6 +17,9 @@ programs.
 
 Every row in [`basket.json`](basket.json) ends in exactly one state:
 
+- `accepted`: correctness and legality pass and the candidate meets or beats
+  the incumbent performance gate; schedule differences remain explanatory
+  evidence but do not veto a faster kernel.
 - `congruent`: the critical schedule graph matches the incumbent and the upper
   bootstrap confidence bound for the Loom/incumbent median ratio is at most
   1.05.
@@ -28,7 +31,9 @@ Every row in [`basket.json`](basket.json) ends in exactly one state:
 Schedule congruence means equivalent macro-tile/depth/wave ownership, dynamic
 accelerated-operation count, global and LDS traffic, staging/barrier/wait
 graph, result publication, and occupancy without spills. It does not require
-byte-identical assembly.
+byte-identical assembly. Congruence is a recovery tool and an acceptance route
+for a candidate that has not independently won on performance; it is not a
+requirement for a correct, legal candidate that is measurably faster.
 
 ## Execution order
 

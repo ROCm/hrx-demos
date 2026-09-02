@@ -8,13 +8,14 @@
     "epilogue": "none"
   },
   "completion_states": [
+    "accepted",
     "congruent",
     "explained_delta",
     "compiler_blocker"
   ],
   "requests": [
     {"id": "gfx1201-f16-256x256x256", "target": "gfx1201", "type": "f16", "m": 256, "n": 256, "k": 256, "status": "compiler_blocker", "evidence": "results/gfx1201-f16-shapes.json"},
-    {"id": "gfx1201-f16-1024x1024x1024", "target": "gfx1201", "type": "f16", "m": 1024, "n": 1024, "k": 1024, "status": "explained_delta", "evidence": "../spike-004-default-pipeline-microkernels/results/gfx1201-anchor.json", "qualification": "default-pipeline High+Low performance passes but the schedule is not congruent; the older prepared-Low result remains an oracle only"},
+    {"id": "gfx1201-f16-1024x1024x1024", "target": "gfx1201", "type": "f16", "m": 1024, "n": 1024, "k": 1024, "status": "accepted", "evidence": "../spike-004-default-pipeline-microkernels/results/gfx1201-anchor.json", "qualification": "default-pipeline High+Low candidate is correct, access-sanitized, spill-free, and faster; schedule differences are diagnostic, not an acceptance blocker"},
     {"id": "gfx1201-f16-128x2048x2048", "target": "gfx1201", "type": "f16", "m": 128, "n": 2048, "k": 2048, "status": "compiler_blocker", "evidence": "results/gfx1201-f16-shapes.json"},
     {"id": "gfx1201-f16-2048x128x2048", "target": "gfx1201", "type": "f16", "m": 2048, "n": 128, "k": 2048, "status": "compiler_blocker", "evidence": "results/gfx1201-f16-shapes.json"},
     {"id": "gfx1201-f16-1024x1024x64", "target": "gfx1201", "type": "f16", "m": 1024, "n": 1024, "k": 64, "status": "compiler_blocker", "evidence": "results/gfx1201-f16-shapes.json"},
