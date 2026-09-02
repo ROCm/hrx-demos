@@ -15,8 +15,9 @@ retains enough state to reproduce or invalidate its findings.
   usability reports, and proposed compile-report knowledge.
 - [`spike-004-default-pipeline-microkernels/`](spike-004-default-pipeline-microkernels/)
   — test raising retained Low schedule oracles into High Loom kernels through
-  `low.invoke`; retain the accepted gfx12 performance witness and exact
-  compiler-contract packets for the boundaries that do not yet compose.
+  `low.invoke`; retain the accepted gfx12 performance witness, upstream #513
+  validation of family-generic locked fragments, and exact packets for the
+  unsupported or still-unverified boundaries.
 - [`tools/`](tools/) — small explicit probes used by the spikes.
 
 Generated binaries and bulky raw artifacts live in ignored `artifacts/`

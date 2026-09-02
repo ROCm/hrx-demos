@@ -14,10 +14,10 @@ correctness, sanitizer, performance, or product evidence.
 
 ## Outcome
 
-The smallest High+Low boundary now works through the default pipeline on an
-experimental HRX branch. gfx1201 accepts a register-only Low fragment-pack
-helper inside the full High GEMM and reaches 25.04 us device p50 versus
-28.78 us for hipBLASLt 133309. It is correct, has no spill/private traffic,
+The smallest High+Low boundary now works through the default pipeline on HRX
+main after #513. gfx1201 accepts a family-generic, register-only Low
+fragment-pack helper inside the full High GEMM and reaches 25.04 us device p50
+versus 28.78 us for hipBLASLt 133309. It is correct, has no spill/private traffic,
 and passes the performance gate. It is not schedule-congruent: after
 normalizing the candidate's K64 loop to K32, all matrix and memory operation
 counts match the incumbent, but Loom emits 239 instructions versus 147,
@@ -25,12 +25,20 @@ including 24 waits versus 11. Because the candidate is correct, legal,
 spill-free, and faster, this delta is diagnostic compiler evidence and does
 not block acceptance of the gfx1201 anchor.
 
+Validation at upstream commit `f17f69e82` preserves the result: the generic
+helper, exact helper, and explicit-fence control produce the same target
+artifact. After removing all workaround fences, a fresh run measured 25.36 us
+device p50 with unchanged resources. The unfenced four-permute acceptance
+fixture also emits the exact authored order.
+
 gfx1100 remains conclusive negative evidence for the all-High form: 61.0 us
 device p50 versus 45.46 us for solution 1675, four 4-byte spill/reload pairs,
 and a normalized 219.5 instructions per K32 versus 134. The exact prepared-Low
-oracle from Spike 003 cannot yet be raised as a maintained microkernel because
-required-inline Low calls reject multi-block CFG. That is now isolated by a
-two-block reproducer rather than attributed generically to “the compiler.”
+oracle from Spike 003 cannot be invoked wholesale: #513 intentionally accepts
+one outer helper block and requires locked helpers to be straight-line. The
+next maintained experiment is therefore a structured High/source loop around
+the smallest locked K-step or publication fragment, not a presumption that
+arbitrary prepared-Low CFG should inline.
 
 The completion condition is met by one accepted gfx1201 anchor plus exact
 compiler-contract packets for gfx1100. Schedule congruence has not been
@@ -54,6 +62,9 @@ The exact values and bootstrap summaries are in
 [`results/gfx1100-anchor.json`](results/gfx1100-anchor.json).
 Post-format correctness, sanitizer, parser, and expected-failure checks are
 indexed in [`results/validation.json`](results/validation.json).
+The upstream #513 revalidation, refreshed timings, artifact hashes, resolved
+contracts, and remaining boundaries are in
+[`results/pr513-main-validation.json`](results/pr513-main-validation.json).
 
 The source-to-motif derivation is summarized in
 [`source-lineage.md`](source-lineage.md). It separates facts copied from the
@@ -71,14 +82,17 @@ smaller one.
 - gfx11: one scheduled K32 body with carried state; whole peeled main loop only
   if required.
 
-gfx12's fragment-pack rung works only with an exact target and explicit
-schedule fences. Moving LDS reads into Low also executes, but the access
-sanitizer cannot cover those Low memory packets. The full-loop rung is required
-for schedule control and is blocked by multi-block Low inlining.
+gfx12's fragment-pack rung now works from a family-generic helper specialized
+to gfx1201, and `schedule(locked)` preserves its order without explicit fences.
+The maintained candidate keeps memory in High because the access sanitizer
+still cannot cover authored Low memory packets. The current candidate is
+already faster than the incumbent, so a full locked loop is diagnostic
+research rather than a requirement for this point.
 
 gfx11 begins at a loop-shaped boundary because its load/fragment placement is
-the schedule. The prepared oracle is multi-block and reaches the same CFG
-inlining blocker immediately.
+the schedule. Its prepared oracle is multi-block, but #513's deliberate helper
+contract redirects the next experiment toward structured source control flow
+and straight-line locked fragments.
 
 The High wrapper owns exact-shape specialization and a stable argument
 superset. It selects `has_bias` and `bias_axis = row | column` as compile-time
@@ -91,7 +105,7 @@ An anchor is accepted only when all of these hold:
 
 | Gate | gfx1201 High+Low | gfx1100 High |
 | --- | --- | --- |
-| Default pipeline | Pass on exact target; generic helper blocked | Pass on exact target |
+| Default pipeline | Pass with family-generic helper specialized to gfx1201 | Pass on exact target |
 | No-bias correctness | Pass | Pass |
 | Access sanitizer | Pass; all maintained memory is High | Pass |
 | No spills/private memory | Pass | Fail: 16 bytes, 4 stores, 4 reloads |
@@ -116,8 +130,8 @@ The commands and required revisions are in [`reproduce.md`](reproduce.md).
 Each experiment records the should-work source, the first failing compiler
 contract, and any narrowly gated experimental fix on a dedicated HRX branch.
 Once a missing contract is isolated, work stops stacking unrelated rewrites.
-Compiler changes in this spike are disposable evidence for Loom maintainers;
-they are not proposed for direct landing.
+The original changes remain disposable evidence; #513 is the independently
+authored upstream implementation now used by the maintained gfx12 motif.
 
 ## Compiler packets
 
@@ -125,11 +139,12 @@ they are not proposed for direct landing.
   the working exact-target, single-block, register-only path and its
   experimental lowering.
 - [`experiments/001-family-carrier-rebinding.md`](experiments/001-family-carrier-rebinding.md):
-  generic Low carrier identity is not rebound for an exact target.
+  the original carrier mismatch and its resolution by #513.
 - [`experiments/002-schedule-lock-across-inline.md`](experiments/002-schedule-lock-across-inline.md):
-  a helper's `schedule(locked)` does not survive inlining.
+  the original lost lock scope and its resolution by conservative boundaries.
 - [`experiments/003-cfg-low-invoke.md`](experiments/003-cfg-low-invoke.md):
-  required-inline calls reject multi-block Low CFG.
+  the intentionally unsupported multi-block form and the revised structured
+  source plus straight-line fragment direction.
 - [`compiler-usability-access-sanitizer.md`](compiler-usability-access-sanitizer.md):
   authored Low memory operations are not access-sanitizer covered.
 - [`experiments/004-loombc-link-compile.md`](experiments/004-loombc-link-compile.md):
@@ -138,12 +153,13 @@ they are not proposed for direct landing.
 
 ## Completion disposition
 
-gfx1201 has an accepted default-pipeline performance candidate and precise
-schedule delta. gfx1100 has a measured default-pipeline baseline and an exact
-minimal CFG-inlining packet that blocks composition of the retained congruent
-oracle. gfx906 is intentionally deferred: work there would require the same
-microkernel composition contracts plus gfx9 target enablement, and neither
-gfx11 nor gfx12 benefits from starting that compiler surgery now.
+gfx1201 has an accepted default-pipeline performance candidate, a generic
+helper, preserved locked ordering, and a precise schedule delta. gfx1100 has a
+measured default-pipeline baseline and an exact unsupported-shape packet that
+prevents directly embedding the retained CFG oracle. It does not yet prove
+that a structured High loop with smaller Low fragments is insufficient.
+gfx906 is intentionally deferred: work there requires gfx9 target enablement,
+and neither gfx11 nor gfx12 benefits from starting that compiler surgery now.
 
 ## Alternatives considered
 

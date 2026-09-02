@@ -31,13 +31,14 @@ Spike 4 maps that information as follows:
 | Responsibility | Retained representation | Status |
 | --- | --- | --- |
 | Public buffers, shape, launch, global/LDS memory, WMMA, output | High Loom in `loom/gemm-f16-f32-mt128x128x32-gfx12-pack-microkernel-exact.loom` | Correct, access-sanitized, performance accepted |
-| Eight-register A-fragment permutation | Single-block register-only Low object function invoked from High | Works through the default pipeline on exact gfx1201 |
-| Full PGR2/wait/issue graph | Spike 3 prepared-Low whole-kernel oracle | Not raised; requires multi-block Low composition or a better High schedule |
-| Family portability | Authored `gfx12.generic.core` helper specialized to gfx1201 | Blocked by physical carrier rebinding |
+| Eight-register A-fragment permutation | Single-block register-only Low object function invoked from High | Works through the default pipeline with locked source order |
+| Full PGR2/wait/issue graph | Spike 3 prepared-Low whole-kernel oracle | Not raised; current candidate is faster without exact graph recovery |
+| Family portability | Authored `gfx12.generic.core` helper specialized to gfx1201 | Passes after #513; emitted artifact matches exact control |
 
 The current fast candidate is therefore evidence that the semantic kernel can
-remain High while a narrow target idiom is Low. It is not yet the intended
-family-generic motif and does not reproduce the incumbent wait graph.
+remain High while a narrow family-generic target idiom is Low. It does not
+reproduce the incumbent wait graph, but that delta is diagnostic because the
+candidate is faster.
 
 ## gfx11 / gfx1100
 
@@ -63,13 +64,16 @@ Spike 4 maps that information as follows:
 | --- | --- | --- |
 | Full semantic GEMM baseline | High Loom in `loom/gemm-f16-f32-mt64x96x32-gfx11-high-exact.loom` | Correct, but 1.34x incumbent and spills four values |
 | Exact payload/fragment/SRD ring and peeled loop | Spike 3 prepared-Low oracle | Exact 134-instruction category schedule and timing oracle only |
-| Maintained High+Low composition | A required-inline multi-block Low helper | Blocked by `callee_body_not_single_block` |
+| Maintained High+Low composition | Structured High/source loop plus a straight-line locked Low K-step or publication fragment | Next experiment after #513; wholesale multi-block helpers are unsupported by design |
 | Direct wave-coalesced publication | Stable provider epilogue policy informed by the oracle | Must be composed and revalidated after CFG invocation works |
 
-The blocker is structural rather than a vague request for “better codegen”:
-without a CFG-bearing microkernel boundary, High Loom reconstructs the loop
-with 107 miscellaneous instructions per normalized K32 instead of 24 and
-materializes private spill traffic.
+The performance gap remains structural rather than a vague request for
+“better codegen”: current High Loom reconstructs the loop with 107
+miscellaneous instructions per normalized K32 instead of 24 and materializes
+private spill traffic. #513 removes the register-fragment composition blockers
+but deliberately does not accept arbitrary locked CFG. The retained oracle now
+guides reconstruction with structured source control flow and the smallest
+straight-line Low schedule fragments.
 
 ## Shared authored motif
 
@@ -88,8 +92,9 @@ negative experiments. Its `experiment-log.md`, `low/`, `att/`, compiler
 usability reports, and result summaries document why count matching, banded
 LDS reads, structural recoloring, and progressively larger fixed-register
 experiments did or did not help. Spike 4's `experiments/` directory records
-the new composition-specific failures: target carrier rebinding, schedule-lock
-scope, CFG inlining, sanitizer coverage, and the bytecode link API ordering.
+the composition-specific journey: resolved target carrier rebinding and
+schedule-lock scope, the intentionally unsupported CFG/nested-call forms,
+sanitizer coverage, and the bytecode link API ordering.
 
 ## Alternatives considered
 
@@ -97,6 +102,6 @@ scope, CFG inlining, sanitizer coverage, and the bytecode link API ordering.
   preserve too much routing and ABI policy at Low level.
 - Keeping the entire GEMM in High is insufficient for the gfx11 anchor with
   the current compiler: the measured schedule and spill deltas are material.
-- Treating one exact ISA as the authored family is not acceptable; exact
-  gfx1201 is retained only as a working control for missing generic carrier
-  rebinding.
+- Treating one exact ISA as the authored family is not acceptable; #513 now
+  lets the gfx12 helper remain family-generic while exact gfx1201 is only the
+  execution witness.

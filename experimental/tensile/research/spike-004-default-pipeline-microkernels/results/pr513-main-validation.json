@@ -1,0 +1,106 @@
+{
+  "schema": "loom-blas.spike4-pr513-validation.v1",
+  "recorded_at": "2026-09-02T16:24:20-07:00",
+  "upstream": {
+    "repository": "ROCm/hrx-system",
+    "pull_request": 513,
+    "branch": "main",
+    "commit": "f17f69e82df39f31b9b3ee404c5a33ab7c2c47b6",
+    "subject": "[Loom] Add required-inline Low schedule fragments (#513)"
+  },
+  "source_validation": {
+    "upstream_focused_test_target_count": 4,
+    "upstream_focused_test_failure_count": 0,
+    "canonical_format_file_count": 8,
+    "canonical_format_failure_count": 0,
+    "gfx1201_exact_register_helper": "pass",
+    "gfx1201_family_generic_register_helper": "pass",
+    "gfx1201_full_shape_correctness": "pass",
+    "gfx1201_minimum_loop_access_sanitizer": "pass",
+    "gfx1100_full_shape_correctness": "pass_with_four_private_store_reload_pairs",
+    "epilogue_no_bias_column_bias_row_bias_access_sanitizer": "pass"
+  },
+  "resolved_contracts": {
+    "family_generic_carrier_projection": {
+      "state": "pass",
+      "source": "../loom/gfx12-pack-invoke-family-generic.loom-test"
+    },
+    "locked_helper_order": {
+      "state": "pass",
+      "source": "../loom/gfx12-pack-invoke-object-abi.loom-test",
+      "explicit_fences": 0,
+      "emitted_permute_order": ["packed0", "packed1", "packed2", "packed3"]
+    },
+    "full_candidate_generic_helper": {
+      "state": "pass",
+      "source": "../loom/gemm-f16-f32-mt128x128x32-gfx12-pack-microkernel-exact.loom",
+      "explicit_fences": 0,
+      "target_artifact_sha256": "a6475e7d2ba341154ba9f0a1c494b5a827f5c2483c193e1d2595ce4d42f9c009",
+      "artifact_matches_exact_helper_and_explicit_fence_controls": true
+    }
+  },
+  "performance": {
+    "gfx1201_fp16_1024x1024x1024": {
+      "device_duration_us": {
+        "count": 64,
+        "min": 24.56,
+        "p50": 25.36,
+        "p90": 25.64,
+        "max": 65.92,
+        "mean": 25.848125
+      },
+      "host_operation_p50_us": 25.31,
+      "resources": {
+        "vgpr": 220,
+        "sgpr": 30,
+        "lds_bytes": 51200,
+        "private_bytes": 0,
+        "spill_stores": 0,
+        "reloads": 0
+      },
+      "conclusion": "stable against the accepted Spike 4 result; generic projection and implicit locked ordering produce the same target artifact"
+    },
+    "gfx1100_fp16_1024x960x1024": {
+      "device_duration_us": {
+        "count": 64,
+        "min": 58.96,
+        "p50": 60.56,
+        "p90": 61.92,
+        "max": 63.56,
+        "mean": 60.738125
+      },
+      "host_operation_p50_us": 64.082,
+      "resources": {
+        "vgpr": 160,
+        "sgpr": 27,
+        "lds_bytes": 28288,
+        "private_bytes": 16,
+        "spill_stores": 4,
+        "reloads": 4
+      },
+      "conclusion": "no material change to the all-High negative result"
+    }
+  },
+  "remaining_contracts": {
+    "outer_multi_block_low_helper": {
+      "state": "rejected_by_current_required_inline_contract",
+      "source": "../reproducers/low-invoke-cfg-helper-gfx1201.loom",
+      "diagnostic": "TARGET/072 required inlining supports exactly one outer body block",
+      "disposition": "re-author loops as structured High/source control flow with straight-line locked Low fragments, or schedule-free single-outer-block helpers with supported nested regions"
+    },
+    "nested_low_calls": {
+      "state": "rejected_by_current_required_inline_contract",
+      "source": "../loom/gfx12-fragment-pack-exact.loom",
+      "diagnostic": "TARGET/072 nested calls require their own target and representation projection"
+    },
+    "authored_low_memory_access_sanitizer": {
+      "state": "uncovered",
+      "source": "../reproducers/low-invoke-lds-access-gfx1201.loom",
+      "sanitized_execution": "pass",
+      "sanitizer_site_count": 2,
+      "instrumented_sites": ["High global input read", "High global output write"],
+      "uncovered_packet": "amdgpu.ds_read_b64 in @load_lds",
+      "compile_report_suggestion_mentions_gap": false
+    }
+  }
+}

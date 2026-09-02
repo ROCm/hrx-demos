@@ -1,0 +1,46 @@
+// Minimal access-sanitizer coverage probe for a memory-bearing Low helper.
+// The legal access executes successfully; compiler reports and sanitizer IR
+// must still distinguish the authored ds_read_b64 from instrumented High
+// accesses before this can serve as sanitizer acceptance evidence.
+amdgpu.target<gfx1201> @target
+
+low.func.def schedule(locked) target<amdgpu.rdna4.core>(@target) abi(object_function) @load_lds(%address: reg<amdgpu.vgpr>) -> (reg<amdgpu.vgpr x2>) asm {
+  %value = ds_read_b64 %address
+  return %value
+}
+
+kernel.def target(@target) @low_lds_access() {
+  %one = index.constant 1 : index
+  %thirty_two = index.constant 32 : index
+  kernel.launch.config workgroups(%one, %one, %one) workgroup_size(%thirty_two, %one, %one) : index
+} launch(%input_buffer: buffer, %output_buffer: buffer) {
+  %base = index.constant 0 : offset
+  %zero = index.constant 0 : index
+  %eight = index.constant 8 : index
+  %four = index.constant 4 : index
+  %lds_bytes = index.constant 256 : offset
+  %input_global = buffer.assume.memory_space<global> %input_buffer : buffer
+  %output_global = buffer.assume.memory_space<global> %output_buffer : buffer
+  %input = buffer.view %input_global[%base] : buffer -> view<4xf16>
+  %output = buffer.view %output_global[%base] : buffer -> view<4xf16>
+  %lds_buffer = buffer.alloca<workgroup> align(8) %lds_bytes : buffer
+  %lds = buffer.view %lds_buffer[%base] : buffer -> view<128xf16>
+  %lane = kernel.workitem.id<x> : index
+  %lane_element = index.mul %lane, %four : index
+  %input_value = vector.load %input[%zero] : view<4xf16> -> vector<4xf16>
+  vector.store %input_value, %lds[%lane_element] : vector<4xf16>, view<128xf16>
+  kernel.barrier<workgroup> scope(workgroup) ordering(acq_rel)
+  %address = index.mul %lane, %eight : index
+  %output_value = low.invoke @load_lds(%address) : (index) -> (vector<4xf16>)
+  vector.store %output_value, %output[%zero] : vector<4xf16>, view<4xf16>
+  kernel.return
+}
+
+check.case public @low_lds_access_case {
+  %input = check.generate.fill value(0.25) : tensor<4xf16>
+  %output = check.generate.fill value(0.0) : tensor<4xf16>
+  %expected = check.generate.fill value(0.25) : tensor<4xf16>
+  kernel.launch @low_lds_access(%input, %output) : (tensor<4xf16>, tensor<4xf16>)
+  check.expect.close actual(%output) expected(%expected) atol(0.0) rtol(0.0) nan(same) : tensor<4xf16>
+  check.return
+}

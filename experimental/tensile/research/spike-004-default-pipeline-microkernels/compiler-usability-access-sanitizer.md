@@ -9,29 +9,44 @@ sanitizer run therefore does not presently certify Low-authored LDS or global
 accesses. Register-only Low microkernels avoid this gap; memory-bearing Low
 microkernels need a separate static proof until coverage is implemented.
 
-## Preserved should-work case
+## Preserved should-work cases
+
+[`low-invoke-lds-access-gfx1201.loom`](reproducers/low-invoke-lds-access-gfx1201.loom)
+is the minimal current acceptance probe. A High kernel writes one legal LDS
+value and invokes a single-block Low helper containing one `ds_read_b64`. It
+passes both ordinary and access-sanitized execution through the default
+pipeline on HRX main `f17f69e82`.
 
 [`gfx12-fragment-pack-exact.loom`](loom/gfx12-fragment-pack-exact.loom)
-contains two boundaries:
+preserves the larger original ladder:
 
 - `@fragment_pack` keeps all memory in High and invokes a register-only Low
   pack helper.
 - `@lds_fragment_load_pack` performs High global loads and High LDS stores,
   then invokes `@load_and_pack_lhs_fragments`, which contains eight authored
-  `amdgpu.ds_read_b64` packets.
+  `amdgpu.ds_read_b64` packets and a nested Low-to-Low pack call.
 
-Both cases compile through the default pipeline and pass
-`iree-test-loom --sanitizer=asan` on gfx1201. The latter is the source we think
-should eventually be fully covered.
+The register-only case compiles. The larger memory case is now independently
+rejected because #513 does not yet project nested Low calls. It remains useful
+source for the desired composed form, while the minimal probe isolates
+sanitizer coverage without that unrelated failure.
 
 ## Evidence of the gap
 
-The sanitizer assertion-selection pass runs before source-to-Low. Its site
-table for `@lds_fragment_load_pack` contains the twelve High global accesses:
-eight reads and four writes. The eight Low `ds_read_b64` packets remain
-verbatim in prepared Low and have no corresponding access sites. The run
-passes because those particular addresses are legal; it does not test whether
-the sanitizer could diagnose an illegal authored-Low address.
+The sanitizer assertion-selection pass runs before source-to-Low. In the
+minimal probe its site table contains two High global accesses: the input read
+and output write. The authored Low `ds_read_b64` remains in the module with no
+corresponding access site. The detailed compile report sees two local-memory
+packets in the final instruction mix, but its source-Low memory economics
+contain only the three memory operations lowered from High; the authored Low
+read is not one of them. `loom-compile-report suggest` emits only the unrelated
+single-subgroup workgroup-communication finding and does not identify this
+coverage gap.
+
+The sanitized run passes because the Low address is legal; it does not prove
+that the sanitizer could diagnose an illegal authored-Low address. The larger
+original fixture showed the same phase ordering with eight omitted Low reads
+before the upstream required-inline implementation landed.
 
 No deliberately out-of-bounds Low packet was executed. Doing so would use an
 uninstrumented device operation as the detector and would not be sanitizer

@@ -6,7 +6,7 @@
 defines both the High caller and Low helper against `gfx12-generic`, then asks
 the default pipeline to specialize `@caller` for `gfx1201`.
 
-## Observation
+## Original observation
 
 The High caller specializes to `amdgpu.rdna4.core`. The Low helper retains
 `amdgpu.gfx12.generic.core` carrier identities. Inlining rejects operands whose
@@ -33,3 +33,12 @@ packet is actually illegal on sibling targets.
 
 An acceptance fixture compiles the family-generic source with target
 `gfx1201`, executes `@caller`, and compares the eight FP16 outputs.
+
+## Resolution
+
+HRX main `f17f69e82` (PR #513) projects the generic helper target, physical
+carrier types, and packets to the selected exact caller target. The retained
+family-generic fixture now compiles and passes its check case through the
+default pipeline. The full gfx1201 candidate also uses a
+`gfx12-generic`/`amdgpu.gfx12.generic.core` helper; its emitted target artifact
+is byte-identical to the exact-helper control.

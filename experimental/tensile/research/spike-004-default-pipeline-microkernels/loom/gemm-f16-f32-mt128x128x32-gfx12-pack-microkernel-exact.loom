@@ -13,7 +13,9 @@
 // Stop: do not time unless the compiler consequence appears.
 amdgpu.target<gfx1201> @gfx12 {subgroup_size = 32}
 
-low.func.def schedule(locked) target<amdgpu.rdna4.core>(@gfx12) abi(object_function) @pack_lhs_fragments(%raw0: reg<amdgpu.vgpr x2>, %raw1: reg<amdgpu.vgpr x2>, %raw2: reg<amdgpu.vgpr x2>, %raw3: reg<amdgpu.vgpr x2>, %raw4: reg<amdgpu.vgpr x2>, %raw5: reg<amdgpu.vgpr x2>, %raw6: reg<amdgpu.vgpr x2>, %raw7: reg<amdgpu.vgpr x2>) -> (reg<amdgpu.vgpr x4>, reg<amdgpu.vgpr x4>, reg<amdgpu.vgpr x4>, reg<amdgpu.vgpr x4>) asm {
+amdgpu.target<gfx12-generic> @gfx12_helper {subgroup_size = 32}
+
+low.func.def schedule(locked) target<amdgpu.gfx12.generic.core>(@gfx12_helper) abi(object_function) @pack_lhs_fragments(%raw0: reg<amdgpu.vgpr x2>, %raw1: reg<amdgpu.vgpr x2>, %raw2: reg<amdgpu.vgpr x2>, %raw3: reg<amdgpu.vgpr x2>, %raw4: reg<amdgpu.vgpr x2>, %raw5: reg<amdgpu.vgpr x2>, %raw6: reg<amdgpu.vgpr x2>, %raw7: reg<amdgpu.vgpr x2>) -> (reg<amdgpu.vgpr x4>, reg<amdgpu.vgpr x4>, reg<amdgpu.vgpr x4>, reg<amdgpu.vgpr x4>) asm {
   %r0l = slice %raw0[0] : reg<amdgpu.vgpr x2> -> reg<amdgpu.vgpr>
   %r0h = slice %raw0[1] : reg<amdgpu.vgpr x2> -> reg<amdgpu.vgpr>
   %r1l = slice %raw1[0] : reg<amdgpu.vgpr x2> -> reg<amdgpu.vgpr>
@@ -33,41 +35,25 @@ low.func.def schedule(locked) target<amdgpu.rdna4.core>(@gfx12) abi(object_funct
   %even = s_mov_b32 84148480
   %odd = s_mov_b32 117834498
   %f0p0 = v_perm_b32 %r1l, %r0l, %even
-  low.schedule.fence
   %f0p1 = v_perm_b32 %r3l, %r2l, %even
-  low.schedule.fence
   %f0p2 = v_perm_b32 %r5l, %r4l, %even
-  low.schedule.fence
   %f0p3 = v_perm_b32 %r7l, %r6l, %even
   %f0 = concat(%f0p0, %f0p1, %f0p2, %f0p3) : (reg<amdgpu.vgpr>, reg<amdgpu.vgpr>, reg<amdgpu.vgpr>, reg<amdgpu.vgpr>) -> reg<amdgpu.vgpr x4>
-  low.schedule.fence
   %f1p0 = v_perm_b32 %r1l, %r0l, %odd
-  low.schedule.fence
   %f1p1 = v_perm_b32 %r3l, %r2l, %odd
-  low.schedule.fence
   %f1p2 = v_perm_b32 %r5l, %r4l, %odd
-  low.schedule.fence
   %f1p3 = v_perm_b32 %r7l, %r6l, %odd
   %f1 = concat(%f1p0, %f1p1, %f1p2, %f1p3) : (reg<amdgpu.vgpr>, reg<amdgpu.vgpr>, reg<amdgpu.vgpr>, reg<amdgpu.vgpr>) -> reg<amdgpu.vgpr x4>
-  low.schedule.fence
   %f2p0 = v_perm_b32 %r1h, %r0h, %even
-  low.schedule.fence
   %f2p1 = v_perm_b32 %r3h, %r2h, %even
-  low.schedule.fence
   %f2p2 = v_perm_b32 %r5h, %r4h, %even
-  low.schedule.fence
   %f2p3 = v_perm_b32 %r7h, %r6h, %even
   %f2 = concat(%f2p0, %f2p1, %f2p2, %f2p3) : (reg<amdgpu.vgpr>, reg<amdgpu.vgpr>, reg<amdgpu.vgpr>, reg<amdgpu.vgpr>) -> reg<amdgpu.vgpr x4>
-  low.schedule.fence
   %f3p0 = v_perm_b32 %r1h, %r0h, %odd
-  low.schedule.fence
   %f3p1 = v_perm_b32 %r3h, %r2h, %odd
-  low.schedule.fence
   %f3p2 = v_perm_b32 %r5h, %r4h, %odd
-  low.schedule.fence
   %f3p3 = v_perm_b32 %r7h, %r6h, %odd
   %f3 = concat(%f3p0, %f3p1, %f3p2, %f3p3) : (reg<amdgpu.vgpr>, reg<amdgpu.vgpr>, reg<amdgpu.vgpr>, reg<amdgpu.vgpr>) -> reg<amdgpu.vgpr x4>
-  low.schedule.fence
   return %f0, %f1, %f2, %f3
 }
 

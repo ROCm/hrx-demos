@@ -29,11 +29,19 @@ does not yet claim GPU correctness or performance.
 6. Fragment role facts do not cross the boundary. The caller must currently
    reattach `vector.fragment<lhs>` before `vector.mma`.
 
-This establishes a usable register-only exact-target microkernel path. The
-remaining family-target, schedule, CFG, and sanitizer contracts are separated
-into experiments 001 through 003 and the access-sanitizer usability report.
+This established a usable register-only exact-target microkernel path. The
+family-target, schedule, CFG, and sanitizer contracts were separated into
+experiments 001 through 003 and the access-sanitizer usability report.
 
-## Experimental compiler branch
+## Upstream resolution
+
+HRX main `f17f69e82` (PR #513) implements required-inline Low schedule
+fragments in the default pipeline without the experimental environment gate.
+Both the exact fixture and the full gfx1201 GEMM execute through sanctioned
+Loom runners. The disposable branch below remains useful archaeology for the
+sequence of compiler contracts it exposed, but it is no longer required.
+
+## Historical experimental compiler branch
 
 `loom-blas/spike4-low-invoke-experiment` at `db115431e`, based on `b422b5056`.
 Changes are disposable compiler evidence and are not intended to land

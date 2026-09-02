@@ -123,15 +123,18 @@ sanctioned Loom runners:
 In both default artifacts the normalized matrix/global/LDS/barrier/branch
 counts match the incumbent. The deltas are waits and miscellaneous address,
 move, and control packets, plus four spill/reload pairs on gfx11. A
-single-block exact-target `low.invoke` helper now works on an experimental
-branch. The remaining path to a whole scheduled loop is blocked concretely by
-multi-block Low inlining; family-generic physical carrier rebinding and
-schedule-lock propagation are separate compiler contracts.
+single-block `low.invoke` helper now works on HRX main for both exact and
+family-generic targets. #513 also preserves `schedule(locked)` source order
+across required inlining. The full gfx1201 candidate emits the same target
+artifact with a family-generic helper and no explicit workaround fences.
+Multi-block outer CFG and nested Low calls remain outside this first contract;
+that redirects loop recovery toward structured High/source control flow plus
+straight-line locked fragments.
 
-The required compiler controls are
-isolated behind environment gates on HRX branch
-`loom-blas/spike4-low-invoke-experiment` at `db115431e`, based on `b422b5056`;
-they are work-item evidence, not proposed defaults.
+The original compiler controls remain as archaeology on HRX branch
+`loom-blas/spike4-low-invoke-experiment` at `db115431e`, based on `b422b5056`.
+The validated upstream implementation is main commit `f17f69e82` (#513) and
+requires no experiment environment gate.
 
 The shareable Spike 4 packet includes the default-pipeline sources, source
 lineage, reproduction commands, compact results, and minimized compiler cases
@@ -1183,11 +1186,11 @@ ordinary staged or direct-to-VGPR pipelines; a smaller set uses dynamic or
 fixed global split-U. These are credible Loom mechanisms.
 
 The default-pipeline FP16 anchor now beats the selected incumbent, establishing
-an end-to-end performance witness. Main remaining risks are family-generic Low
-carrier specialization, schedule-lock/CFG composition for exact loops,
-matching wait density across a broader shape basket, fused epilogue ABI, and
-multi-kernel split/reduction paths. Start with unsplit winners before adding
-the less common mechanisms.
+an end-to-end performance witness. Family-generic Low carrier specialization
+and locked-order preservation are validated on main. Remaining risks are
+structured composition for exact loops, matching wait density across a broader
+shape basket, fused epilogue ABI, and multi-kernel split/reduction paths. Start
+with unsplit winners before adding the less common mechanisms.
 
 ### `gfx1100`
 
@@ -1200,7 +1203,9 @@ coverage rather than encode the original rocBLAS-only assumption. Compare
 recipe families with `gfx1201` to decide which Loom motifs are genuinely shared
 and which require RDNA3 specialization. The all-High FP16 anchor is correct but
 1.34x slower and spills four values; the prepared-Low oracle proves the target
-schedule, while multi-block Low composition is the current concrete blocker.
+schedule. The next experiment reconstructs it with structured source control
+flow and straight-line locked Low fragments, since arbitrary multi-block
+locked helpers are outside #513's deliberate contract.
 
 ### `gfx906`
 
@@ -1228,8 +1233,8 @@ rather than guessed calendar duration.
 | Source/runtime extractor and router explainer | Sampled Equality/GridBased/classic Tensile routes agree with runtime/dispatch and emit normalized packets | Runtime shards, source recipes, code objects, and bounded native symbol summaries joined for sampled winners; broader route replay and dynamic schedule extraction remain |
 | Derived-key experiment | Config and exact shape facts specialize a `.loombc`; equal resulting programs alias before HSACO emission and unequal programs do not | Optimized-host bytecode link/default-compile/emit latency is 11.77--22.09 ms median; pre-emission key stability, demand-corpus cardinality, parallel startup behavior, and code-object load remain open |
 | `gfx906` Loom enablement | Compile/load/correctness/resource-report smoke tests pass | Blocked on missing physical target support, isolated from GEMM work |
-| First `gfx1201` vertical slice | Primitive FP16-to-FP32 WMMA GEMM reaches parity across a bounded cell through the default pipeline | The 1024-cubed point is accepted: 25.04 us versus 28.78 us, correct and spill-free. Broader-cell and family-generic validation remain open; schedule congruence does not block this faster point. |
-| gfx11 family specialization | The shared family passes on the RDNA3 witness with structural variants only where justified | Not complete: default-pipeline High is 61.0 us versus 45.46 us and spills; exact prepared-Low schedule remains an oracle pending CFG microkernel composition. |
+| First `gfx1201` vertical slice | Primitive FP16-to-FP32 WMMA GEMM reaches parity across a bounded cell through the default pipeline | The 1024-cubed point is accepted: 25.04 us versus 28.78 us, correct and spill-free. #513 validates its family-generic helper and locked ordering with a byte-identical artifact; broader-cell validation remains open. |
+| gfx11 family specialization | The shared family passes on the RDNA3 witness with structural variants only where justified | Not complete: default-pipeline High is 61.0 us versus 45.46 us and spills; exact prepared-Low schedule remains an oracle for reconstruction as structured source control flow plus straight-line Low fragments. |
 | `gfx906` VALU family | One useful family reaches parity across a bounded cell | Incumbent schedule recovered; Loom target enablement precedes implementation |
 | Accelerated arithmetic expansion | Every provider-visible native matrix signature has a correct primitive and measured representative cells | Instruction inventory and compile witnesses exist; gfx11 BF16 schedule port compiles, while BF16/I8/FP8 timing conclusions remain open |
 | Layout/epilogue expansion | Agreed key demand corpus is covered with provider fallback elsewhere | Standalone bias/no-bias specialization witness passes and removes the bias load; composed GEMM row/column differential remains open. |

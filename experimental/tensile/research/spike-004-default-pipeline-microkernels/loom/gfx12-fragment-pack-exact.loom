@@ -1,6 +1,7 @@
-// Exact-target execution witness for the first gfx12 boundary-ladder rung.
-// The family-generic should-work source remains separate until Low carrier
-// rebinding during exact target specialization is implemented.
+// Historical exact-target boundary ladder. The register-only helper executes
+// on current main. The LDS-load helper preserves a nested Low-to-Low call that
+// current required-inline projection rejects; use the minimized reproducer for
+// the independent authored-Low access-sanitizer coverage question.
 amdgpu.target<gfx1201> @target
 
 low.func.def schedule(locked) target<amdgpu.rdna4.core>(@target) abi(object_function) @pack_lhs_fragments(%raw0: reg<amdgpu.vgpr x2>, %raw1: reg<amdgpu.vgpr x2>, %raw2: reg<amdgpu.vgpr x2>, %raw3: reg<amdgpu.vgpr x2>, %raw4: reg<amdgpu.vgpr x2>, %raw5: reg<amdgpu.vgpr x2>, %raw6: reg<amdgpu.vgpr x2>, %raw7: reg<amdgpu.vgpr x2>) -> (reg<amdgpu.vgpr x4>, reg<amdgpu.vgpr x4>, reg<amdgpu.vgpr x4>, reg<amdgpu.vgpr x4>) asm {

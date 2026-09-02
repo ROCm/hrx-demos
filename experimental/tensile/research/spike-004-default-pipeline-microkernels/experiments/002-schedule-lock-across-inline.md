@@ -8,7 +8,7 @@ authors four independent `v_perm_b32` packets in the order `packed0`,
 function. The helper is necessarily inlined because AMDGPU has no object-call
 ABI at this boundary.
 
-## Observation
+## Original observation
 
 After default-pipeline inlining the emitted packet order is `packed0`,
 `packed2`, `packed1`, `packed3`:
@@ -35,3 +35,13 @@ an author should not need a fence after every independent packet.
 The acceptance fixture compares the four packet identities in emitted target
 order, not just numerical output, because all four permutations can be
 numerically correct after reordering.
+
+## Resolution
+
+HRX main `f17f69e82` (PR #513) materializes conservative source-order
+boundaries when a `schedule(locked)` helper is required-inline. With all
+explicit `low.schedule.fence` operations removed, the acceptance fixture emits
+`packed0`, `packed1`, `packed2`, `packed3` in authored order. Removing the same
+fences from the full family-generic gfx1201 fragment-pack helper produces a
+byte-identical target artifact, so the maintained motif now relies on the
+declared lock rather than per-packet workaround fences.

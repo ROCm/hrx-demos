@@ -1,5 +1,10 @@
 {
-  "schema": "loom-blas.spike4-compiler-contracts.v1",
+  "schema": "loom-blas.spike4-compiler-contracts.v2",
+  "upstream_hrx": {
+    "branch": "main",
+    "commit": "f17f69e82df39f31b9b3ee404c5a33ab7c2c47b6",
+    "pull_request": 513
+  },
   "experimental_hrx": {
     "branch": "loom-blas/spike4-low-invoke-experiment",
     "base": "b422b5056",
@@ -7,35 +12,44 @@
     "focused_test_targets": 30,
     "focused_test_failures": 0
   },
-  "working": {
-    "source": "../loom/gfx12-pack-invoke-object-abi.loom-test",
-    "contract": "exact-target single-block register-only Low object function",
-    "default_pipeline_compile": "pass",
-    "sanctioned_correctness": "pass",
-    "access_sanitizer": "pass for High memory"
-  },
-  "blockers": [
+  "resolved_upstream": [
     {
       "name": "family_generic_carrier_rebinding",
       "source": "../loom/gfx12-pack-invoke-family-generic.loom-test",
-      "diagnostic": "LOWERING/044 operand_type_mismatch",
-      "exact_target_control": "pass"
+      "default_pipeline_compile": "pass",
+      "sanctioned_correctness": "pass"
     },
     {
       "name": "schedule_lock_scope_after_inline",
       "source": "../loom/gfx12-pack-invoke-object-abi.loom-test",
-      "diagnostic": "no rejection; emitted independent packet order changes",
-      "control": "explicit low.schedule.fence preserves order"
+      "explicit_fences": 0,
+      "emitted_order": ["packed0", "packed1", "packed2", "packed3"]
     },
+    {
+      "name": "full_gfx12_family_generic_register_microkernel",
+      "source": "../loom/gemm-f16-f32-mt128x128x32-gfx12-pack-microkernel-exact.loom",
+      "default_pipeline_compile": "pass",
+      "sanctioned_correctness": "pass",
+      "access_sanitizer": "pass for the maintained High memory path",
+      "exact_and_generic_artifacts_identical": true
+    }
+  ],
+  "remaining": [
     {
       "name": "multi_block_low_inline",
       "source": "../reproducers/low-invoke-cfg-helper-gfx1201.loom",
-      "diagnostic": "LOWERING/044 callee_body_not_single_block"
+      "diagnostic": "TARGET/072 required inlining supports exactly one outer body block",
+      "disposition": "unsupported by design; first re-author as structured High/source control flow plus straight-line Low fragments"
+    },
+    {
+      "name": "nested_low_call_projection",
+      "source": "../loom/gfx12-fragment-pack-exact.loom",
+      "diagnostic": "TARGET/072 nested calls require their own target and representation projection"
     },
     {
       "name": "authored_low_memory_sanitizer_coverage",
-      "source": "../loom/gfx12-fragment-pack-exact.loom",
-      "diagnostic": "sanitizer pass contains sites for High accesses but none for eight authored Low ds_read_b64 packets"
+      "source": "../reproducers/low-invoke-lds-access-gfx1201.loom",
+      "diagnostic": "sanitized execution passes, but its two-site table omits the authored Low ds_read_b64 and compile-report suggest does not report the gap"
     }
   ]
 }

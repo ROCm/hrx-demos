@@ -1,9 +1,8 @@
 // RUN: verify
 
-// This is the family-generic form we expect to work. Exact-target selection
-// currently rebinds the High kernel to rdna4.core but leaves this helper's
-// carrier types in gfx12.generic.core, so post-lowering inlining rejects the
-// otherwise identical printed register shapes.
+// Family-generic helper with an exact-target runtime witness. PR #513 projects
+// the helper's generic carrier and packet descriptors into gfx1201 before
+// required inlining.
 amdgpu.target<gfx12-generic> @target
 
 low.func.def schedule(locked) target<amdgpu.gfx12.generic.core>(@target) abi(object_function) @pack_pair(%even: reg<amdgpu.vgpr x2>, %odd: reg<amdgpu.vgpr x2>) -> (reg<amdgpu.vgpr x4>) asm {
@@ -37,4 +36,13 @@ kernel.def target(@target) @caller() {
   %packed = low.invoke @pack_pair(%even, %odd) : (vector<4xf16>, vector<4xf16>) -> (vector<8xf16>)
   vector.store %packed, %output[%zero] : vector<8xf16>, view<8xf16>
   kernel.return
+}
+
+check.case public @invoke_pack_family_generic_case {
+  %input = check.generate.fill value(0.25) : tensor<8xf16>
+  %output = check.generate.fill value(0.0) : tensor<8xf16>
+  %expected = check.generate.fill value(0.25) : tensor<8xf16>
+  kernel.launch @caller(%input, %output) : (tensor<8xf16>, tensor<8xf16>)
+  check.expect.close actual(%output) expected(%expected) atol(0.0) rtol(0.0) nan(same) : tensor<8xf16>
+  check.return
 }

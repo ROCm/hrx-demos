@@ -7,7 +7,7 @@ is a two-block, schedule-locked Low identity function called by a High kernel.
 It is intentionally smaller than a GEMM loop: the only property under test is
 that Low CFG and block arguments survive composition.
 
-## Observation
+## Original observation
 
 The experimental `low.invoke` lowering reaches the default-pipeline inliner,
 which rejects every multi-block callee:
@@ -23,15 +23,23 @@ from a register-only fragment pack to a complete K loop is blocked by this
 same structural restriction. Stacking more packet rewrites below this failure
 would not answer the composition question.
 
-## Required compiler contract
+## Upstream disposition
 
-Required-inline Low calls need CFG inlining: split the caller block, clone the
-callee region, map entry operands and block arguments, redirect every
-`low.return` to a continuation block, and preserve schedule/allocation
-contracts on the cloned region. The acceptance fixture must then compile and
-run through `iree-test-loom` with the default pipeline and Loom access
-sanitizer.
+HRX main `f17f69e82` (PR #513) deliberately defines a narrower contract:
+required-inline helpers have exactly one outer body block. Schedule-free
+helpers may contain supported structured nested regions, while locked helpers
+are straight-line schedule fragments. The retained two-block reproducer now
+fails with the direct `TARGET/072` diagnostic describing that contract.
 
-This is the smallest missing mechanism that prevents a maintained High wrapper
-from invoking the exact gfx11 peeled schedule or the gfx12 scheduled main
-loop.
+This changes the next experiment. Multi-block CFG inlining is no longer the
+presumed fix. First express loop and carried-state semantics in High/source
+structured control flow and invoke the smallest straight-line locked K-step or
+publication fragment that must retain exact packet order. A schedule-free,
+single-outer-block helper with structured nested regions is a second option.
+Only if those forms cannot recover the gfx1100 schedule should this fixture be
+promoted from an unsupported-shape probe to a request for general CFG inlining.
+
+Nested Low-to-Low calls are likewise not projected by this first contract;
+`gfx12-fragment-pack-exact.loom` preserves that separate rejection. Flattening
+such a small fragment is mechanically possible, but composition should prefer
+one High-to-Low boundary per irreducible schedule unit.
