@@ -1,0 +1,76 @@
+{
+  "schema": "loom-blas.spike4-anchor.v1",
+  "target": "gfx1201",
+  "family": "gfx12-generic",
+  "request": {
+    "type": "f16xf16_f32_to_f16",
+    "m": 1024,
+    "n": 1024,
+    "k": 1024
+  },
+  "candidate": {
+    "source": "../loom/gemm-f16-f32-mt128x128x32-gfx12-pack-microkernel-exact.loom",
+    "execution": "iree-benchmark-loom, default pipeline, device timestamp replay",
+    "sample_count": 64,
+    "p50_us": 25.04,
+    "p90_us": 26.04,
+    "correctness": "pass",
+    "access_sanitizer": "pass for High memory operations",
+    "private_memory_bytes": 0,
+    "materialized_spill_storage_count": 0,
+    "vgpr_count": 220,
+    "sgpr_count": 30,
+    "lds_bytes": 51200
+  },
+  "incumbent": {
+    "backend": "hipblaslt",
+    "solution_index": 133309,
+    "sample_count": 60,
+    "median_us": 28.78,
+    "p90_us": 29.121,
+    "correctness_sample_count": 1024,
+    "correctness_mismatches": 0
+  },
+  "comparison": {
+    "candidate_to_incumbent_p50_ratio": 0.8700486449,
+    "captured_sample_bootstrap": {
+      "candidate_sample_count": 30,
+      "incumbent_sample_count": 60,
+      "candidate_median_us": 24.82,
+      "incumbent_median_us": 28.78,
+      "ratio": 0.8624044475,
+      "ratio_ci_95": [0.8422515636, 0.8695652174],
+      "method": "independent resampling, 20000 draws, seed 2"
+    },
+    "performance_gate": "pass",
+    "schedule_congruence": "fail"
+  },
+  "schedule": {
+    "candidate_dynamic_k": 64,
+    "incumbent_dynamic_k": 32,
+    "candidate_instruction_count": 478,
+    "incumbent_instruction_count": 147,
+    "candidate_normalized_k32_instruction_count": 239.0,
+    "candidate_normalized_k32": {
+      "matrix": 32,
+      "global_load": 8,
+      "lds_load": 24,
+      "lds_store": 8,
+      "barrier": 2,
+      "branch": 1,
+      "wait": 24,
+      "other": 140
+    },
+    "incumbent_k32": {
+      "matrix": 32,
+      "global_load": 8,
+      "lds_load": 24,
+      "lds_store": 8,
+      "barrier": 2,
+      "branch": 1,
+      "wait": 11,
+      "other": 61
+    }
+  },
+  "disposition": "performance witness; not a congruent schedule"
+}

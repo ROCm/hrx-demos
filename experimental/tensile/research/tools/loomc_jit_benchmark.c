@@ -22,13 +22,17 @@ typedef struct benchmark_state_t {
   loomc_context_t* context;
   loomc_workspace_t* workspace;
   loomc_source_t* source;
+  loomc_source_t* config_source;
+  loomc_module_t* config_module;
+  loomc_link_index_t* link_index;
+  loomc_linker_t* linker;
   loomc_target_profile_t* target_profile;
   loomc_compiler_t* compiler;
   loomc_pass_program_t* pass_program;
 } benchmark_state_t;
 
 typedef struct sample_t {
-  double deserialize_us;
+  double link_us;
   double compile_us;
   double emit_us;
   double total_us;
@@ -89,7 +93,11 @@ static const loomc_artifact_t* find_hsaco(const loomc_result_t* result) {
 static void benchmark_state_deinitialize(benchmark_state_t* state) {
   loomc_pass_program_release(state->pass_program);
   loomc_compiler_release(state->compiler);
+  loomc_linker_release(state->linker);
+  loomc_link_index_release(state->link_index);
   loomc_target_profile_release(state->target_profile);
+  loomc_module_release(state->config_module);
+  loomc_source_release(state->config_source);
   loomc_source_release(state->source);
   loomc_workspace_release(state->workspace);
   loomc_context_release(state->context);
@@ -99,6 +107,7 @@ static void benchmark_state_deinitialize(benchmark_state_t* state) {
 
 static loomc_status_t benchmark_state_initialize(benchmark_state_t* state,
                                                  const char* source_path,
+                                                 const char* config_path,
                                                  const char* target) {
   memset(state, 0, sizeof(*state));
   loomc_status_t status = loomc_target_environment_create_amdgpu(
@@ -133,6 +142,53 @@ static loomc_status_t benchmark_state_initialize(benchmark_state_t* state,
         loomc_make_cstring_view(source_path), &source_options,
         loomc_allocator_system(), &state->source);
   }
+  if (loomc_status_is_ok(status)) {
+    status = loomc_source_create_from_path(
+        loomc_make_cstring_view(config_path), &source_options,
+        loomc_allocator_system(), &state->config_source);
+  }
+  if (loomc_status_is_ok(status)) {
+    loomc_result_t* config_result = NULL;
+    status = loomc_module_deserialize_bytecode_from_source(
+        state->context, state->workspace, state->config_source, NULL,
+        loomc_allocator_system(), &state->config_module, &config_result);
+    if (loomc_status_is_ok(status) &&
+        !require_successful_result(config_result,
+                                   "config bytecode deserialization")) {
+      status = loomc_make_status(LOOMC_STATUS_FAILED_PRECONDITION,
+                                 "config bytecode deserialization failed");
+    }
+    loomc_result_release(config_result);
+  }
+  if (loomc_status_is_ok(status)) {
+    loomc_link_index_builder_t* builder = NULL;
+    loomc_result_t* index_result = NULL;
+    status = loomc_link_index_builder_create(
+        state->context, NULL, loomc_allocator_system(), &builder);
+    const loomc_link_index_source_options_t source_index_options = {
+        .provider_name = loomc_make_cstring_view("loom-blas-bytecode"),
+        .role = LOOMC_LINK_PROVIDER_ROLE_INPUT,
+    };
+    if (loomc_status_is_ok(status)) {
+      status = loomc_link_index_builder_add_source(
+          builder, state->source, &source_index_options, NULL);
+    }
+    if (loomc_status_is_ok(status)) {
+      status = loomc_link_index_builder_finish(
+          builder, &state->link_index, &index_result);
+    }
+    if (loomc_status_is_ok(status) &&
+        !require_successful_result(index_result, "bytecode indexing")) {
+      status = loomc_make_status(LOOMC_STATUS_FAILED_PRECONDITION,
+                                 "bytecode indexing failed");
+    }
+    loomc_result_release(index_result);
+    loomc_link_index_builder_release(builder);
+  }
+  if (loomc_status_is_ok(status)) {
+    status = loomc_linker_create(state->context, NULL,
+                                 loomc_allocator_system(), &state->linker);
+  }
 
   loomc_amdgpu_profile_options_t profile_options = {
       .type = LOOMC_STRUCTURE_TYPE_AMDGPU_PROFILE_OPTIONS,
@@ -150,8 +206,25 @@ static loomc_status_t benchmark_state_initialize(benchmark_state_t* state,
                                    loomc_allocator_system(), &state->compiler);
   }
   if (loomc_status_is_ok(status)) {
-    status = loomc_pass_program_create_empty(
-        state->context, NULL, loomc_allocator_system(), &state->pass_program);
+    loomc_target_pipeline_options_t pipeline_options = {
+        .type = LOOMC_STRUCTURE_TYPE_TARGET_PIPELINE_OPTIONS,
+        .structure_size = sizeof(pipeline_options),
+        .identifier = loomc_make_cstring_view("loom-blas-prepared-low"),
+        .kind = LOOMC_TARGET_PIPELINE_KIND_PREPARED_LOW,
+        .control_flow_lowering = LOOMC_TARGET_CONTROL_FLOW_LOWERING_CFG,
+        .source_to_low_max_errors = 20,
+    };
+    loomc_result_t* pipeline_result = NULL;
+    status = loomc_pass_program_create_from_target_pipeline(
+        state->context, &pipeline_options, loomc_allocator_system(),
+        &state->pass_program, &pipeline_result);
+    if (loomc_status_is_ok(status) &&
+        !require_successful_result(pipeline_result,
+                                   "prepared-Low pipeline preparation")) {
+      status = loomc_make_status(LOOMC_STATUS_FAILED_PRECONDITION,
+                                 "prepared-Low pipeline preparation failed");
+    }
+    loomc_result_release(pipeline_result);
   }
   return status;
 }
@@ -165,23 +238,6 @@ static loomc_status_t run_sample(benchmark_state_t* state,
   loomc_status_t status = loomc_ok_status();
   const uint64_t total_start_ns = now_ns();
 
-  uint64_t phase_start_ns = now_ns();
-  status = loomc_module_deserialize_bytecode_from_source(
-      state->context, state->workspace, state->source, NULL,
-      loomc_allocator_system(), &module, &result);
-  const uint64_t deserialize_end_ns = now_ns();
-  sample->deserialize_us = (double)(deserialize_end_ns - phase_start_ns) / 1e3;
-  if (!loomc_status_is_ok(status)) {
-    goto cleanup;
-  }
-  if (!require_successful_result(result, "bytecode deserialization")) {
-    status = loomc_make_status(LOOMC_STATUS_FAILED_PRECONDITION,
-                               "bytecode deserialization failed");
-    goto cleanup;
-  }
-  loomc_result_release(result);
-  result = NULL;
-
   const loomc_target_specialization_t specialization = {
       .function_symbol = loomc_make_cstring_view(function_symbol),
       .target_profile = state->target_profile,
@@ -192,11 +248,40 @@ static loomc_status_t run_sample(benchmark_state_t* state,
       .specializations = &specialization,
       .specialization_count = 1,
   };
+  const loomc_string_view_t root = loomc_make_cstring_view(function_symbol);
+  loomc_link_options_t link_options = {
+      .type = LOOMC_STRUCTURE_TYPE_LINK_OPTIONS,
+      .structure_size = sizeof(link_options),
+      .next = &target_options,
+      .link_index = state->link_index,
+      .module_name = loomc_make_cstring_view("loom_blas_jit_benchmark"),
+      .mode = LOOMC_LINK_MODE_LINK,
+      .root_symbols = &root,
+      .root_symbol_count = 1,
+  };
+  uint64_t phase_start_ns = now_ns();
+  status = loomc_link_module(state->linker, state->workspace, &link_options,
+                             &module, &result);
+  const uint64_t link_end_ns = now_ns();
+  sample->link_us = (double)(link_end_ns - phase_start_ns) / 1e3;
+  if (!loomc_status_is_ok(status)) {
+    goto cleanup;
+  }
+  if (!require_successful_result(result, "bytecode link")) {
+    status = loomc_make_status(LOOMC_STATUS_FAILED_PRECONDITION,
+                               "bytecode link failed");
+    goto cleanup;
+  }
+  loomc_result_release(result);
+  result = NULL;
+
   loomc_compile_options_t compile_options = {
       .type = LOOMC_STRUCTURE_TYPE_COMPILE_OPTIONS,
       .structure_size = sizeof(compile_options),
       .next = &target_options,
       .module_name = loomc_make_cstring_view("loom_blas_jit_benchmark"),
+      .config_flags = LOOMC_CONFIG_POLICY_FLAG_REQUIRE_RESOLVED,
+      .config_module = state->config_module,
   };
   phase_start_ns = now_ns();
   status = loomc_compile_module(state->compiler, state->workspace,
@@ -207,9 +292,9 @@ static loomc_status_t run_sample(benchmark_state_t* state,
   if (!loomc_status_is_ok(status)) {
     goto cleanup;
   }
-  if (!require_successful_result(result, "prepared-Low compilation")) {
+  if (!require_successful_result(result, "default pipeline compilation")) {
     status = loomc_make_status(LOOMC_STATUS_FAILED_PRECONDITION,
-                               "prepared-Low compilation failed");
+                               "default pipeline compilation failed");
     goto cleanup;
   }
   loomc_result_release(result);
@@ -298,20 +383,22 @@ static void print_distribution(const char* name, const double* values,
 
 static void print_usage(FILE* file) {
   fprintf(file,
-          "Usage: loomc-jit-benchmark <kernel.loombc> <target> <symbol> "
+          "Usage: loomc-jit-benchmark <kernel.loombc> <config.loombc> "
+          "<target> <symbol> "
           "[iterations] [output.hsaco]\n");
 }
 
 int main(int argc, char** argv) {
-  if (argc < 4 || argc > 6) {
+  if (argc < 5 || argc > 7) {
     print_usage(stderr);
     return 64;
   }
   const char* source_path = argv[1];
-  const char* target = argv[2];
-  const char* function_symbol = argv[3];
-  const size_t iteration_count = argc >= 5 ? strtoull(argv[4], NULL, 10) : 100;
-  const char* output_path = argc >= 6 ? argv[5] : NULL;
+  const char* config_path = argv[2];
+  const char* target = argv[3];
+  const char* function_symbol = argv[4];
+  const size_t iteration_count = argc >= 6 ? strtoull(argv[5], NULL, 10) : 100;
+  const char* output_path = argc >= 7 ? argv[6] : NULL;
   if (iteration_count == 0) {
     fprintf(stderr, "iterations must be positive\n");
     return 64;
@@ -322,11 +409,16 @@ int main(int argc, char** argv) {
     perror(source_path);
     return 1;
   }
+  struct stat config_stat;
+  if (stat(config_path, &config_stat) != 0) {
+    perror(config_path);
+    return 1;
+  }
 
   benchmark_state_t state;
   const uint64_t setup_start_ns = now_ns();
   loomc_status_t status =
-      benchmark_state_initialize(&state, source_path, target);
+      benchmark_state_initialize(&state, source_path, config_path, target);
   const double setup_us = (double)(now_ns() - setup_start_ns) / 1e3;
   if (!loomc_status_is_ok(status)) {
     print_status(status);
@@ -344,11 +436,11 @@ int main(int argc, char** argv) {
   }
 
   sample_t* samples = (sample_t*)calloc(iteration_count, sizeof(*samples));
-  double* deserialize = (double*)malloc(iteration_count * sizeof(double));
+  double* link = (double*)malloc(iteration_count * sizeof(double));
   double* compile = (double*)malloc(iteration_count * sizeof(double));
   double* emit = (double*)malloc(iteration_count * sizeof(double));
   double* total = (double*)malloc(iteration_count * sizeof(double));
-  if (samples == NULL || deserialize == NULL || compile == NULL ||
+  if (samples == NULL || link == NULL || compile == NULL ||
       emit == NULL || total == NULL) {
     fprintf(stderr, "failed to allocate sample buffers\n");
     return 1;
@@ -361,21 +453,22 @@ int main(int argc, char** argv) {
       benchmark_state_deinitialize(&state);
       return 1;
     }
-    deserialize[i] = samples[i].deserialize_us;
+    link[i] = samples[i].link_us;
     compile[i] = samples[i].compile_us;
     emit[i] = samples[i].emit_us;
     total[i] = samples[i].total_us;
   }
 
   printf("{\"schema\":\"loom-blas.loomc-jit-benchmark.v1\","
-         "\"source\":\"%s\",\"target\":\"%s\",\"symbol\":\"%s\","
-         "\"loombc_bytes\":%" PRIu64 ",\"hsaco_bytes\":%" PRIu64 ","
+         "\"source\":\"%s\",\"config\":\"%s\",\"target\":\"%s\","
+         "\"symbol\":\"%s\",\"loombc_bytes\":%" PRIu64 ","
+         "\"config_loombc_bytes\":%" PRIu64 ",\"hsaco_bytes\":%" PRIu64 ","
          "\"iterations\":%zu,\"warmup_iterations\":1,"
          "\"setup_us\":%.3f,\"phases\":{",
-         source_path, target, function_symbol, (uint64_t)source_stat.st_size,
-         samples[iteration_count - 1].artifact_bytes, iteration_count,
-         setup_us);
-  print_distribution("deserialize", deserialize, iteration_count);
+         source_path, config_path, target, function_symbol,
+         (uint64_t)source_stat.st_size, (uint64_t)config_stat.st_size,
+         samples[iteration_count - 1].artifact_bytes, iteration_count, setup_us);
+  print_distribution("link", link, iteration_count);
   printf(",");
   print_distribution("compile", compile, iteration_count);
   printf(",");
@@ -387,7 +480,7 @@ int main(int argc, char** argv) {
   free(total);
   free(emit);
   free(compile);
-  free(deserialize);
+  free(link);
   free(samples);
   benchmark_state_deinitialize(&state);
   return 0;

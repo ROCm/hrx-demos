@@ -1,0 +1,30 @@
+{
+  "schema": "loom-blas.spike4-epilogue-config.v1",
+  "source": "../loom/epilogue-f16-bias-config.loom",
+  "target": "gfx1201",
+  "pipeline": "default",
+  "cases": {
+    "no_bias": {
+      "correctness": "pass",
+      "access_sanitizer": "pass",
+      "global_load_count": 1,
+      "global_store_count": 1,
+      "private_memory_bytes": 0,
+      "materialized_spill_storage_count": 0
+    },
+    "column_bias": {
+      "correctness": "pass",
+      "access_sanitizer": "pass",
+      "global_load_count": 2,
+      "global_store_count": 1,
+      "private_memory_bytes": 0,
+      "materialized_spill_storage_count": 0
+    },
+    "row_bias": {
+      "correctness": "pass",
+      "access_sanitizer": "pass"
+    }
+  },
+  "conclusion": "has_bias specializes the bias load out of the no-bias artifact",
+  "limitation": "This is a standalone representation witness; a composed GEMM differential with nonuniform row and column bias remains future work."
+}

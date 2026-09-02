@@ -1,0 +1,41 @@
+{
+  "schema": "loom-blas.spike4-compiler-contracts.v1",
+  "experimental_hrx": {
+    "branch": "loom-blas/spike4-low-invoke-experiment",
+    "base": "b422b5056",
+    "commit": "db115431e",
+    "focused_test_targets": 30,
+    "focused_test_failures": 0
+  },
+  "working": {
+    "source": "../loom/gfx12-pack-invoke-object-abi.loom-test",
+    "contract": "exact-target single-block register-only Low object function",
+    "default_pipeline_compile": "pass",
+    "sanctioned_correctness": "pass",
+    "access_sanitizer": "pass for High memory"
+  },
+  "blockers": [
+    {
+      "name": "family_generic_carrier_rebinding",
+      "source": "../loom/gfx12-pack-invoke-family-generic.loom-test",
+      "diagnostic": "LOWERING/044 operand_type_mismatch",
+      "exact_target_control": "pass"
+    },
+    {
+      "name": "schedule_lock_scope_after_inline",
+      "source": "../loom/gfx12-pack-invoke-object-abi.loom-test",
+      "diagnostic": "no rejection; emitted independent packet order changes",
+      "control": "explicit low.schedule.fence preserves order"
+    },
+    {
+      "name": "multi_block_low_inline",
+      "source": "../reproducers/low-invoke-cfg-helper-gfx1201.loom",
+      "diagnostic": "LOWERING/044 callee_body_not_single_block"
+    },
+    {
+      "name": "authored_low_memory_sanitizer_coverage",
+      "source": "../loom/gfx12-fragment-pack-exact.loom",
+      "diagnostic": "sanitizer pass contains sites for High accesses but none for eight authored Low ds_read_b64 packets"
+    }
+  ]
+}

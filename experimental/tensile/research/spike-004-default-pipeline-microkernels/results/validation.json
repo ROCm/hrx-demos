@@ -1,0 +1,82 @@
+{
+  "schema": "loom-blas.spike4-validation.v1",
+  "recorded_at": "2026-09-02T12:11:23-07:00",
+  "hrx_commit": "db115431e",
+  "checks": [
+    {
+      "name": "focused_compiler_tests",
+      "state": "pass",
+      "test_count": 30,
+      "failure_count": 0
+    },
+    {
+      "name": "loom_source_parse_and_canonical_format",
+      "state": "pass",
+      "file_count": 9,
+      "failure_count": 0
+    },
+    {
+      "name": "gfx1201_exact_low_invoke",
+      "runner": "iree-test-loom",
+      "pipeline": "default",
+      "state": "pass"
+    },
+    {
+      "name": "gfx1201_full_shape_correctness",
+      "runner": "iree-test-loom",
+      "pipeline": "default",
+      "shape": [1024, 1024, 1024],
+      "state": "pass"
+    },
+    {
+      "name": "gfx1201_minimum_loop_access_sanitizer",
+      "runner": "iree-test-loom",
+      "pipeline": "default",
+      "sanitizer": "asan",
+      "shape": [128, 128, 64],
+      "state": "pass",
+      "qualification": "all memory operations in the maintained candidate are authored in High"
+    },
+    {
+      "name": "gfx1100_full_shape_correctness",
+      "runner": "iree-test-loom",
+      "pipeline": "default",
+      "shape": [1024, 960, 1024],
+      "state": "pass",
+      "expected_diagnostics": "four 4-byte spill storage/store/reload warnings"
+    },
+    {
+      "name": "gfx1201_family_generic_low_helper",
+      "tool": "loom-compile",
+      "pipeline": "default",
+      "state": "expected_rejection_reproduced",
+      "diagnostic": "LOWERING/044 operand_type_mismatch"
+    },
+    {
+      "name": "gfx1201_cfg_low_helper",
+      "runner": "iree-test-loom",
+      "pipeline": "default",
+      "state": "expected_rejection_reproduced",
+      "diagnostic": "LOWERING/044 callee_body_not_single_block"
+    },
+    {
+      "name": "gfx1201_epilogue_specializations",
+      "runner": "iree-test-loom",
+      "pipeline": "default",
+      "sanitizer": "asan",
+      "cases": ["no_bias", "column_bias", "row_bias"],
+      "state": "pass",
+      "qualification": "standalone epilogue representation witness"
+    },
+    {
+      "name": "spike4_python_tools",
+      "tool": "python -m py_compile",
+      "state": "pass"
+    },
+    {
+      "name": "loomc_jit_benchmark",
+      "state": "pass_with_packaging_qualification",
+      "qualification": "the retained source was built and executed from a temporary target in the experimental HRX checkout; direct hrx-demos Bazel wiring awaits module-identity and submodule-pin alignment"
+    }
+  ]
+}

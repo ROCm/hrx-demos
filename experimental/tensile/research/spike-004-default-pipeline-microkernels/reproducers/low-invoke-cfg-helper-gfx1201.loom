@@ -1,0 +1,35 @@
+// Should-work acceptance fixture for a prepared-Low CFG microkernel invoked
+// from a High kernel. The two-block identity stands in for a scheduled GEMM
+// loop with carried state; successful compilation and execution should copy 7.
+amdgpu.target<gfx1201> @target
+
+low.func.def schedule(locked) target<amdgpu.rdna4.core>(@target) abi(object_function) @identity_cfg(%value: reg<amdgpu.vgpr>) -> (reg<amdgpu.vgpr>) {
+  low.br ^exit(%value: reg<amdgpu.vgpr>)
+^exit(%result: reg<amdgpu.vgpr>):
+  low.return %result : reg<amdgpu.vgpr>
+}
+
+kernel.def target(@target) @caller() {
+  %one = index.constant 1 : index
+  kernel.launch.config workgroups(%one, %one, %one) workgroup_size(%one, %one, %one) : index
+} launch(%input_buffer: buffer, %output_buffer: buffer) {
+  %base = index.constant 0 : offset
+  %zero = index.constant 0 : index
+  %input_global = buffer.assume.memory_space<global> %input_buffer : buffer
+  %output_global = buffer.assume.memory_space<global> %output_buffer : buffer
+  %input = buffer.view %input_global[%base] : buffer -> view<1xi32>
+  %output = buffer.view %output_global[%base] : buffer -> view<1xi32>
+  %value = view.load %input[%zero] : view<1xi32> -> i32
+  %result = low.invoke @identity_cfg(%value) : (i32) -> (i32)
+  view.store %result, %output[%zero] : i32, view<1xi32>
+  kernel.return
+}
+
+check.case public @cfg_invoke_case {
+  %input = check.generate.fill value(7) : tensor<1xi32>
+  %output = check.generate.fill value(0) : tensor<1xi32>
+  %expected = check.generate.fill value(7) : tensor<1xi32>
+  kernel.launch @caller(%input, %output) : (tensor<1xi32>, tensor<1xi32>)
+  check.expect.equal actual(%output) expected(%expected) : tensor<1xi32>
+  check.return
+}

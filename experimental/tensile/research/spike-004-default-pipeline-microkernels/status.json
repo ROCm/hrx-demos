@@ -1,0 +1,32 @@
+{
+  "schema_version": 1,
+  "spike": 4,
+  "status": "complete_with_compiler_contracts",
+  "baseline": {
+    "hrx_branch": "loom-blas/gfx11-structural-loop-recolor",
+    "hrx_commit": "b422b5056"
+  },
+  "anchors": {
+    "gfx1201_fp16_1024x1024x1024": {
+      "state": "performance_accepted_schedule_not_congruent",
+      "candidate_p50_us": 25.04,
+      "incumbent_median_us": 28.78,
+      "next_boundary": "multi_block_main_loop_after_cfg_inline_support"
+    },
+    "gfx1100_fp16_1024x960x1024": {
+      "state": "exact_compiler_contract_packet",
+      "candidate_p50_us": 61.0,
+      "incumbent_median_us": 45.4605,
+      "next_boundary": "scheduled_k32_or_peeled_loop_after_cfg_inline_support"
+    }
+  },
+  "compiler_contract": {
+    "state": "single_block_exact_target_working_multi_block_blocked",
+    "experimental_branch": "loom-blas/spike4-low-invoke-experiment",
+    "experimental_base": "b422b5056",
+    "experimental_commit": "db115431e",
+    "working_fixture": "loom/gfx12-pack-invoke-object-abi.loom-test",
+    "blocking_fixture": "reproducers/low-invoke-cfg-helper-gfx1201.loom"
+  },
+  "gfx906": "deferred_by_completion_order"
+}

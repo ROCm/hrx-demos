@@ -1,0 +1,82 @@
+// Target-independent High epilogue composition witness. The stable argument
+// superset is (FP32 accumulator, FP16 bias, FP16 output); config specialization
+// must erase the bias load and axis selection from the no-bias artifact.
+config.decl @epilogue.has_bias : i1
+
+config.decl @epilogue.bias_axis : %value: index where [range(%value, 0, 1)]
+
+kernel.def @epilogue_f16_bias() {
+  %one = index.constant 1 : index
+  %workgroup_size = index.constant 256 : index
+  kernel.launch.config workgroups(%one, %one, %one) workgroup_size(%workgroup_size, %one, %one) : index
+} launch(%acc_buffer: buffer, %bias_buffer: buffer, %output_buffer: buffer) {
+  %base = index.constant 0 : offset
+  %zero = index.constant 0 : index
+  %sixteen = index.constant 16 : index
+  %linear0 = kernel.workitem.id<x> : index
+  %linear = index.assume %linear0 [range(%linear0, 0, 255)] : index
+  %row = index.div %linear, %sixteen : index
+  %column = index.rem %linear, %sixteen : index
+  %acc = buffer.view %acc_buffer[%base] : buffer -> view<16x16xf32>
+  %bias = buffer.view %bias_buffer[%base] : buffer -> view<16xf16>
+  %output = buffer.view %output_buffer[%base] : buffer -> view<16x16xf16>
+  %acc_value = view.load %acc[%row, %column] : view<16x16xf32> -> f32
+  %has_bias = config.get @epilogue.has_bias : i1
+  %axis = config.get @epilogue.bias_axis : index
+  %is_row = index.cmp eq, %axis, %zero : index
+  %bias_index = scf.if %is_row -> (index) {
+    scf.yield %row : index
+  } else {
+    scf.yield %column : index
+  }
+  %result = scf.if %has_bias -> (f32) {
+    %bias_f16 = view.load %bias[%bias_index] : view<16xf16> -> f16
+    %bias_f32 = scalar.extf %bias_f16 : f16 to f32
+    %with_bias = scalar.addf %acc_value, %bias_f32 : f32
+    scf.yield %with_bias : f32
+  } else {
+    scf.yield %acc_value : f32
+  }
+  %result_f16 = scalar.fptrunc %result : f32 to f16
+  view.store %result_f16, %output[%row, %column] : f16, view<16x16xf16>
+  kernel.return
+}
+
+check.case public @epilogue_no_bias_case {
+  %acc = check.generate.fill value(1.0) : tensor<16x16xf32>
+  %bias = check.generate.iota offset(8.0) step(1.0) : tensor<16xf16>
+  %output = check.generate.fill value(-1.0) : tensor<16x16xf16>
+  %expected = check.generate.fill value(1.0) : tensor<16x16xf16>
+  kernel.launch @epilogue_f16_bias(%acc, %bias, %output) : (tensor<16x16xf32>, tensor<16xf16>, tensor<16x16xf16>)
+  check.expect.close actual(%output) expected(%expected) atol(0.0) rtol(0.0) nan(same) : tensor<16x16xf16>
+  check.return
+}
+
+check.case public @epilogue_column_bias_case {
+  %acc = check.generate.fill value(1.0) : tensor<16x16xf32>
+  %bias = check.generate.iota offset(0.0) step(1.0) : tensor<16xf16>
+  %output = check.generate.fill value(-1.0) : tensor<16x16xf16>
+  %expected = check.generate.iota offset(1.0) step(1.0) period(16) : tensor<16x16xf16>
+  kernel.launch @epilogue_f16_bias(%acc, %bias, %output) : (tensor<16x16xf32>, tensor<16xf16>, tensor<16x16xf16>)
+  check.expect.close actual(%output) expected(%expected) atol(0.0) rtol(0.0) nan(same) : tensor<16x16xf16>
+  check.return
+}
+
+// A transposed 16x16 iota would be needed for a non-uniform row oracle. This
+// case still proves the row branch, FP16 bias conversion, and stable ABI; the
+// production GEMM differential must cover the physical row mapping.
+check.case public @epilogue_row_bias_case {
+  %acc = check.generate.fill value(1.0) : tensor<16x16xf32>
+  %bias = check.generate.fill value(2.0) : tensor<16xf16>
+  %output = check.generate.fill value(-1.0) : tensor<16x16xf16>
+  %expected = check.generate.fill value(3.0) : tensor<16x16xf16>
+  kernel.launch @epilogue_f16_bias(%acc, %bias, %output) : (tensor<16x16xf32>, tensor<16xf16>, tensor<16x16xf16>)
+  check.expect.close actual(%output) expected(%expected) atol(0.0) rtol(0.0) nan(same) : tensor<16x16xf16>
+  check.return
+}
+
+check.benchmark<@epilogue_no_bias_case> @epilogue_no_bias
+
+check.benchmark<@epilogue_column_bias_case> @epilogue_column_bias
+
+check.benchmark<@epilogue_row_bias_case> @epilogue_row_bias

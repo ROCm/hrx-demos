@@ -1,0 +1,40 @@
+// RUN: verify
+
+// This is the family-generic form we expect to work. Exact-target selection
+// currently rebinds the High kernel to rdna4.core but leaves this helper's
+// carrier types in gfx12.generic.core, so post-lowering inlining rejects the
+// otherwise identical printed register shapes.
+amdgpu.target<gfx12-generic> @target
+
+low.func.def schedule(locked) target<amdgpu.gfx12.generic.core>(@target) abi(object_function) @pack_pair(%even: reg<amdgpu.vgpr x2>, %odd: reg<amdgpu.vgpr x2>) -> (reg<amdgpu.vgpr x4>) asm {
+  %even0 = slice %even[0] : reg<amdgpu.vgpr x2> -> reg<amdgpu.vgpr>
+  %even1 = slice %even[1] : reg<amdgpu.vgpr x2> -> reg<amdgpu.vgpr>
+  %odd0 = slice %odd[0] : reg<amdgpu.vgpr x2> -> reg<amdgpu.vgpr>
+  %odd1 = slice %odd[1] : reg<amdgpu.vgpr x2> -> reg<amdgpu.vgpr>
+  %selector0 = s_mov_b32 84148480
+  %selector1 = s_mov_b32 117834498
+  %packed0 = v_perm_b32 %odd0, %even0, %selector0
+  %packed1 = v_perm_b32 %odd1, %even1, %selector0
+  %packed2 = v_perm_b32 %odd0, %even0, %selector1
+  %packed3 = v_perm_b32 %odd1, %even1, %selector1
+  %packed = concat(%packed0, %packed1, %packed2, %packed3) : (reg<amdgpu.vgpr>, reg<amdgpu.vgpr>, reg<amdgpu.vgpr>, reg<amdgpu.vgpr>) -> reg<amdgpu.vgpr x4>
+  return %packed
+}
+
+kernel.def target(@target) @caller() {
+  %one = index.constant 1 : index
+  kernel.launch.config workgroups(%one, %one, %one) workgroup_size(%one, %one, %one) : index
+} launch(%input_buffer: buffer, %output_buffer: buffer) {
+  %base = index.constant 0 : offset
+  %zero = index.constant 0 : index
+  %four = index.constant 4 : index
+  %input_global = buffer.assume.memory_space<global> %input_buffer : buffer
+  %output_global = buffer.assume.memory_space<global> %output_buffer : buffer
+  %input = buffer.view %input_global[%base] : buffer -> view<8xf16>
+  %output = buffer.view %output_global[%base] : buffer -> view<8xf16>
+  %even = vector.load %input[%zero] : view<8xf16> -> vector<4xf16>
+  %odd = vector.load %input[%four] : view<8xf16> -> vector<4xf16>
+  %packed = low.invoke @pack_pair(%even, %odd) : (vector<4xf16>, vector<4xf16>) -> (vector<8xf16>)
+  vector.store %packed, %output[%zero] : vector<8xf16>, view<8xf16>
+  kernel.return
+}

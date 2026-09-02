@@ -13,6 +13,10 @@ retains enough state to reproduce or invalidate its findings.
   from shipped native code upward, including the gfx12 parity Low motif, the
   gfx11 allocation/scheduling reproducer, blind alleys, access-sanitizer
   usability reports, and proposed compile-report knowledge.
+- [`spike-004-default-pipeline-microkernels/`](spike-004-default-pipeline-microkernels/)
+  — test raising retained Low schedule oracles into High Loom kernels through
+  `low.invoke`; retain the accepted gfx12 performance witness and exact
+  compiler-contract packets for the boundaries that do not yet compose.
 - [`tools/`](tools/) — small explicit probes used by the spikes.
 
 Generated binaries and bulky raw artifacts live in ignored `artifacts/`

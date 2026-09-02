@@ -1,12 +1,12 @@
 # Loom BLAS provider: source-led kernel reconstruction
 
-**Date:** 2026-09-01
+**Date:** 2026-09-02
 
-**Status:** Working design for discussion
+**Status:** Working design with Spike 4 checkpoint
 
 **Initial physical witnesses:** `gfx906`, `gfx1100`, `gfx1201`
 
-**Initial authored target families:** a broad `gfx9` target once enabled,
+**Initial authored target families:** `gfx9-0-generic` once enabled,
 `gfx11-generic`, and `gfx12-generic`
 
 **Initial operation:** GEMM and the fused GEMM forms needed by the public BLAS
@@ -66,7 +66,8 @@ when their dataflow remains compatible. They become separate authored kernels
 only when evidence shows a materially different ownership, liveness,
 synchronization, or launch structure.
 
-Initial due diligence supports the approach, with one material blocker:
+Initial due diligence supports the approach, with concrete compiler contracts
+still open:
 
 - The Radeon recipes examined are representable in terms of Loom's existing
   structured compute, views, specialization, launch, artifact, and JIT
@@ -88,15 +89,16 @@ Initial due diligence supports the approach, with one material blocker:
   contain additional logic not necessarily packaged in this installation.
   Runtime and artifact identity must therefore be captured for every result.
 
-### Radeon FP16 schedule-recovery checkpoint
+### Radeon FP16 schedule-recovery checkpoints
 
-The first native-upward spike now answers the central feasibility question for
-both Radeon family witnesses at 1024-cubed FP16 GEMM:
+Spike 003 answers the Low representability question. Its terminal objects are
+prepared-Low acceptance oracles assembled with `--pipeline=none` and executed
+through the research HIP harness; they are not default-pipeline Loom claims:
 
 | Family witness | Incumbent | Loom result | Schedule conclusion |
 | --- | --- | --- | --- |
 | gfx12 / gfx1201 | hipBLASLt 133309, 28.800 us | 30.0605 us; ratio 1.0438, upper 95% CI 1.0474 | Performance gate passes after recovering B64+permute LHS packing, PGR2, padded LDS, scalar address evolution, and native issue ordering. |
-| gfx11 / gfx1100 | hipBLASLt 1675, 44.320 us | 37.721 us; ratio 0.8511, 95% CI `[0.8502, 0.8553]` | The prepared-Low steady state is 134 instructions, exactly matching incumbent category counts. The only mnemonic difference is equivalent loop-branch polarity. |
+| gfx11 / gfx1100, `1024x960x1024` | hipBLASLt 1675, 44.320 us | 37.721 us; ratio 0.8511, 95% CI `[0.8502, 0.8553]` | The prepared-Low steady state is 134 instructions, exactly matching incumbent category counts. The only mnemonic difference is equivalent loop-branch polarity. |
 
 The gfx11 result is especially important. A count-matched but banded schedule,
 then a structurally recolored cross-iteration schedule, both remained slow.
@@ -108,21 +110,41 @@ publishes 16-bit values from all 32 lanes, with adjacent lanes writing adjacent
 rows. The paired transform is fully correct and about 15% faster than the
 selected incumbent.
 
-This validates Low as an exact schedule representation. It does not yet
-validate automatic High-to-Low recovery. The required compiler controls are
-isolated behind environment gates on HRX branch
-`loom-blas/gfx11-structural-loop-recolor` at `b422b5056`; they are work-item
-evidence, not proposed defaults.
+This validates Low as an exact schedule representation. Spike 004 then tests
+the required maintained form: High ownership of semantics and memory with a
+small Low microkernel, compiled by the default pipeline and executed only by
+sanctioned Loom runners:
 
-Native access verification has a split status. Reduced High forms for the
-complete gfx12 address map, gfx11 exact-LDS map, and gfx11 terminal scalar-store
-address map pass under AMDGPU-enabled `iree-test-loom`. The earlier gfx11 GPU
-fault came from directly launching a sanitized HSACO without initializing
-Loom's sanitizer runtime. Prepared Low compiled with `--pipeline=none` is not
-instrumented, and High fragment-role validation currently rejects the paired
-gfx11 physical WMMA operand swap. Therefore the terminal Low objects are backed
-by full numerical differentials and sanitized High address witnesses, but are
-not claimed as directly access-sanitized.
+| Family witness | Fresh incumbent | Default-pipeline result | Conclusion |
+| --- | --- | --- | --- |
+| gfx12 / gfx1201, `1024x1024x1024` | 28.78 us | 25.04 us device p50, correct, access-sanitized, no spill/private traffic | Performance accepted, but not schedule-congruent: normalized K32 is 239 instructions versus 147. |
+| gfx11 / gfx1100, `1024x960x1024` | 45.46 us | 61.0 us device p50, correct, 16 bytes private traffic | Performance and schedule fail; normalized K32 is 219.5 instructions versus 134. |
+
+In both default artifacts the normalized matrix/global/LDS/barrier/branch
+counts match the incumbent. The deltas are waits and miscellaneous address,
+move, and control packets, plus four spill/reload pairs on gfx11. A
+single-block exact-target `low.invoke` helper now works on an experimental
+branch. The remaining path to a whole scheduled loop is blocked concretely by
+multi-block Low inlining; family-generic physical carrier rebinding and
+schedule-lock propagation are separate compiler contracts.
+
+The required compiler controls are
+isolated behind environment gates on HRX branch
+`loom-blas/spike4-low-invoke-experiment` at `db115431e`, based on `b422b5056`;
+they are work-item evidence, not proposed defaults.
+
+The shareable Spike 4 packet includes the default-pipeline sources, source
+lineage, reproduction commands, compact results, and minimized compiler cases
+under
+[`research/spike-004-default-pipeline-microkernels/`](../../research/spike-004-default-pipeline-microkernels/README.md).
+
+Native access verification has a split status. The maintained Spike 004 gfx12
+candidate keeps memory in High and passes Loom's access sanitizer. A preserved
+LDS-read-plus-pack helper proves that authored Low memory packets remain
+outside sanitizer instrumentation even when the surrounding High accesses are
+covered. Therefore register-only Low microkernels are acceptable now;
+memory-bearing Low helpers need Low instrumentation or a machine-checkable
+static access contract.
 
 The accelerated-datatype basket remains open. A gfx11 BF16 retarget of the
 terminal schedule compiles with native BF16 WMMA and an explicit VALU
@@ -400,21 +422,25 @@ JIT does **not** remove the need to choose a physical schedule. Macro tile,
 wave/workgroup topology, VALU versus matrix path, prefetch pipeline,
 workgroup mapping, and split-K/StreamK strategy can still vary materially with
 M, N, K, batch, workspace, and target. Exact request specialization remains
-practical, but its latency has two materially different parts. For the three
-current prepared-Low objects, an optimized retained `loomc` instance takes
-about 0.40--0.55 ms median to deserialize bytecode and apply target
-specialization, while native in-memory HSACO emission raises artifact-ready
-latency to 4.67--8.47 ms median and 6.59--9.16 ms p95. The detailed measurement
-is in
-[`results/loomc-jit-compile-times.json`](../../research/spike-003-native-upward/results/loomc-jit-compile-times.json).
+practical, but latency must be measured through the production path. Spike
+004 indexes Loom bytecode once, links a selected root, applies an exact
+bytecode config and target profile, runs the default source-to-prepared-Low
+pipeline, and emits HSACO in memory through the Loom C API. With the host
+compiler built in Bazel `opt` mode, median link+compile+emit latency is 22.09 ms
+for the 58.1 KiB gfx12 motif and 11.77 ms for the 16.1 KiB gfx11 motif; p95 is
+23.26 and 12.91 ms respectively. A non-optimized control was 62.71 and 45.81
+ms, so host build mode is part of the measurement contract. The
+earlier 4.67--8.47 ms prepared-Low measurements bypass the default pipeline
+and are only HSACO-emission floors. Detailed current measurements are in
+[`results/loombc-to-hsaco-latency.json`](../../research/spike-004-default-pipeline-microkernels/results/loombc-to-hsaco-latency.json).
 
 Artifact cardinality, rather than single-object emission latency, is the
 integration gate. The synchronous path must derive the post-specialization
 program key before native emission, coalesce equal in-flight misses, and consult
 a bounded persistent artifact cache. For popular targets, initialize that
 cache by compiling the expected artifact set in parallel. If the working set is
-on the order of a dozen artifacts per deployed target, even several
-milliseconds per true miss is a small bounded startup transient and may be
+on the order of a dozen artifacts per deployed target, tens of milliseconds
+per true miss remain a bounded startup transient and may be
 cheaper than navigating and loading a large precompiled Tensile library.
 Explicit preparation or an asynchronous incumbent fallback is required only
 for deployments whose first-call latency budget cannot absorb that transient;
@@ -1148,10 +1174,12 @@ artifacts. The sampled HHS recipes predominantly use one-level split and
 ordinary staged or direct-to-VGPR pipelines; a smaller set uses dynamic or
 fixed global split-U. These are credible Loom mechanisms.
 
-Main risks are exact WMMA fragment/lane semantics, matching the prefetch/wait
-schedule, direct-to-VGPR address behavior, fused epilogue ABI, and multi-kernel
-split/reduction paths. Start with unsplit, unfused winners before adding the
-less common mechanisms.
+The default-pipeline FP16 anchor now beats the selected incumbent, establishing
+an end-to-end performance witness. Main remaining risks are family-generic Low
+carrier specialization, schedule-lock/CFG composition for exact loops,
+matching wait density across a broader shape basket, fused epilogue ABI, and
+multi-kernel split/reduction paths. Start with unsplit winners before adding
+the less common mechanisms.
 
 ### `gfx1100`
 
@@ -1162,7 +1190,9 @@ Both rocBLAS and hipBLASLt source logic exist, while this installation packages
 hipBLASLt target artifacts. The laboratory must determine the actual public API
 coverage rather than encode the original rocBLAS-only assumption. Compare
 recipe families with `gfx1201` to decide which Loom motifs are genuinely shared
-and which require RDNA3 specialization.
+and which require RDNA3 specialization. The all-High FP16 anchor is correct but
+1.34x slower and spills four values; the prepared-Low oracle proves the target
+schedule, while multi-block Low composition is the current concrete blocker.
 
 ### `gfx906`
 
@@ -1188,13 +1218,13 @@ rather than guessed calendar duration.
 | --- | --- | --- |
 | Laboratory and schemas | One request enumerates, forces, checks, and measures each installed incumbent; a loaded Loom kernel runs on each supported target | Public API comparison harness forces hipBLASLt/rocBLAS solutions, launches Loom HSACOs, performs sampled or full CPU differentials, and records paired timings; BF16 support is in progress |
 | Source/runtime extractor and router explainer | Sampled Equality/GridBased/classic Tensile routes agree with runtime/dispatch and emit normalized packets | Runtime shards, source recipes, code objects, and bounded native symbol summaries joined for sampled winners; broader route replay and dynamic schedule extraction remain |
-| Derived-key experiment | Config and exact shape facts specialize a `.loombc`; equal resulting programs alias before HSACO emission and unequal programs do not | In-process bytecode-to-HSACO latency and deterministic artifact hashes are measured; canonical-text proxy proves collapse after symbol DCE; pre-emission key stability, demand-corpus cardinality, and code-object load remain open |
+| Derived-key experiment | Config and exact shape facts specialize a `.loombc`; equal resulting programs alias before HSACO emission and unequal programs do not | Optimized-host bytecode link/default-compile/emit latency is 11.77--22.09 ms median; pre-emission key stability, demand-corpus cardinality, parallel startup behavior, and code-object load remain open |
 | `gfx906` Loom enablement | Compile/load/correctness/resource-report smoke tests pass | Blocked on missing physical target support, isolated from GEMM work |
-| First `gfx1201` vertical slice | Primitive FP16-to-FP32 WMMA GEMM reaches parity across a bounded cell | Complete: 1024-cubed prepared-Low motif is correct, spill-free, and 1.0438x the selected incumbent with upper 95% CI 1.0474 |
-| gfx11 family specialization | The shared family passes on the RDNA3 witness with structural variants only where justified | Complete for the FP16 anchor: exact 134-instruction schedule-category match, full correctness, and 0.8511x the selected incumbent |
+| First `gfx1201` vertical slice | Primitive FP16-to-FP32 WMMA GEMM reaches parity across a bounded cell through the default pipeline | One performance point passes at 1024 cubed: 25.04 us versus 28.78 us, correct and spill-free. The bounded cell is not complete; schedule congruence and family-generic Low composition remain open. |
+| gfx11 family specialization | The shared family passes on the RDNA3 witness with structural variants only where justified | Not complete: default-pipeline High is 61.0 us versus 45.46 us and spills; exact prepared-Low schedule remains an oracle pending CFG microkernel composition. |
 | `gfx906` VALU family | One useful family reaches parity across a bounded cell | Incumbent schedule recovered; Loom target enablement precedes implementation |
 | Accelerated arithmetic expansion | Every provider-visible native matrix signature has a correct primitive and measured representative cells | Instruction inventory and compile witnesses exist; gfx11 BF16 schedule port compiles, while BF16/I8/FP8 timing conclusions remain open |
-| Layout/epilogue expansion | Agreed key demand corpus is covered with provider fallback elsewhere | Bias/no-bias representation policy drafted; experiment pending |
+| Layout/epilogue expansion | Agreed key demand corpus is covered with provider fallback elsewhere | Standalone bias/no-bias specialization witness passes and removes the bias load; composed GEMM row/column differential remains open. |
 | JIT/provider hardening | Bounded cache, concurrency, failure, first-call, and packaging behavior pass | Design only |
 
 The dominant early uncertainty is whether incumbent leaves collapse to one

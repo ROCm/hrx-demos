@@ -1,15 +1,17 @@
-# Checkpoint: Radeon FP16 schedule recovery
+# Checkpoint: Radeon FP16 prepared-Low schedule oracles
 
-This checkpoint closes the FP16 feasibility question for both Radeon family
-witnesses and deliberately leaves the accelerated-datatype basket open. It is
-the stable resume point before BF16/I8/FP8 schedule work.
+This checkpoint closes the Low representability question for both Radeon
+family witnesses and deliberately leaves default-pipeline composition and the
+accelerated-datatype basket open. The terminal objects use `--pipeline=none`
+and the experiment's direct HIP harness; they are acceptance oracles, not
+sanctioned Loom execution evidence. Spike 004 is the default-pipeline resume.
 
 ## Conclusions
 
 | Row | Correctness | Schedule | Runtime |
 | --- | --- | --- | --- |
 | gfx12 / gfx1201 FP16, 1024 cubed | Independent differential passes | Required B64+permute fragment packing and PGR2 schedule represented in prepared Low | 30.0605 us vs 28.800 us; ratio 1.0438, upper 95% CI 1.0474 |
-| gfx11 / gfx1100 FP16, 1024 cubed | Every output passes; max absolute 0.002 | 134/134 steady-state instructions with identical category counts; only equivalent branch polarity differs | 37.721 us vs 44.320 us; ratio 0.8511, 95% CI `[0.8502, 0.8553]` |
+| gfx11 / gfx1100 FP16, `1024x960x1024` | Every output passes; max absolute 0.002 | 134/134 steady-state instructions with identical category counts; only equivalent branch polarity differs | 37.721 us vs 44.320 us; ratio 0.8511, 95% CI `[0.8502, 0.8553]` |
 
 The gfx11 terminal result changes the project-level conclusion. The missing
 performance was not an irreducible compiler limitation. The exact native loop
@@ -39,10 +41,10 @@ sanitizer records, and High fragment-role rejection needed by peers who do not
 have the ignored artifact tree. Preserve both sets when making a full local
 archive.
 
-## Production-shaped JIT latency
+## Prepared-Low emission floor
 
-The three objects above were regenerated from Loom bytecode through a retained,
-optimized `loomc` context, compiler, workspace, target profile, source, and
+The three oracle objects were regenerated from Loom bytecode through a
+retained `loomc` context, compiler, workspace, target profile, source, and
 empty prepared-Low pass program. Each of 200 measured iterations deserialized a
 fresh mutable module, applied exact target specialization, and emitted the
 HSACO into memory. One warmup iteration preceded measurement; process startup,
@@ -61,7 +63,10 @@ SHA-256 exactly. The detailed distributions and method are in
 and the reusable measurement program is
 [`loomc_jit_benchmark.c`](../tools/loomc_jit_benchmark.c).
 
-The original high-hundreds-of-microseconds expectation describes bytecode
+These measurements are an HSACO-emission floor because they bypass the default
+compiler pipeline. Spike 004 measures the production-shaped bytecode link,
+specialization, default compilation, and emission path. The original
+high-hundreds-of-microseconds expectation describes bytecode
 materialization plus the front of this prepared-Low compiler path, not the time
 until an HSACO is available. Native AMDGPU emission currently accounts for
 88--95% of the miss. This is not concerning if specialization collapses the

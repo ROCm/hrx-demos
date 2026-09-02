@@ -7,24 +7,24 @@ pieces toward family-generic Loom. “Compiler limitation” is not a completion
 state: a remaining gap needs a preserved source, a narrow mechanism, and an
 acceptance test.
 
-## Result at a glance
+## Prepared-Low oracle result at a glance
 
 | Family witness | Incumbent | Best Loom result | Status |
 | --- | --- | --- | --- |
-| gfx12 / gfx1201 FP16, 1024 cubed | hipBLASLt 133309, 28.800 us | 30.0605 us, ratio 1.0438, 95% CI `[1.0395, 1.0474]` | Performance-congruent under the 1.05 gate; correct and spill-free. The manually scheduled Low loop contains the native B64+permute fragment material. Residual issue/stall differences are quantified below. |
-| gfx11 / gfx1100 FP16, 1024 cubed | hipBLASLt 1675, 44.320 us | 37.721 us, ratio 0.8511, 95% CI `[0.8502, 0.8553]` | Exact 134-instruction steady-state schedule-category congruence; full numerical differential passes; spill-free; exceeds runtime parity. The sole mnemonic difference is equivalent loop-branch polarity. |
+| gfx12 / gfx1201 FP16, 1024 cubed | hipBLASLt 133309, 28.800 us | 30.0605 us, ratio 1.0438, 95% CI `[1.0395, 1.0474]` | Prepared-Low acceptance oracle: performance-congruent, correct, and spill-free under the experiment's direct execution path. |
+| gfx11 / gfx1100 FP16, `1024x960x1024` | hipBLASLt 1675, 44.320 us | 37.721 us, ratio 0.8511, 95% CI `[0.8502, 0.8553]` | Prepared-Low acceptance oracle: exact 134-instruction steady-state category congruence and full differential correctness. |
 
-Together these results establish the essential project premise: schedules
-which previous compiler approaches would not recover can be represented in
-Loom Low and reach or exceed the incumbent timing envelope. They do not
-establish that High Loom will discover those schedules automatically. The
-gated compiler branch is a mechanism witness and usability report, while the
-retained Low motifs are the schedule specifications that raising must preserve.
+Together these results establish that the schedules can be represented in
+Loom Low and can reach the incumbent timing envelope. They are acceptance
+oracles, not default-pipeline Loom execution claims: the terminal kernels were
+assembled from prepared Low with `--pipeline=none` and timed through the
+experiment's direct HIP harness. Spike 004 re-evaluates raised forms through
+the default pipeline and sanctioned Loom runners. The gated compiler branch is
+a mechanism witness and the retained Low motifs are schedule specifications.
 
-All timings are same-process alternating samples with both outputs checked
-against an independent CPU reference. The gate is the upper endpoint of a 95%
-bootstrap interval for the candidate/incumbent median ratio being no greater
-than 1.05.
+The oracle timings are same-process alternating samples with both outputs
+checked against an independent CPU reference. Their statistical gate remains
+useful for the oracle, but it does not override the execution-path distinction.
 
 ## Gfx12 anchor
 
@@ -140,7 +140,7 @@ uses `s_cbranch_scc0`. See
 
 The 80-pair same-process run measures 37.721 us for Loom and 44.320 us for the
 incumbent, ratio 0.8511 with 95% bootstrap interval `[0.8502, 0.8553]`.
-The complete 1024-cubed differential checks every output: Loom has zero
+The complete `1024x960x1024` differential checks every output: Loom has zero
 mismatches and maximum absolute error 0.002; the incumbent has zero mismatches
 and maximum absolute error 0.004. The compile report records 192 VGPRs, 32
 SGPRs, 28,288 bytes LDS, no private memory, and no spill traffic.

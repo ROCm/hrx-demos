@@ -1,0 +1,5 @@
+config.def @gemm.m = 1024 : index
+
+config.def @gemm.n = 960 : index
+
+config.def @gemm.k = 1024 : index

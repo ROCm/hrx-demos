@@ -1,0 +1,80 @@
+{
+  "schema": "loom-blas.spike4-anchor.v1",
+  "target": "gfx1100",
+  "family": "gfx11-generic",
+  "request": {
+    "type": "f16xf16_f32_to_f16",
+    "m": 1024,
+    "n": 960,
+    "k": 1024
+  },
+  "candidate": {
+    "source": "../loom/gemm-f16-f32-mt64x96x32-gfx11-high-exact.loom",
+    "execution": "iree-benchmark-loom, default pipeline, device timestamp replay",
+    "sample_count": 64,
+    "p50_us": 61.0,
+    "p90_us": 62.8,
+    "correctness": "pass",
+    "private_memory_bytes": 16,
+    "materialized_spill_storage_count": 4,
+    "materialized_spill_store_count": 4,
+    "materialized_reload_count": 4,
+    "vgpr_count": 160,
+    "vgpr_scheduled_pressure": 151,
+    "sgpr_count": 27,
+    "lds_bytes": 28288
+  },
+  "incumbent": {
+    "backend": "hipblaslt",
+    "solution_index": 1675,
+    "sample_count": 60,
+    "median_us": 45.4605,
+    "p90_us": 45.88,
+    "correctness_sample_count": 1024,
+    "correctness_mismatches": 0,
+    "max_absolute_error": 0.002,
+    "max_relative_error": 0.001
+  },
+  "comparison": {
+    "candidate_to_incumbent_p50_ratio": 1.341824221,
+    "captured_sample_bootstrap": {
+      "candidate_sample_count": 30,
+      "incumbent_sample_count": 60,
+      "candidate_median_us": 60.88,
+      "incumbent_median_us": 45.4605,
+      "ratio": 1.3391845668,
+      "ratio_ci_95": [1.3292361721, 1.3550224921],
+      "method": "independent resampling, 20000 draws, seed 2"
+    },
+    "performance_gate": "fail",
+    "schedule_congruence": "fail"
+  },
+  "schedule": {
+    "candidate_dynamic_k": 64,
+    "incumbent_dynamic_k": 32,
+    "candidate_instruction_count": 439,
+    "incumbent_instruction_count": 134,
+    "candidate_normalized_k32_instruction_count": 219.5,
+    "candidate_normalized_k32": {
+      "matrix": 12,
+      "global_load": 5,
+      "lds_load": 76,
+      "lds_store": 5,
+      "barrier": 1,
+      "branch": 1,
+      "wait": 12.5,
+      "other": 107
+    },
+    "incumbent_k32": {
+      "matrix": 12,
+      "global_load": 5,
+      "lds_load": 76,
+      "lds_store": 5,
+      "barrier": 1,
+      "branch": 1,
+      "wait": 10,
+      "other": 24
+    }
+  },
+  "disposition": "compiler-contract packet required for CFG Low microkernel composition"
+}

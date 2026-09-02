@@ -1,0 +1,63 @@
+{
+  "schema": "loom-blas.spike4-jit-latency.v1",
+  "method": {
+    "api": "Loom C API",
+    "input": "indexed Loom bytecode plus bytecode config module",
+    "pipeline": "default source-to-prepared-Low pipeline",
+    "output": "in-memory AMDGPU HSACO",
+    "host_compilation_mode": "Bazel opt",
+    "iterations": 30,
+    "warmup_iterations": 1,
+    "notes": [
+      "The bytecode provider index, compiler, linker, and pass program are prepared once.",
+      "Each sample links the selected root, applies the exact config and target, compiles, and emits one HSACO.",
+      "No disk write is included except on the final sample after its timer is recorded."
+    ]
+  },
+  "artifacts": [
+    {
+      "target": "gfx1201",
+      "symbol": "gemm_f16_f32_mt128x128x32_gfx12_scalar_acc",
+      "source": "../loom/gemm-f16-f32-mt128x128x32-gfx12-pack-microkernel-exact.loom",
+      "config": "../config/gfx1201-f16-1024x1024x1024.loom",
+      "loombc_bytes": 58086,
+      "config_loombc_bytes": 598,
+      "hsaco_bytes": 17424,
+      "hsaco_sha256": "09039611ccf69f14dd30ecb7b9d5ed86aab34d1cccd2b886def1729e14108c31",
+      "setup_us": 681.037,
+      "link_median_us": 992.331,
+      "compile_median_us": 13625.808,
+      "emit_median_us": 7361.913,
+      "total_median_us": 22092.910,
+      "total_p95_us": 23262.051,
+      "phase_distributions_us": {
+        "link": {"min": 693.838, "median": 992.331, "mean": 911.696, "p95": 1237.663, "max": 1516.050},
+        "compile": {"min": 9529.340, "median": 13625.808, "mean": 11952.385, "p95": 14288.076, "max": 14438.070},
+        "emit": {"min": 5276.688, "median": 7361.913, "mean": 6554.862, "p95": 7676.171, "max": 8581.205},
+        "total": {"min": 15528.018, "median": 22092.910, "mean": 19419.373, "p95": 23262.051, "max": 23630.941}
+      }
+    },
+    {
+      "target": "gfx1100",
+      "symbol": "gemm_f16_f32_mt64x96x32_gfx11_pgr2",
+      "source": "../loom/gemm-f16-f32-mt64x96x32-gfx11-high-exact.loom",
+      "config": "../config/gfx1100-f16-1024x960x1024.loom",
+      "loombc_bytes": 16062,
+      "config_loombc_bytes": 597,
+      "hsaco_bytes": 13312,
+      "hsaco_sha256": "beac854ac0eaa2fd28c73355adbecad3caccf1c634f468f9e88639e026929bc2",
+      "setup_us": 464.992,
+      "link_median_us": 241.227,
+      "compile_median_us": 4139.704,
+      "emit_median_us": 7337.463,
+      "total_median_us": 11767.165,
+      "total_p95_us": 12905.579,
+      "phase_distributions_us": {
+        "link": {"min": 229.176, "median": 241.227, "mean": 246.114, "p95": 283.648, "max": 322.538},
+        "compile": {"min": 4094.498, "median": 4139.704, "mean": 4255.652, "p95": 4576.240, "max": 5150.505},
+        "emit": {"min": 7238.520, "median": 7337.463, "mean": 7496.151, "p95": 8057.402, "max": 8081.202},
+        "total": {"min": 11576.774, "median": 11767.165, "mean": 11998.264, "p95": 12905.579, "max": 13202.147}
+      }
+    }
+  ]
+}

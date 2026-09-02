@@ -1,0 +1,199 @@
+// Exact-target execution witness for the first gfx12 boundary-ladder rung.
+// The family-generic should-work source remains separate until Low carrier
+// rebinding during exact target specialization is implemented.
+amdgpu.target<gfx1201> @target
+
+low.func.def schedule(locked) target<amdgpu.rdna4.core>(@target) abi(object_function) @pack_lhs_fragments(%raw0: reg<amdgpu.vgpr x2>, %raw1: reg<amdgpu.vgpr x2>, %raw2: reg<amdgpu.vgpr x2>, %raw3: reg<amdgpu.vgpr x2>, %raw4: reg<amdgpu.vgpr x2>, %raw5: reg<amdgpu.vgpr x2>, %raw6: reg<amdgpu.vgpr x2>, %raw7: reg<amdgpu.vgpr x2>) -> (reg<amdgpu.vgpr x4>, reg<amdgpu.vgpr x4>, reg<amdgpu.vgpr x4>, reg<amdgpu.vgpr x4>) asm {
+  %r0l = slice %raw0[0] : reg<amdgpu.vgpr x2> -> reg<amdgpu.vgpr>
+  %r0h = slice %raw0[1] : reg<amdgpu.vgpr x2> -> reg<amdgpu.vgpr>
+  %r1l = slice %raw1[0] : reg<amdgpu.vgpr x2> -> reg<amdgpu.vgpr>
+  %r1h = slice %raw1[1] : reg<amdgpu.vgpr x2> -> reg<amdgpu.vgpr>
+  %r2l = slice %raw2[0] : reg<amdgpu.vgpr x2> -> reg<amdgpu.vgpr>
+  %r2h = slice %raw2[1] : reg<amdgpu.vgpr x2> -> reg<amdgpu.vgpr>
+  %r3l = slice %raw3[0] : reg<amdgpu.vgpr x2> -> reg<amdgpu.vgpr>
+  %r3h = slice %raw3[1] : reg<amdgpu.vgpr x2> -> reg<amdgpu.vgpr>
+  %r4l = slice %raw4[0] : reg<amdgpu.vgpr x2> -> reg<amdgpu.vgpr>
+  %r4h = slice %raw4[1] : reg<amdgpu.vgpr x2> -> reg<amdgpu.vgpr>
+  %r5l = slice %raw5[0] : reg<amdgpu.vgpr x2> -> reg<amdgpu.vgpr>
+  %r5h = slice %raw5[1] : reg<amdgpu.vgpr x2> -> reg<amdgpu.vgpr>
+  %r6l = slice %raw6[0] : reg<amdgpu.vgpr x2> -> reg<amdgpu.vgpr>
+  %r6h = slice %raw6[1] : reg<amdgpu.vgpr x2> -> reg<amdgpu.vgpr>
+  %r7l = slice %raw7[0] : reg<amdgpu.vgpr x2> -> reg<amdgpu.vgpr>
+  %r7h = slice %raw7[1] : reg<amdgpu.vgpr x2> -> reg<amdgpu.vgpr>
+  %even = s_mov_b32 84148480
+  %odd = s_mov_b32 117834498
+  %f0p0 = v_perm_b32 %r1l, %r0l, %even
+  low.schedule.fence
+  %f0p1 = v_perm_b32 %r3l, %r2l, %even
+  low.schedule.fence
+  %f0p2 = v_perm_b32 %r5l, %r4l, %even
+  low.schedule.fence
+  %f0p3 = v_perm_b32 %r7l, %r6l, %even
+  %f0 = concat(%f0p0, %f0p1, %f0p2, %f0p3) : (reg<amdgpu.vgpr>, reg<amdgpu.vgpr>, reg<amdgpu.vgpr>, reg<amdgpu.vgpr>) -> reg<amdgpu.vgpr x4>
+  low.schedule.fence
+  %f1p0 = v_perm_b32 %r1l, %r0l, %odd
+  low.schedule.fence
+  %f1p1 = v_perm_b32 %r3l, %r2l, %odd
+  low.schedule.fence
+  %f1p2 = v_perm_b32 %r5l, %r4l, %odd
+  low.schedule.fence
+  %f1p3 = v_perm_b32 %r7l, %r6l, %odd
+  %f1 = concat(%f1p0, %f1p1, %f1p2, %f1p3) : (reg<amdgpu.vgpr>, reg<amdgpu.vgpr>, reg<amdgpu.vgpr>, reg<amdgpu.vgpr>) -> reg<amdgpu.vgpr x4>
+  low.schedule.fence
+  %f2p0 = v_perm_b32 %r1h, %r0h, %even
+  low.schedule.fence
+  %f2p1 = v_perm_b32 %r3h, %r2h, %even
+  low.schedule.fence
+  %f2p2 = v_perm_b32 %r5h, %r4h, %even
+  low.schedule.fence
+  %f2p3 = v_perm_b32 %r7h, %r6h, %even
+  %f2 = concat(%f2p0, %f2p1, %f2p2, %f2p3) : (reg<amdgpu.vgpr>, reg<amdgpu.vgpr>, reg<amdgpu.vgpr>, reg<amdgpu.vgpr>) -> reg<amdgpu.vgpr x4>
+  low.schedule.fence
+  %f3p0 = v_perm_b32 %r1h, %r0h, %odd
+  low.schedule.fence
+  %f3p1 = v_perm_b32 %r3h, %r2h, %odd
+  low.schedule.fence
+  %f3p2 = v_perm_b32 %r5h, %r4h, %odd
+  low.schedule.fence
+  %f3p3 = v_perm_b32 %r7h, %r6h, %odd
+  %f3 = concat(%f3p0, %f3p1, %f3p2, %f3p3) : (reg<amdgpu.vgpr>, reg<amdgpu.vgpr>, reg<amdgpu.vgpr>, reg<amdgpu.vgpr>) -> reg<amdgpu.vgpr x4>
+  low.schedule.fence
+  return %f0, %f1, %f2, %f3
+}
+
+low.func.def schedule(locked) target<amdgpu.rdna4.core>(@target) abi(object_function) @load_and_pack_lhs_fragments(%address: reg<amdgpu.vgpr>) -> (reg<amdgpu.vgpr x4>, reg<amdgpu.vgpr x4>, reg<amdgpu.vgpr x4>, reg<amdgpu.vgpr x4>) asm {
+  %raw0 = ds_read_b64 %address
+  low.schedule.fence
+  %raw1 = ds_read_b64 %address {offset = 256}
+  low.schedule.fence
+  %raw2 = ds_read_b64 %address {offset = 512}
+  low.schedule.fence
+  %raw3 = ds_read_b64 %address {offset = 768}
+  low.schedule.fence
+  %raw4 = ds_read_b64 %address {offset = 1024}
+  low.schedule.fence
+  %raw5 = ds_read_b64 %address {offset = 1280}
+  low.schedule.fence
+  %raw6 = ds_read_b64 %address {offset = 1536}
+  low.schedule.fence
+  %raw7 = ds_read_b64 %address {offset = 1792}
+  low.schedule.fence
+  %f0, %f1, %f2, %f3 = low.func.call @pack_lhs_fragments(%raw0, %raw1, %raw2, %raw3, %raw4, %raw5, %raw6, %raw7) : (reg<amdgpu.vgpr x2>, reg<amdgpu.vgpr x2>, reg<amdgpu.vgpr x2>, reg<amdgpu.vgpr x2>, reg<amdgpu.vgpr x2>, reg<amdgpu.vgpr x2>, reg<amdgpu.vgpr x2>, reg<amdgpu.vgpr x2>) -> (reg<amdgpu.vgpr x4>, reg<amdgpu.vgpr x4>, reg<amdgpu.vgpr x4>, reg<amdgpu.vgpr x4>)
+  low.schedule.fence
+  return %f0, %f1, %f2, %f3
+}
+
+kernel.def target(@target) @fragment_pack() {
+  %one = index.constant 1 : index
+  kernel.launch.config workgroups(%one, %one, %one) workgroup_size(%one, %one, %one) : index
+} launch(%input_buffer: buffer, %output_buffer: buffer) {
+  %base = index.constant 0 : offset
+  %zero = index.constant 0 : index
+  %four = index.constant 4 : index
+  %eight = index.constant 8 : index
+  %twelve = index.constant 12 : index
+  %sixteen = index.constant 16 : index
+  %twenty = index.constant 20 : index
+  %twenty_four = index.constant 24 : index
+  %twenty_eight = index.constant 28 : index
+  %input_global = buffer.assume.memory_space<global> %input_buffer : buffer
+  %output_global = buffer.assume.memory_space<global> %output_buffer : buffer
+  %input = buffer.view %input_global[%base] : buffer -> view<32xf16>
+  %output = buffer.view %output_global[%base] : buffer -> view<32xf16>
+  %r0 = vector.load %input[%zero] : view<32xf16> -> vector<4xf16>
+  %r1 = vector.load %input[%four] : view<32xf16> -> vector<4xf16>
+  %r2 = vector.load %input[%eight] : view<32xf16> -> vector<4xf16>
+  %r3 = vector.load %input[%twelve] : view<32xf16> -> vector<4xf16>
+  %r4 = vector.load %input[%sixteen] : view<32xf16> -> vector<4xf16>
+  %r5 = vector.load %input[%twenty] : view<32xf16> -> vector<4xf16>
+  %r6 = vector.load %input[%twenty_four] : view<32xf16> -> vector<4xf16>
+  %r7 = vector.load %input[%twenty_eight] : view<32xf16> -> vector<4xf16>
+  %f0, %f1, %f2, %f3 = low.invoke @pack_lhs_fragments(%r0, %r1, %r2, %r3, %r4, %r5, %r6, %r7) : (vector<4xf16>, vector<4xf16>, vector<4xf16>, vector<4xf16>, vector<4xf16>, vector<4xf16>, vector<4xf16>, vector<4xf16>) -> (vector<8xf16>, vector<8xf16>, vector<8xf16>, vector<8xf16>)
+  vector.store %f0, %output[%zero] : vector<8xf16>, view<32xf16>
+  vector.store %f1, %output[%eight] : vector<8xf16>, view<32xf16>
+  vector.store %f2, %output[%sixteen] : vector<8xf16>, view<32xf16>
+  vector.store %f3, %output[%twenty_four] : vector<8xf16>, view<32xf16>
+  kernel.return
+}
+
+check.case public @fragment_pack_case {
+  %input = check.generate.fill value(0.25) : tensor<32xf16>
+  %output = check.generate.fill value(0.0) : tensor<32xf16>
+  %expected = check.generate.fill value(0.25) : tensor<32xf16>
+  kernel.launch @fragment_pack(%input, %output) : (tensor<32xf16>, tensor<32xf16>)
+  check.expect.close actual(%output) expected(%expected) atol(0.0) rtol(0.0) nan(same) : tensor<32xf16>
+  check.return
+}
+
+kernel.def target(@target) @lds_fragment_load_pack() {
+  %one = index.constant 1 : index
+  %thirty_two = index.constant 32 : index
+  kernel.launch.config workgroups(%one, %one, %one) workgroup_size(%thirty_two, %one, %one) : index
+} launch(%input_buffer: buffer, %output_buffer: buffer) {
+  %base = index.constant 0 : offset
+  %lds_bytes = index.constant 2048 : offset
+  %zero = index.constant 0 : index
+  %four = index.constant 4 : index
+  %eight = index.constant 8 : index
+  %twelve = index.constant 12 : index
+  %sixteen = index.constant 16 : index
+  %twenty = index.constant 20 : index
+  %twenty_four = index.constant 24 : index
+  %twenty_eight = index.constant 28 : index
+  %i128 = index.constant 128 : index
+  %i256 = index.constant 256 : index
+  %i384 = index.constant 384 : index
+  %i512 = index.constant 512 : index
+  %i640 = index.constant 640 : index
+  %i768 = index.constant 768 : index
+  %i896 = index.constant 896 : index
+  %input_global = buffer.assume.memory_space<global> %input_buffer : buffer
+  %output_global = buffer.assume.memory_space<global> %output_buffer : buffer
+  %input = buffer.view %input_global[%base] : buffer -> view<32xf16>
+  %output = buffer.view %output_global[%base] : buffer -> view<32xf16>
+  %lds_buffer = buffer.alloca<workgroup> align(16) %lds_bytes : buffer
+  %lds = buffer.view %lds_buffer[%base] : buffer -> view<1024xf16>
+  %lane = kernel.workitem.id<x> : index
+  %lane_element = index.mul %lane, %four : index
+  %lds0 = index.add %lane_element, %zero : index
+  %lds1 = index.add %lane_element, %i128 : index
+  %lds2 = index.add %lane_element, %i256 : index
+  %lds3 = index.add %lane_element, %i384 : index
+  %lds4 = index.add %lane_element, %i512 : index
+  %lds5 = index.add %lane_element, %i640 : index
+  %lds6 = index.add %lane_element, %i768 : index
+  %lds7 = index.add %lane_element, %i896 : index
+  %r0 = vector.load %input[%zero] : view<32xf16> -> vector<4xf16>
+  %r1 = vector.load %input[%four] : view<32xf16> -> vector<4xf16>
+  %r2 = vector.load %input[%eight] : view<32xf16> -> vector<4xf16>
+  %r3 = vector.load %input[%twelve] : view<32xf16> -> vector<4xf16>
+  %r4 = vector.load %input[%sixteen] : view<32xf16> -> vector<4xf16>
+  %r5 = vector.load %input[%twenty] : view<32xf16> -> vector<4xf16>
+  %r6 = vector.load %input[%twenty_four] : view<32xf16> -> vector<4xf16>
+  %r7 = vector.load %input[%twenty_eight] : view<32xf16> -> vector<4xf16>
+  vector.store %r0, %lds[%lds0] : vector<4xf16>, view<1024xf16>
+  vector.store %r1, %lds[%lds1] : vector<4xf16>, view<1024xf16>
+  vector.store %r2, %lds[%lds2] : vector<4xf16>, view<1024xf16>
+  vector.store %r3, %lds[%lds3] : vector<4xf16>, view<1024xf16>
+  vector.store %r4, %lds[%lds4] : vector<4xf16>, view<1024xf16>
+  vector.store %r5, %lds[%lds5] : vector<4xf16>, view<1024xf16>
+  vector.store %r6, %lds[%lds6] : vector<4xf16>, view<1024xf16>
+  vector.store %r7, %lds[%lds7] : vector<4xf16>, view<1024xf16>
+  kernel.barrier<workgroup> scope(workgroup) ordering(acq_rel)
+  %address = index.mul %lane, %eight : index
+  %f0, %f1, %f2, %f3 = low.invoke @load_and_pack_lhs_fragments(%address) : (index) -> (vector<8xf16>, vector<8xf16>, vector<8xf16>, vector<8xf16>)
+  vector.store %f0, %output[%zero] : vector<8xf16>, view<32xf16>
+  vector.store %f1, %output[%eight] : vector<8xf16>, view<32xf16>
+  vector.store %f2, %output[%sixteen] : vector<8xf16>, view<32xf16>
+  vector.store %f3, %output[%twenty_four] : vector<8xf16>, view<32xf16>
+  kernel.return
+}
+
+check.case public @lds_fragment_load_pack_case {
+  %input = check.generate.fill value(0.25) : tensor<32xf16>
+  %output = check.generate.fill value(0.0) : tensor<32xf16>
+  %expected = check.generate.fill value(0.25) : tensor<32xf16>
+  kernel.launch @lds_fragment_load_pack(%input, %output) : (tensor<32xf16>, tensor<32xf16>)
+  check.expect.close actual(%output) expected(%expected) atol(0.0) rtol(0.0) nan(same) : tensor<32xf16>
+  check.return
+}

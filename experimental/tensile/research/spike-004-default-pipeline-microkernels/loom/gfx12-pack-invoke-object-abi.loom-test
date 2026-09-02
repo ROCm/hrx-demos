@@ -1,0 +1,47 @@
+// RUN: verify
+
+// Minimal should-work boundary: a High kernel invokes one target-specific,
+// schedule-locked Low register helper through the default compiler pipeline.
+amdgpu.target<gfx1201> @target
+
+low.func.def schedule(locked) target<amdgpu.rdna4.core>(@target) abi(object_function) @pack_pair(%even: reg<amdgpu.vgpr x2>, %odd: reg<amdgpu.vgpr x2>) -> (reg<amdgpu.vgpr x4>) asm {
+  %even0 = slice %even[0] : reg<amdgpu.vgpr x2> -> reg<amdgpu.vgpr>
+  %even1 = slice %even[1] : reg<amdgpu.vgpr x2> -> reg<amdgpu.vgpr>
+  %odd0 = slice %odd[0] : reg<amdgpu.vgpr x2> -> reg<amdgpu.vgpr>
+  %odd1 = slice %odd[1] : reg<amdgpu.vgpr x2> -> reg<amdgpu.vgpr>
+  %selector0 = s_mov_b32 84148480
+  %selector1 = s_mov_b32 117834498
+  %packed0 = v_perm_b32 %odd0, %even0, %selector0
+  %packed1 = v_perm_b32 %odd1, %even1, %selector0
+  %packed2 = v_perm_b32 %odd0, %even0, %selector1
+  %packed3 = v_perm_b32 %odd1, %even1, %selector1
+  %packed = concat(%packed0, %packed1, %packed2, %packed3) : (reg<amdgpu.vgpr>, reg<amdgpu.vgpr>, reg<amdgpu.vgpr>, reg<amdgpu.vgpr>) -> reg<amdgpu.vgpr x4>
+  return %packed
+}
+
+kernel.def target(@target) @caller() {
+  %one = index.constant 1 : index
+  kernel.launch.config workgroups(%one, %one, %one) workgroup_size(%one, %one, %one) : index
+} launch(%input_buffer: buffer, %output_buffer: buffer) {
+  %base = index.constant 0 : offset
+  %zero = index.constant 0 : index
+  %input_global = buffer.assume.memory_space<global> %input_buffer : buffer
+  %output_global = buffer.assume.memory_space<global> %output_buffer : buffer
+  %input = buffer.view %input_global[%base] : buffer -> view<8xf16>
+  %output = buffer.view %output_global[%base] : buffer -> view<8xf16>
+  %even = vector.load %input[%zero] : view<8xf16> -> vector<4xf16>
+  %four = index.constant 4 : index
+  %odd = vector.load %input[%four] : view<8xf16> -> vector<4xf16>
+  %packed = low.invoke @pack_pair(%even, %odd) : (vector<4xf16>, vector<4xf16>) -> (vector<8xf16>)
+  vector.store %packed, %output[%zero] : vector<8xf16>, view<8xf16>
+  kernel.return
+}
+
+check.case public @invoke_pack_case {
+  %input = check.generate.fill value(0.25) : tensor<8xf16>
+  %output = check.generate.fill value(0.0) : tensor<8xf16>
+  %expected = check.generate.fill value(0.25) : tensor<8xf16>
+  kernel.launch @caller(%input, %output) : (tensor<8xf16>, tensor<8xf16>)
+  check.expect.close actual(%output) expected(%expected) atol(0.0) rtol(0.0) nan(same) : tensor<8xf16>
+  check.return
+}
