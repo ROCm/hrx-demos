@@ -1,0 +1,89 @@
+{
+  "schema": "loom-blas.loomc-jit-compile-times.v1",
+  "date": "2026-09-02",
+  "compiler": {
+    "repository": "https://github.com/ROCm/hrx-system",
+    "commit": "b422b5056",
+    "build_mode": "opt"
+  },
+  "method": {
+    "input": "Loom bytecode loaded once into a retained loomc source",
+    "context": "retained across samples",
+    "compiler": "retained across samples",
+    "target_profile": "retained across samples",
+    "pass_program": "empty because the inputs are ABI-complete prepared Low",
+    "per_sample": [
+      "deserialize a fresh mutable module from the retained bytecode source",
+      "apply exact target specialization through loomc_compile_module",
+      "emit an in-memory HSACO through loomc_emit_module"
+    ],
+    "warmup_iterations": 1,
+    "measured_iterations": 200,
+    "total_excludes": [
+      "process startup",
+      "one-time loomc setup",
+      "bytecode file loading after source creation",
+      "artifact file output",
+      "module and result release"
+    ],
+    "phase_meanings": {
+      "deserialize": "bytecode materialization into a fresh mutable module",
+      "compile": "target specialization and the selected empty prepared-Low pass program",
+      "emit": "AMDGPU native lowering, schedule/allocation realization, instruction encoding, and ELF construction",
+      "total": "artifact-ready latency from bytecode deserialization through an in-memory HSACO"
+    }
+  },
+  "rows": [
+    {
+      "name": "gfx12-fp16-terminal",
+      "source": "low/gfx12-gemm-double-buffer-pgr2-ring-native-split-exact-fenced-svw4-uniform-bpad-scalar-saddr-ring-native-rhs-lhs-first.loom",
+      "source_sha256": "0139b173349a5a780373f933623570e4fecac6463dbe2e329c47baf07e364a47",
+      "target": "gfx1201",
+      "symbol": "gemm_f16_f32_mt128x128x32_gfx12_scalar_acc",
+      "loombc_bytes": 72286,
+      "hsaco_bytes": 13328,
+      "hsaco_sha256": "7ba667f285ca1b16321d2875a6f4996a4f1be3e55d049b8a65484bfe71cabf91",
+      "setup_us": 362.710,
+      "phases": {
+        "deserialize": {"min_us": 375.040, "median_us": 400.671, "mean_us": 449.014, "p95_us": 567.455, "max_us": 888.214},
+        "compile": {"min_us": 131.883, "median_us": 147.198, "mean_us": 157.057, "p95_us": 205.406, "max_us": 212.996},
+        "emit": {"min_us": 4050.666, "median_us": 4138.328, "mean_us": 4703.010, "p95_us": 5842.293, "max_us": 6999.043},
+        "total": {"min_us": 4561.090, "median_us": 4673.792, "mean_us": 5309.386, "p95_us": 6593.333, "max_us": 7800.184}
+      }
+    },
+    {
+      "name": "gfx11-fp16-terminal",
+      "source": "low/gfx11-native-k32-payload-ring-rotated-1675-schedule-manual-waits-peeled-srd-ring-native-salu-slots-wgm8-swapped-native-epilogue.loom",
+      "source_sha256": "199e26002e7b0ec008085e330c039b95dd089e5cef8de4d1c57e2d2d69769441",
+      "target": "gfx1100",
+      "symbol": "gemm_f16_f32_mt64x96x32_gfx11_pgr2",
+      "loombc_bytes": 47561,
+      "hsaco_bytes": 13312,
+      "hsaco_sha256": "68f0cdf9fe26b5b48ff47fb083b896be9d3e3cd1585e77e403f20c23dcec7176",
+      "setup_us": 285.568,
+      "phases": {
+        "deserialize": {"min_us": 289.967, "median_us": 296.573, "mean_us": 302.743, "p95_us": 323.989, "max_us": 519.303},
+        "compile": {"min_us": 98.833, "median_us": 102.233, "mean_us": 104.549, "p95_us": 113.743, "max_us": 257.097},
+        "emit": {"min_us": 6152.920, "median_us": 6237.778, "mean_us": 6285.047, "p95_us": 6828.308, "max_us": 7223.799},
+        "total": {"min_us": 6555.761, "median_us": 6639.269, "mean_us": 6692.589, "p95_us": 7272.780, "max_us": 7714.102}
+      }
+    },
+    {
+      "name": "gfx11-bf16-retarget",
+      "source": "low/gfx11-bf16-native-k32-payload-ring-terminal.loom",
+      "source_sha256": "598c78b74bb6fc8f207fb22d44b3e7a398da067f32a215322a1c22cb763693fd",
+      "target": "gfx1100",
+      "symbol": "gemm_bf16_f32_mt64x96x32_gfx11_pgr2",
+      "loombc_bytes": 56285,
+      "hsaco_bytes": 13320,
+      "hsaco_sha256": "a03396de678ad0b7a0c8fc4055eb7b4071d189329040199916db9d556cdf8da0",
+      "setup_us": 373.370,
+      "phases": {
+        "deserialize": {"min_us": 329.878, "median_us": 350.149, "mean_us": 353.244, "p95_us": 381.380, "max_us": 536.864},
+        "compile": {"min_us": 111.023, "median_us": 116.253, "mean_us": 117.908, "p95_us": 127.114, "max_us": 135.064},
+        "emit": {"min_us": 7895.357, "median_us": 8002.200, "mean_us": 8069.843, "p95_us": 8658.006, "max_us": 9665.723},
+        "total": {"min_us": 8361.479, "median_us": 8469.797, "mean_us": 8541.232, "p95_us": 9159.719, "max_us": 10144.615}
+      }
+    }
+  ]
+}

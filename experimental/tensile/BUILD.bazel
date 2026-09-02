@@ -1,0 +1,21 @@
+# Copyright 2026 The IREE Authors
+#
+# Licensed under the Apache License v2.0 with LLVM Exceptions.
+# See https://llvm.org/LICENSE.txt for license information.
+# SPDX-License-Identifier: Apache-2.0 WITH LLVM-exception
+
+load("@rules_cc//cc:cc_binary.bzl", "cc_binary")
+
+package(
+    default_visibility = ["//visibility:public"],
+    licenses = ["notice"],
+)
+
+cc_binary(
+    name = "loomc-jit-benchmark",
+    srcs = ["research/tools/loomc_jit_benchmark.c"],
+    deps = [
+        "@hrx_system//loom/binding/c:loomc",
+        "@hrx_system//loom/binding/c/target/amdgpu",
+    ],
+)

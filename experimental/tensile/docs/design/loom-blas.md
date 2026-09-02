@@ -399,13 +399,34 @@ performance-routing concern.
 JIT does **not** remove the need to choose a physical schedule. Macro tile,
 wave/workgroup topology, VALU versus matrix path, prefetch pipeline,
 workgroup mapping, and split-K/StreamK strategy can still vary materially with
-M, N, K, batch, workspace, and target. Loom compilation for kernels in this
-class is expected to be on the order of high hundreds of microseconds, making
-exact request specialization practical. Measure that distribution and bound
-the artifact cache, but do not preserve Tensile's adjacency buckets merely to
-avoid compilation. Generality belongs in shared source; exactness belongs in
-the specialization input. Exactness need not imply one artifact per request:
-specialization can erase distinctions that do not change the compiled program.
+M, N, K, batch, workspace, and target. Exact request specialization remains
+practical, but its latency has two materially different parts. For the three
+current prepared-Low objects, an optimized retained `loomc` instance takes
+about 0.40--0.55 ms median to deserialize bytecode and apply target
+specialization, while native in-memory HSACO emission raises artifact-ready
+latency to 4.67--8.47 ms median and 6.59--9.16 ms p95. The detailed measurement
+is in
+[`results/loomc-jit-compile-times.json`](../../research/spike-003-native-upward/results/loomc-jit-compile-times.json).
+
+Artifact cardinality, rather than single-object emission latency, is the
+integration gate. The synchronous path must derive the post-specialization
+program key before native emission, coalesce equal in-flight misses, and consult
+a bounded persistent artifact cache. For popular targets, initialize that
+cache by compiling the expected artifact set in parallel. If the working set is
+on the order of a dozen artifacts per deployed target, even several
+milliseconds per true miss is a small bounded startup transient and may be
+cheaper than navigating and loading a large precompiled Tensile library.
+Explicit preparation or an asynchronous incumbent fallback is required only
+for deployments whose first-call latency budget cannot absorb that transient;
+code-object load time must be added before setting that policy.
+
+Do not preserve Tensile's adjacency buckets merely to avoid compilation:
+generality belongs in shared source and exactness in the specialization input.
+Exactness need not imply one artifact per request because specialization can
+erase distinctions that do not change the compiled program. If that collapse
+does not reduce the real demand corpus to a small, bounded number of HSACOs per
+family/type/fusion class, the design must revisit schedule/configuration
+factoring or its miss policy before provider integration.
 
 In this document, an **authored kernel** is a Loom algorithm/source body. A
 **configuration** selects schedule parameters for that body. A **specialized
@@ -920,8 +941,9 @@ This permits exact request reasoning while naturally collapsing intrinsic
 M/N/K partitions, layout classes, or disabled epilogues into the small number
 of artifacts that actually differ. Record both the raw specialization input
 and the derived key so a collision or missed reuse is explainable. The design
-expects only a handful of distinct HSACOs per gfx family and arithmetic/fusion
-class. The derived-key experiment quantifies that collapse and identifies the
+expects a small number of distinct HSACOs--provisionally on the order of a
+dozen--per deployed target across the arithmetic/fusion classes in active use.
+The derived-key experiment quantifies that collapse and identifies the
 intrinsic partitions; it does not relax the program-derived-key invariant.
 
 Use bounded memory and disk caches, atomic publication, failure/negative cache
@@ -1166,7 +1188,7 @@ rather than guessed calendar duration.
 | --- | --- | --- |
 | Laboratory and schemas | One request enumerates, forces, checks, and measures each installed incumbent; a loaded Loom kernel runs on each supported target | Public API comparison harness forces hipBLASLt/rocBLAS solutions, launches Loom HSACOs, performs sampled or full CPU differentials, and records paired timings; BF16 support is in progress |
 | Source/runtime extractor and router explainer | Sampled Equality/GridBased/classic Tensile routes agree with runtime/dispatch and emit normalized packets | Runtime shards, source recipes, code objects, and bounded native symbol summaries joined for sampled winners; broader route replay and dynamic schedule extraction remain |
-| Derived-key experiment | Config and exact shape facts specialize a `.loombc`; equal resulting programs alias before HSACO emission and unequal programs do not | Canonical-text proxy proves collapse after symbol DCE; bytecode/target API and hashing benchmarks deferred until after the first parity kernel |
+| Derived-key experiment | Config and exact shape facts specialize a `.loombc`; equal resulting programs alias before HSACO emission and unequal programs do not | In-process bytecode-to-HSACO latency and deterministic artifact hashes are measured; canonical-text proxy proves collapse after symbol DCE; pre-emission key stability, demand-corpus cardinality, and code-object load remain open |
 | `gfx906` Loom enablement | Compile/load/correctness/resource-report smoke tests pass | Blocked on missing physical target support, isolated from GEMM work |
 | First `gfx1201` vertical slice | Primitive FP16-to-FP32 WMMA GEMM reaches parity across a bounded cell | Complete: 1024-cubed prepared-Low motif is correct, spill-free, and 1.0438x the selected incumbent with upper 95% CI 1.0474 |
 | gfx11 family specialization | The shared family passes on the RDNA3 witness with structural variants only where justified | Complete for the FP16 anchor: exact 134-instruction schedule-category match, full correctness, and 0.8511x the selected incumbent |

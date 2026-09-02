@@ -39,6 +39,42 @@ sanitizer records, and High fragment-role rejection needed by peers who do not
 have the ignored artifact tree. Preserve both sets when making a full local
 archive.
 
+## Production-shaped JIT latency
+
+The three objects above were regenerated from Loom bytecode through a retained,
+optimized `loomc` context, compiler, workspace, target profile, source, and
+empty prepared-Low pass program. Each of 200 measured iterations deserialized a
+fresh mutable module, applied exact target specialization, and emitted the
+HSACO into memory. One warmup iteration preceded measurement; process startup,
+one-time source loading/setup, artifact file output, and handle release are not
+in the per-object total.
+
+| Object | Bytecode deserialize median | `loomc_compile_module` median | HSACO emit median | Artifact-ready median | Artifact-ready p95 |
+| --- | ---: | ---: | ---: | ---: | ---: |
+| gfx12 FP16 terminal | 0.401 ms | 0.147 ms | 4.138 ms | 4.674 ms | 6.593 ms |
+| gfx11 FP16 terminal | 0.297 ms | 0.102 ms | 6.238 ms | 6.639 ms | 7.273 ms |
+| gfx11 BF16 retarget | 0.350 ms | 0.116 ms | 8.002 ms | 8.470 ms | 9.160 ms |
+
+All three in-memory API emissions reproduce the recorded HSACO byte length and
+SHA-256 exactly. The detailed distributions and method are in
+[`results/loomc-jit-compile-times.json`](results/loomc-jit-compile-times.json),
+and the reusable measurement program is
+[`loomc_jit_benchmark.c`](../tools/loomc_jit_benchmark.c).
+
+The original high-hundreds-of-microseconds expectation describes bytecode
+materialization plus the front of this prepared-Low compiler path, not the time
+until an HSACO is available. Native AMDGPU emission currently accounts for
+88--95% of the miss. This is not concerning if specialization collapses the
+deployed demand corpus to roughly a dozen artifacts: the resulting tens of
+milliseconds are a bounded startup transient, and large Tensile libraries also
+pay nontrivial lookup and load costs. Popular targets can compile the expected
+set in parallel at initialization and publish the results into the persistent
+cache. The gating experiment is therefore pre-emission key derivation plus
+measured cache cardinality across the demand corpus. Explicit preparation or
+asynchronous fallback is a deployment policy for strict first-call latency,
+not an unconditional provider requirement. Code-object load latency remains a
+separate unmeasured budget.
+
 ## Compiler checkpoint
 
 HRX branch `loom-blas/gfx11-structural-loop-recolor` is clean at
