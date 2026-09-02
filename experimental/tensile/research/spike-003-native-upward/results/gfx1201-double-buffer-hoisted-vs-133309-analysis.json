@@ -1,0 +1,18 @@
+{
+  "schema": "loom-blas.timing-summary.v1",
+  "source": "research/spike-003-native-upward/results/gfx1201-double-buffer-hoisted-vs-133309-paired.json",
+  "sample_count": 50,
+  "loom_median_us": 36.22,
+  "incumbent_median_us": 28.94,
+  "median_ratio": 1.2515549412577747,
+  "bootstrap": {
+    "method": "independent resampling of alternating same-process samples",
+    "resamples": 20000,
+    "seed": 2,
+    "confidence": 0.95,
+    "ratio_ci": [
+      1.2448418156808805,
+      1.2600117887729274
+    ]
+  }
+}

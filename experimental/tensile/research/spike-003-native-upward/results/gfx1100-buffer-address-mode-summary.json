@@ -1,0 +1,24 @@
+{
+  "schema_version": 1,
+  "target": "gfx1100",
+  "shape": [1024, 960, 1024],
+  "source": "low/gfx11-cross-iteration-plr-split-zero-buffer-loads-dce.loom",
+  "transformation": "tools/use_gfx11_buffer_loads.py",
+  "purpose": "isolate native raw-buffer address mode without changing the semantic PLR loop",
+  "observed": {
+    "buffer_load_count_static": 15,
+    "global_load_count_static": 0,
+    "materialized_spill_storage_count": 20,
+    "materialized_spill_storage_bytes": 80,
+    "materialized_reload_count": 68,
+    "materialized_reload_bytes": 272,
+    "scheduled_vgpr_pressure": 134,
+    "final_vgprs": 144,
+    "wait_action_count": 124,
+    "full_drain_count": 111,
+    "correctness_mismatches": 0,
+    "timing_samples_us": [131.081, 130.761, 131.281, 131.481, 130.721],
+    "median_us": 131.081
+  },
+  "conclusion": "Raw-buffer instructions are representable, but carrying SRDs without native joint placement destabilizes allocation repair. Address-mode substitution must be combined with explicit SRD, offset, payload, and fragment scheduling."
+}

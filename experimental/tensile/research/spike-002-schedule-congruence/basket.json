@@ -1,0 +1,33 @@
+{
+  "schema": "loom-blas.schedule-basket.v1",
+  "semantic_boundary": {
+    "layout": "column-major NN",
+    "alpha": 1.0,
+    "beta": 0.0,
+    "batch_count": 1,
+    "epilogue": "none"
+  },
+  "completion_states": [
+    "congruent",
+    "explained_delta",
+    "compiler_blocker"
+  ],
+  "requests": [
+    {"id": "gfx1201-f16-256x256x256", "target": "gfx1201", "type": "f16", "m": 256, "n": 256, "k": 256, "status": "compiler_blocker", "evidence": "results/gfx1201-f16-shapes.json"},
+    {"id": "gfx1201-f16-1024x1024x1024", "target": "gfx1201", "type": "f16", "m": 1024, "n": 1024, "k": 1024, "status": "congruent", "evidence": "../spike-003-native-upward/results/gfx1201-uniform-bpad-scalar-saddr-native-rhs-lhs-first-vs-133309-analysis.json", "qualification": "prepared-Low schedule; numerical and paired timing gates pass; native access on prepared Low remains an explicit shipping blocker"},
+    {"id": "gfx1201-f16-128x2048x2048", "target": "gfx1201", "type": "f16", "m": 128, "n": 2048, "k": 2048, "status": "compiler_blocker", "evidence": "results/gfx1201-f16-shapes.json"},
+    {"id": "gfx1201-f16-2048x128x2048", "target": "gfx1201", "type": "f16", "m": 2048, "n": 128, "k": 2048, "status": "compiler_blocker", "evidence": "results/gfx1201-f16-shapes.json"},
+    {"id": "gfx1201-f16-1024x1024x64", "target": "gfx1201", "type": "f16", "m": 1024, "n": 1024, "k": 64, "status": "compiler_blocker", "evidence": "results/gfx1201-f16-shapes.json"},
+    {"id": "gfx1201-bf16-1024x1024x1024", "target": "gfx1201", "type": "bf16", "m": 1024, "n": 1024, "k": 1024, "status": "compiler_blocker", "evidence": "results/accelerated-types.json"},
+    {"id": "gfx1201-i8-1024x1024x1024", "target": "gfx1201", "type": "i8", "m": 1024, "n": 1024, "k": 1024, "status": "compiler_blocker", "evidence": "results/accelerated-types.json"},
+    {"id": "gfx1201-fp8-fp8-1024x1024x1024", "target": "gfx1201", "type": "fp8_e4m3_fp8_e4m3", "m": 1024, "n": 1024, "k": 1024, "status": "compiler_blocker", "evidence": "results/accelerated-types.json"},
+    {"id": "gfx1201-fp8-bf8-1024x1024x1024", "target": "gfx1201", "type": "fp8_e4m3_fp8_e5m2", "m": 1024, "n": 1024, "k": 1024, "status": "compiler_blocker", "evidence": "results/accelerated-types.json"},
+    {"id": "gfx1100-f16-1024x1024x1024", "target": "gfx1100", "type": "f16", "m": 1024, "n": 1024, "k": 1024, "status": "compiler_blocker", "evidence": "results/gfx1100-f16-1024-paired.json"},
+    {"id": "gfx1100-f16-structural-anchor", "target": "gfx1100", "type": "f16", "m": 1024, "n": 1024, "k": 64, "status": "compiler_blocker", "evidence": "results/gfx1100-f16-shapes.json"},
+    {"id": "gfx1100-bf16-1024x1024x1024", "target": "gfx1100", "type": "bf16", "m": 1024, "n": 1024, "k": 1024, "status": "compiler_blocker", "evidence": "results/accelerated-types.json"},
+    {"id": "gfx1100-i8-1024x1024x1024", "target": "gfx1100", "type": "i8", "m": 1024, "n": 1024, "k": 1024, "status": "compiler_blocker", "evidence": "results/accelerated-types.json"},
+    {"id": "gfx906-f16-1024x1024x1024", "target": "gfx906", "type": "f16", "m": 1024, "n": 1024, "k": 1024, "status": "compiler_blocker", "evidence": "results/gfx906-f16-shapes.json"},
+    {"id": "gfx906-f16-structural-anchor", "target": "gfx906", "type": "f16", "m": 256, "n": 256, "k": 256, "status": "compiler_blocker", "evidence": "results/gfx906-f16-shapes.json"},
+    {"id": "i4-capability-census", "target": "gfx1100,gfx1201", "type": "i4", "shape": "capability and installed-library API/corpus census", "status": "explained_delta", "evidence": "results/accelerated-types.json"}
+  ]
+}

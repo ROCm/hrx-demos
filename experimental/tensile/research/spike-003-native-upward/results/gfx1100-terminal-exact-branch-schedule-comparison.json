@@ -1,0 +1,37 @@
+{
+  "candidate": "loom-terminal-exact-branch",
+  "category_count_delta": {},
+  "first_difference": {
+    "candidate": {
+      "byte_offset": 940,
+      "category": "branch",
+      "mnemonic": "s_cbranch_scc1",
+      "operands": "65300",
+      "ordinal": 133
+    },
+    "reference": {
+      "byte_offset": 940,
+      "category": "branch",
+      "mnemonic": "s_cbranch_scc0",
+      "operands": "label_LoopBeginL",
+      "ordinal": 133
+    }
+  },
+  "include_operands": false,
+  "instruction_count": {
+    "candidate": 134,
+    "delta": 0,
+    "reference": 134
+  },
+  "reference": "hipblaslt-solution-1675",
+  "schema": "loom-blas.amdgpu-schedule-comparison.v1",
+  "significant_count": {
+    "candidate": 110,
+    "exact_prefix": 109,
+    "reference": 110
+  },
+  "unmatched_multiset_count": {
+    "candidate": 1,
+    "reference": 1
+  }
+}

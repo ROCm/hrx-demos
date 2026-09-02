@@ -1,0 +1,1196 @@
+low.kernel.def retain schedule(locked) target<amdgpu.rdna3.core>(@__loom_target_context_0_0) abi_layout({constant_count = 0, direct_arg_count = 0, direct_arg_names = {}, direct_arg_offsets = [], direct_arg_parameter_indices = [], direct_arg_sizes = [], parameter_count = 4, resource_count = 4, resource_offsets = [0, 8, 16, 24], resource_parameter_indices = [0, 1, 2, 3], uses_kernarg_segment_ptr = true}) workgroup_size(32, 4, 1) workgroup_count(160, 1, 1) @gemm_bf16_f32_mt64x96x32_gfx11_pgr2() {
+  %kernarg = low.live_in<amdgpu.kernarg_segment_ptr> : reg<amdgpu.sgpr x2>
+  %linear_workgroup = low.live_in<amdgpu.workgroup_id.x> : reg<amdgpu.sgpr>
+  %unused_workgroup_y = low.live_in<amdgpu.workgroup_id.y> : reg<amdgpu.sgpr>
+  %packed_tid = low.live_in<amdgpu.workitem_id.packed.xy> : reg<amdgpu.vgpr>
+  %wgm_one = low.const<amdgpu.s_mov_b32> {imm32 = 1} : reg<amdgpu.sgpr>
+  %raw_n = low.op<amdgpu.s_lshr_b32.rhs_inline>(%linear_workgroup) {imm32 = 4} : (reg<amdgpu.sgpr>) -> reg<amdgpu.sgpr>
+  %raw_n_x16 = low.op<amdgpu.s_lshl_b32.rhs_inline>(%raw_n) {imm32 = 4} : (reg<amdgpu.sgpr>) -> reg<amdgpu.sgpr>
+  %raw_m = low.op<amdgpu.s_sub_u32>(%linear_workgroup, %raw_n_x16) : (reg<amdgpu.sgpr>, reg<amdgpu.sgpr>) -> reg<amdgpu.sgpr>
+  %wgm_block = low.op<amdgpu.s_lshr_b32.rhs_inline>(%raw_n) {imm32 = 3} : (reg<amdgpu.sgpr>) -> reg<amdgpu.sgpr>
+  %wgm_block_x8 = low.op<amdgpu.s_lshl_b32.rhs_inline>(%wgm_block) {imm32 = 3} : (reg<amdgpu.sgpr>) -> reg<amdgpu.sgpr>
+  %wgm_row = low.op<amdgpu.s_sub_u32>(%raw_n, %wgm_block_x8) : (reg<amdgpu.sgpr>, reg<amdgpu.sgpr>) -> reg<amdgpu.sgpr>
+  %wgm_row_x16 = low.op<amdgpu.s_lshl_b32.rhs_inline>(%wgm_row) {imm32 = 4} : (reg<amdgpu.sgpr>) -> reg<amdgpu.sgpr>
+  %wgm_serial = low.op<amdgpu.s_add_u32>(%wgm_row_x16, %raw_m) : (reg<amdgpu.sgpr>, reg<amdgpu.sgpr>) -> reg<amdgpu.sgpr>
+  %wgm_m_full = low.op<amdgpu.s_lshr_b32.rhs_inline>(%wgm_serial) {imm32 = 3} : (reg<amdgpu.sgpr>) -> reg<amdgpu.sgpr>
+  %wgm_m_tail = low.op<amdgpu.s_lshr_b32.rhs_inline>(%wgm_serial) {imm32 = 1} : (reg<amdgpu.sgpr>) -> reg<amdgpu.sgpr>
+  %wgm_m_full_x8 = low.op<amdgpu.s_lshl_b32.rhs_inline>(%wgm_m_full) {imm32 = 3} : (reg<amdgpu.sgpr>) -> reg<amdgpu.sgpr>
+  %wgm_m_tail_x2 = low.op<amdgpu.s_lshl_b32.rhs_inline>(%wgm_m_tail) {imm32 = 1} : (reg<amdgpu.sgpr>) -> reg<amdgpu.sgpr>
+  %wgm_n_full = low.op<amdgpu.s_sub_u32>(%wgm_serial, %wgm_m_full_x8) : (reg<amdgpu.sgpr>, reg<amdgpu.sgpr>) -> reg<amdgpu.sgpr>
+  %wgm_n_tail = low.op<amdgpu.s_sub_u32>(%wgm_serial, %wgm_m_tail_x2) : (reg<amdgpu.sgpr>, reg<amdgpu.sgpr>) -> reg<amdgpu.sgpr>
+  %wgm_is_full = low.op<amdgpu.s_cmp_lt_u32>(%wgm_block, %wgm_one) : (reg<amdgpu.sgpr>, reg<amdgpu.sgpr>) -> reg<amdgpu.scc>
+  %workgroup_m = low.op<amdgpu.s_cselect_b32>(%wgm_m_full, %wgm_m_tail, %wgm_is_full) : (reg<amdgpu.sgpr>, reg<amdgpu.sgpr>, reg<amdgpu.scc>) -> reg<amdgpu.sgpr>
+  %wgm_n_inner = low.op<amdgpu.s_cselect_b32>(%wgm_n_full, %wgm_n_tail, %wgm_is_full) : (reg<amdgpu.sgpr>, reg<amdgpu.sgpr>, reg<amdgpu.scc>) -> reg<amdgpu.sgpr>
+  %workgroup_n = low.op<amdgpu.s_add_u32>(%wgm_n_inner, %wgm_block_x8) : (reg<amdgpu.sgpr>, reg<amdgpu.sgpr>) -> reg<amdgpu.sgpr>
+  %packed_tid_saved = low.copy %packed_tid : reg<amdgpu.vgpr> -> reg<amdgpu.vgpr>
+  %1516 = low.op<amdgpu.s_load_dwordx4_offset_only>(%kernarg) {offset = 0} : (reg<amdgpu.sgpr x2>) -> reg<amdgpu.sgpr x4>
+  %d = low.op<amdgpu.s_load_dwordx2_offset_only>(%kernarg) {offset = 24} : (reg<amdgpu.sgpr x2>) -> reg<amdgpu.sgpr x2>
+  %559 = low.storage.reserve {byte_alignment = 16, byte_length = 28288} : low.storage<workgroup>
+  %m = low.const<amdgpu.s_mov_b32> {imm32 = 1024} : reg<amdgpu.sgpr>
+  %zero = low.const<amdgpu.s_mov_b32> {imm32 = 0} : reg<amdgpu.sgpr>
+  %buffer_a_lo_raw = low.slice %1516[0] : reg<amdgpu.sgpr x4> -> reg<amdgpu.sgpr>
+  %buffer_a_hi_raw = low.slice %1516[1] : reg<amdgpu.sgpr x4> -> reg<amdgpu.sgpr>
+  %buffer_b_lo_raw = low.slice %1516[2] : reg<amdgpu.sgpr x4> -> reg<amdgpu.sgpr>
+  %buffer_b_hi_raw = low.slice %1516[3] : reg<amdgpu.sgpr x4> -> reg<amdgpu.sgpr>
+  %buffer_hi_mask = low.const<amdgpu.s_mov_b32> {imm32 = 65535} : reg<amdgpu.sgpr>
+  %buffer_extent = low.const<amdgpu.s_mov_b32> {imm32 = 2097152} : reg<amdgpu.sgpr>
+  %buffer_flags = low.const<amdgpu.s_mov_b32> {imm32 = 822173696} : reg<amdgpu.sgpr>
+  %buffer_a_hi = low.op<amdgpu.s_and_b32>(%buffer_a_hi_raw, %buffer_hi_mask) : (reg<amdgpu.sgpr>, reg<amdgpu.sgpr>) -> reg<amdgpu.sgpr>
+  %buffer_a_ptr = low.concat(%buffer_a_lo_raw, %buffer_a_hi) : (reg<amdgpu.sgpr>, reg<amdgpu.sgpr>) -> reg<amdgpu.sgpr x2>
+  %buffer_a = low.concat(%buffer_a_ptr, %buffer_extent, %buffer_flags) : (reg<amdgpu.sgpr x2>, reg<amdgpu.sgpr>, reg<amdgpu.sgpr>) -> reg<amdgpu.sgpr x4>
+  %buffer_b_hi = low.op<amdgpu.s_and_b32>(%buffer_b_hi_raw, %buffer_hi_mask) : (reg<amdgpu.sgpr>, reg<amdgpu.sgpr>) -> reg<amdgpu.sgpr>
+  %buffer_b_ptr = low.concat(%buffer_b_lo_raw, %buffer_b_hi) : (reg<amdgpu.sgpr>, reg<amdgpu.sgpr>) -> reg<amdgpu.sgpr x2>
+  %buffer_b = low.concat(%buffer_b_ptr, %buffer_extent, %buffer_flags) : (reg<amdgpu.sgpr x2>, reg<amdgpu.sgpr>, reg<amdgpu.sgpr>) -> reg<amdgpu.sgpr x4>
+  %two = low.const<amdgpu.s_mov_b32> {imm32 = 2} : reg<amdgpu.sgpr>
+  %lane = low.op<amdgpu.v_and_b32.lit>(%packed_tid_saved) {imm32 = 1023} : (reg<amdgpu.vgpr>) -> reg<amdgpu.vgpr>
+  %566 = low.op<amdgpu.v_lshrrev_b32.src0_inline>(%packed_tid_saved) {imm32 = 10} : (reg<amdgpu.vgpr>) -> reg<amdgpu.vgpr>
+  %wave = low.op<amdgpu.v_and_b32.lit>(%566) {imm32 = 1023} : (reg<amdgpu.vgpr>) -> reg<amdgpu.vgpr>
+  %thread = low.op<amdgpu.v_lshl_add_u32.shift_imm>(%wave, %lane) {shift = 5} : (reg<amdgpu.vgpr>, reg<amdgpu.vgpr>) -> reg<amdgpu.vgpr>
+  %570 = low.const<amdgpu.v_mov_b32> {imm32 = 1} : reg<amdgpu.vgpr>
+  %wave_m_id = low.op<amdgpu.v_and_b32>(%wave, %570) : (reg<amdgpu.vgpr>, reg<amdgpu.vgpr>) -> reg<amdgpu.vgpr>
+  %wave_n_id = low.op<amdgpu.v_lshrrev_b32.lit>(%wave) {imm32 = 1} : (reg<amdgpu.vgpr>) -> reg<amdgpu.vgpr>
+  %574 = low.const<amdgpu.v_mov_b32> {imm32 = 0} : reg<amdgpu.vgpr>
+  %zero_acc0 = low.concat(%574, %574, %574, %574, %574, %574, %574, %574) : (reg<amdgpu.vgpr>, reg<amdgpu.vgpr>, reg<amdgpu.vgpr>, reg<amdgpu.vgpr>, reg<amdgpu.vgpr>, reg<amdgpu.vgpr>, reg<amdgpu.vgpr>, reg<amdgpu.vgpr>) -> reg<amdgpu.vgpr x8>
+  %zero_acc1 = low.concat(%574, %574, %574, %574, %574, %574, %574, %574) : (reg<amdgpu.vgpr>, reg<amdgpu.vgpr>, reg<amdgpu.vgpr>, reg<amdgpu.vgpr>, reg<amdgpu.vgpr>, reg<amdgpu.vgpr>, reg<amdgpu.vgpr>, reg<amdgpu.vgpr>) -> reg<amdgpu.vgpr x8>
+  %zero_acc2 = low.concat(%574, %574, %574, %574, %574, %574, %574, %574) : (reg<amdgpu.vgpr>, reg<amdgpu.vgpr>, reg<amdgpu.vgpr>, reg<amdgpu.vgpr>, reg<amdgpu.vgpr>, reg<amdgpu.vgpr>, reg<amdgpu.vgpr>, reg<amdgpu.vgpr>) -> reg<amdgpu.vgpr x8>
+  %zero_acc3 = low.concat(%574, %574, %574, %574, %574, %574, %574, %574) : (reg<amdgpu.vgpr>, reg<amdgpu.vgpr>, reg<amdgpu.vgpr>, reg<amdgpu.vgpr>, reg<amdgpu.vgpr>, reg<amdgpu.vgpr>, reg<amdgpu.vgpr>, reg<amdgpu.vgpr>) -> reg<amdgpu.vgpr x8>
+  %zero_acc4 = low.concat(%574, %574, %574, %574, %574, %574, %574, %574) : (reg<amdgpu.vgpr>, reg<amdgpu.vgpr>, reg<amdgpu.vgpr>, reg<amdgpu.vgpr>, reg<amdgpu.vgpr>, reg<amdgpu.vgpr>, reg<amdgpu.vgpr>, reg<amdgpu.vgpr>) -> reg<amdgpu.vgpr x8>
+  %zero_acc5 = low.concat(%574, %574, %574, %574, %574, %574, %574, %574) : (reg<amdgpu.vgpr>, reg<amdgpu.vgpr>, reg<amdgpu.vgpr>, reg<amdgpu.vgpr>, reg<amdgpu.vgpr>, reg<amdgpu.vgpr>, reg<amdgpu.vgpr>, reg<amdgpu.vgpr>) -> reg<amdgpu.vgpr x8>
+  %584 = low.const<amdgpu.v_mov_b32> {imm32 = 7} : reg<amdgpu.vgpr>
+  %pro_a_row_vec0 = low.op<amdgpu.v_and_b32>(%thread, %584) : (reg<amdgpu.vgpr>, reg<amdgpu.vgpr>) -> reg<amdgpu.vgpr>
+  %pro_a_kl0 = low.op<amdgpu.v_lshrrev_b32.lit>(%thread) {imm32 = 3} : (reg<amdgpu.vgpr>) -> reg<amdgpu.vgpr>
+  %589 = low.op<amdgpu.v_lshl_add_u32.shift_imm>(%pro_a_kl0, %pro_a_row_vec0) {shift = 7} : (reg<amdgpu.vgpr>, reg<amdgpu.vgpr>) -> reg<amdgpu.vgpr>
+  %590 = low.op<amdgpu.v_lshlrev_b32.src0_inline>(%589) {imm32 = 4} : (reg<amdgpu.vgpr>) -> reg<amdgpu.vgpr>
+  %591 = low.op<amdgpu.s_lshl_b32.rhs_inline>(%workgroup_m) {imm32 = 7} : (reg<amdgpu.sgpr>) -> reg<amdgpu.sgpr>
+  %pro_av0 = low.op<amdgpu.buffer_load_b128>(%buffer_a, %590, %591) {offset = 0} : (reg<amdgpu.sgpr x4>, reg<amdgpu.vgpr>, reg<amdgpu.sgpr>) -> reg<amdgpu.vgpr x4>
+  %599 = low.const<amdgpu.v_mov_b32> {imm32 = 3} : reg<amdgpu.vgpr>
+  %pro_b_k_vec0 = low.op<amdgpu.v_and_b32>(%thread, %599) : (reg<amdgpu.vgpr>, reg<amdgpu.vgpr>) -> reg<amdgpu.vgpr>
+  %pro_b_nl0 = low.op<amdgpu.v_lshrrev_b32.lit>(%thread) {imm32 = 2} : (reg<amdgpu.vgpr>) -> reg<amdgpu.vgpr>
+  %603 = low.op<amdgpu.v_lshl_add_u32.shift_imm>(%pro_b_nl0, %pro_b_k_vec0) {shift = 7} : (reg<amdgpu.vgpr>, reg<amdgpu.vgpr>) -> reg<amdgpu.vgpr>
+  %604 = low.op<amdgpu.v_lshlrev_b32.src0_inline>(%603) {imm32 = 4} : (reg<amdgpu.vgpr>) -> reg<amdgpu.vgpr>
+  %605 = low.const<amdgpu.s_mov_b32> {imm32 = 196608} : reg<amdgpu.sgpr>
+  %606 = low.op<amdgpu.s_mul_i32>(%workgroup_n, %605) : (reg<amdgpu.sgpr>, reg<amdgpu.sgpr>) -> reg<amdgpu.sgpr>
+  %pro_bv0 = low.op<amdgpu.buffer_load_b128>(%buffer_b, %604, %606) {offset = 0} : (reg<amdgpu.sgpr x4>, reg<amdgpu.vgpr>, reg<amdgpu.sgpr>) -> reg<amdgpu.vgpr x4>
+  %614 = low.const<amdgpu.v_mov_b32> {imm32 = 128} : reg<amdgpu.vgpr>
+  %pro_linear1 = low.op<amdgpu.v_add_u32>(%thread, %614) : (reg<amdgpu.vgpr>, reg<amdgpu.vgpr>) -> reg<amdgpu.vgpr>
+  %pro_a_row_vec1 = low.op<amdgpu.v_and_b32>(%pro_linear1, %584) : (reg<amdgpu.vgpr>, reg<amdgpu.vgpr>) -> reg<amdgpu.vgpr>
+  %pro_a_kl1 = low.op<amdgpu.v_lshrrev_b32.lit>(%pro_linear1) {imm32 = 3} : (reg<amdgpu.vgpr>) -> reg<amdgpu.vgpr>
+  %620 = low.op<amdgpu.v_lshl_add_u32.shift_imm>(%pro_a_kl1, %pro_a_row_vec1) {shift = 7} : (reg<amdgpu.vgpr>, reg<amdgpu.vgpr>) -> reg<amdgpu.vgpr>
+  %621 = low.op<amdgpu.v_lshlrev_b32.src0_inline>(%620) {imm32 = 4} : (reg<amdgpu.vgpr>) -> reg<amdgpu.vgpr>
+  %622 = low.op<amdgpu.s_lshl_b32.rhs_inline>(%workgroup_m) {imm32 = 7} : (reg<amdgpu.sgpr>) -> reg<amdgpu.sgpr>
+  %pro_av1 = low.op<amdgpu.buffer_load_b128>(%buffer_a, %621, %622) {offset = 0} : (reg<amdgpu.sgpr x4>, reg<amdgpu.vgpr>, reg<amdgpu.sgpr>) -> reg<amdgpu.vgpr x4>
+  %pro_b_k_vec1 = low.op<amdgpu.v_and_b32>(%pro_linear1, %599) : (reg<amdgpu.vgpr>, reg<amdgpu.vgpr>) -> reg<amdgpu.vgpr>
+  %pro_b_nl1 = low.op<amdgpu.v_lshrrev_b32.lit>(%pro_linear1) {imm32 = 2} : (reg<amdgpu.vgpr>) -> reg<amdgpu.vgpr>
+  %634 = low.op<amdgpu.v_lshl_add_u32.shift_imm>(%pro_b_nl1, %pro_b_k_vec1) {shift = 7} : (reg<amdgpu.vgpr>, reg<amdgpu.vgpr>) -> reg<amdgpu.vgpr>
+  %635 = low.op<amdgpu.v_lshlrev_b32.src0_inline>(%634) {imm32 = 4} : (reg<amdgpu.vgpr>) -> reg<amdgpu.vgpr>
+  %pro_bv1 = low.op<amdgpu.buffer_load_b128>(%buffer_b, %635, %606) {offset = 0} : (reg<amdgpu.sgpr x4>, reg<amdgpu.vgpr>, reg<amdgpu.sgpr>) -> reg<amdgpu.vgpr x4>
+  %pro_linear2 = low.op<amdgpu.v_lshl_add_u32.shift_imm>(%two, %thread) {shift = 7} : (reg<amdgpu.sgpr>, reg<amdgpu.vgpr>) -> reg<amdgpu.vgpr>
+  %pro_b_k_vec2 = low.op<amdgpu.v_and_b32>(%pro_linear2, %599) : (reg<amdgpu.vgpr>, reg<amdgpu.vgpr>) -> reg<amdgpu.vgpr>
+  %pro_b_nl2 = low.op<amdgpu.v_lshrrev_b32.lit>(%pro_linear2) {imm32 = 2} : (reg<amdgpu.vgpr>) -> reg<amdgpu.vgpr>
+  %650 = low.op<amdgpu.v_lshl_add_u32.shift_imm>(%pro_b_nl2, %pro_b_k_vec2) {shift = 7} : (reg<amdgpu.vgpr>, reg<amdgpu.vgpr>) -> reg<amdgpu.vgpr>
+  %651 = low.op<amdgpu.v_lshlrev_b32.src0_inline>(%650) {imm32 = 4} : (reg<amdgpu.vgpr>) -> reg<amdgpu.vgpr>
+  %pro_bv2 = low.op<amdgpu.buffer_load_b128>(%buffer_b, %651, %606) {offset = 0} : (reg<amdgpu.sgpr x4>, reg<amdgpu.vgpr>, reg<amdgpu.sgpr>) -> reg<amdgpu.vgpr x4>
+  %661 = low.const<amdgpu.v_mov_b32> {imm32 = 64} : reg<amdgpu.vgpr>
+  %662 = low.op<amdgpu.v_mul_lo_u32>(%pro_a_kl0, %661) : (reg<amdgpu.vgpr>, reg<amdgpu.vgpr>) -> reg<amdgpu.vgpr>
+  %663 = low.op<amdgpu.v_lshl_add_u32.shift_imm>(%pro_a_row_vec0, %662) {shift = 3} : (reg<amdgpu.vgpr>, reg<amdgpu.vgpr>) -> reg<amdgpu.vgpr>
+  %664 = low.op<amdgpu.v_lshlrev_b32.src0_inline>(%663) {imm32 = 1} : (reg<amdgpu.vgpr>) -> reg<amdgpu.vgpr>
+  low.op<amdgpu.ds_write_b128>(%664, %pro_av0) {offset = 0} memory_access([0, 3, 60, -1, 11, 0, 0, 0, 3, 0, 2062, 16, 2078]) : (reg<amdgpu.vgpr>, reg<amdgpu.vgpr x4>)
+  low.op<amdgpu.ds_write_b128>(%664, %pro_av1) {offset = 2080} memory_access([0, 3, 60, -1, 11, 0, 0, 0, 3, 2080, 4142, 2096, 4158]) : (reg<amdgpu.vgpr>, reg<amdgpu.vgpr x4>)
+  %669 = low.op<amdgpu.v_mad_u32_u24.src1_lit>(%pro_b_nl0, %pro_b_k_vec0) {imm32 = 5} : (reg<amdgpu.vgpr>, reg<amdgpu.vgpr>) -> reg<amdgpu.vgpr>
+  %670 = low.op<amdgpu.v_lshlrev_b32.src0_inline>(%669) {imm32 = 4} : (reg<amdgpu.vgpr>) -> reg<amdgpu.vgpr>
+  low.op<amdgpu.ds_write_b128>(%670, %pro_bv0) {offset = 4224} memory_access([0, 3, 60, -1, 43, 16, 0, 16, 3, 4224, 6752, 4240, 6768]) : (reg<amdgpu.vgpr>, reg<amdgpu.vgpr x4>)
+  low.op<amdgpu.ds_write_b128>(%670, %pro_bv1) {offset = 6784} memory_access([0, 3, 60, -1, 43, 16, 0, 16, 3, 6784, 9312, 6800, 9328]) : (reg<amdgpu.vgpr>, reg<amdgpu.vgpr x4>)
+  low.op<amdgpu.ds_write_b128>(%670, %pro_bv2) {offset = 9344} memory_access([0, 3, 60, -1, 43, 16, 0, 16, 3, 9344, 11872, 9360, 11888]) : (reg<amdgpu.vgpr>, reg<amdgpu.vgpr x4>)
+  low.op<amdgpu.s_barrier>() : ()
+  %675 = low.op<amdgpu.v_and_b32.lit>(%packed_tid_saved) {imm32 = 1023} : (reg<amdgpu.vgpr>) -> reg<amdgpu.vgpr>
+  %676 = low.op<amdgpu.v_lshrrev_b32.src0_inline>(%packed_tid_saved) {imm32 = 10} : (reg<amdgpu.vgpr>) -> reg<amdgpu.vgpr>
+  %677 = low.op<amdgpu.v_and_b32.lit>(%676) {imm32 = 1023} : (reg<amdgpu.vgpr>) -> reg<amdgpu.vgpr>
+  %678 = low.op<amdgpu.v_lshlrev_b32.src0_inline>(%677) {imm32 = 5} : (reg<amdgpu.vgpr>) -> reg<amdgpu.vgpr>
+  %679 = low.op<amdgpu.v_add_u32>(%675, %678) : (reg<amdgpu.vgpr>, reg<amdgpu.vgpr>) -> reg<amdgpu.vgpr>
+  %680 = low.op<amdgpu.v_and_b32.src0_inline>(%679) {imm32 = 31} : (reg<amdgpu.vgpr>) -> reg<amdgpu.vgpr>
+  %681 = low.op<amdgpu.v_lshlrev_b32.src0_inline>(%wave_m_id) {imm32 = 5} : (reg<amdgpu.vgpr>) -> reg<amdgpu.vgpr>
+  %682 = low.op<amdgpu.v_and_b32.src0_inline>(%680) {imm32 = 15} : (reg<amdgpu.vgpr>) -> reg<amdgpu.vgpr>
+  %683 = low.op<amdgpu.v_lshlrev_b32.src0_inline>(%682) {imm32 = 1} : (reg<amdgpu.vgpr>) -> reg<amdgpu.vgpr>
+  %684 = low.op<amdgpu.v_add_u32>(%681, %683) : (reg<amdgpu.vgpr>, reg<amdgpu.vgpr>) -> reg<amdgpu.vgpr>
+  %685 = low.op<amdgpu.ds_read_u16>(%684) {offset = 0} memory_access([0, 3, 60, -1, 3, 0, 0, 0, 0, 0, 0, 0, 0]) : (reg<amdgpu.vgpr>) -> reg<amdgpu.vgpr>
+  %686 = low.op<amdgpu.ds_load_u16_d16_hi>(%685, %684) {offset = 128} memory_access([0, 3, 60, -1, 3, 0, 0, 0, 0, 0, 0, 0, 0]) : (reg<amdgpu.vgpr>, reg<amdgpu.vgpr>) -> %685 as reg<amdgpu.vgpr>
+  %687 = low.op<amdgpu.ds_read_u16>(%684) {offset = 256} memory_access([0, 3, 60, -1, 3, 0, 0, 0, 0, 0, 0, 0, 0]) : (reg<amdgpu.vgpr>) -> reg<amdgpu.vgpr>
+  %688 = low.op<amdgpu.ds_load_u16_d16_hi>(%687, %684) {offset = 384} memory_access([0, 3, 60, -1, 3, 0, 0, 0, 0, 0, 0, 0, 0]) : (reg<amdgpu.vgpr>, reg<amdgpu.vgpr>) -> %687 as reg<amdgpu.vgpr>
+  %689 = low.op<amdgpu.ds_read_u16>(%684) {offset = 512} memory_access([0, 3, 60, -1, 3, 0, 0, 0, 0, 0, 0, 0, 0]) : (reg<amdgpu.vgpr>) -> reg<amdgpu.vgpr>
+  %690 = low.op<amdgpu.ds_load_u16_d16_hi>(%689, %684) {offset = 640} memory_access([0, 3, 60, -1, 3, 0, 0, 0, 0, 0, 0, 0, 0]) : (reg<amdgpu.vgpr>, reg<amdgpu.vgpr>) -> %689 as reg<amdgpu.vgpr>
+  %691 = low.op<amdgpu.ds_read_u16>(%684) {offset = 768} memory_access([0, 3, 60, -1, 3, 0, 0, 0, 0, 0, 0, 0, 0]) : (reg<amdgpu.vgpr>) -> reg<amdgpu.vgpr>
+  %692 = low.op<amdgpu.ds_load_u16_d16_hi>(%691, %684) {offset = 896} memory_access([0, 3, 60, -1, 3, 0, 0, 0, 0, 0, 0, 0, 0]) : (reg<amdgpu.vgpr>, reg<amdgpu.vgpr>) -> %691 as reg<amdgpu.vgpr>
+  %693 = low.op<amdgpu.ds_read_u16>(%684) {offset = 1024} memory_access([0, 3, 60, -1, 3, 0, 0, 0, 0, 0, 0, 0, 0]) : (reg<amdgpu.vgpr>) -> reg<amdgpu.vgpr>
+  %694 = low.op<amdgpu.ds_load_u16_d16_hi>(%693, %684) {offset = 1152} memory_access([0, 3, 60, -1, 3, 0, 0, 0, 0, 0, 0, 0, 0]) : (reg<amdgpu.vgpr>, reg<amdgpu.vgpr>) -> %693 as reg<amdgpu.vgpr>
+  %695 = low.op<amdgpu.ds_read_u16>(%684) {offset = 1280} memory_access([0, 3, 60, -1, 3, 0, 0, 0, 0, 0, 0, 0, 0]) : (reg<amdgpu.vgpr>) -> reg<amdgpu.vgpr>
+  %696 = low.op<amdgpu.ds_load_u16_d16_hi>(%695, %684) {offset = 1408} memory_access([0, 3, 60, -1, 3, 0, 0, 0, 0, 0, 0, 0, 0]) : (reg<amdgpu.vgpr>, reg<amdgpu.vgpr>) -> %695 as reg<amdgpu.vgpr>
+  %697 = low.op<amdgpu.ds_read_u16>(%684) {offset = 1536} memory_access([0, 3, 60, -1, 3, 0, 0, 0, 0, 0, 0, 0, 0]) : (reg<amdgpu.vgpr>) -> reg<amdgpu.vgpr>
+  %698 = low.op<amdgpu.ds_load_u16_d16_hi>(%697, %684) {offset = 1664} memory_access([0, 3, 60, -1, 3, 0, 0, 0, 0, 0, 0, 0, 0]) : (reg<amdgpu.vgpr>, reg<amdgpu.vgpr>) -> %697 as reg<amdgpu.vgpr>
+  %699 = low.op<amdgpu.ds_read_u16>(%684) {offset = 1792} memory_access([0, 3, 60, -1, 3, 0, 0, 0, 0, 0, 0, 0, 0]) : (reg<amdgpu.vgpr>) -> reg<amdgpu.vgpr>
+  %700 = low.op<amdgpu.ds_load_u16_d16_hi>(%699, %684) {offset = 1920} memory_access([0, 3, 60, -1, 3, 0, 0, 0, 0, 0, 0, 0, 0]) : (reg<amdgpu.vgpr>, reg<amdgpu.vgpr>) -> %699 as reg<amdgpu.vgpr>
+  %initial_lhs0 = low.concat(%686, %688, %690, %692, %694, %696, %698, %700) : (reg<amdgpu.vgpr>, reg<amdgpu.vgpr>, reg<amdgpu.vgpr>, reg<amdgpu.vgpr>, reg<amdgpu.vgpr>, reg<amdgpu.vgpr>, reg<amdgpu.vgpr>, reg<amdgpu.vgpr>) -> reg<amdgpu.vgpr x8>
+  %702 = low.op<amdgpu.ds_read_u16>(%684) {offset = 64} memory_access([0, 3, 60, -1, 3, 0, 0, 0, 0, 0, 0, 0, 0]) : (reg<amdgpu.vgpr>) -> reg<amdgpu.vgpr>
+  %703 = low.op<amdgpu.ds_load_u16_d16_hi>(%702, %684) {offset = 192} memory_access([0, 3, 60, -1, 3, 0, 0, 0, 0, 0, 0, 0, 0]) : (reg<amdgpu.vgpr>, reg<amdgpu.vgpr>) -> %702 as reg<amdgpu.vgpr>
+  %704 = low.op<amdgpu.ds_read_u16>(%684) {offset = 320} memory_access([0, 3, 60, -1, 3, 0, 0, 0, 0, 0, 0, 0, 0]) : (reg<amdgpu.vgpr>) -> reg<amdgpu.vgpr>
+  %705 = low.op<amdgpu.ds_load_u16_d16_hi>(%704, %684) {offset = 448} memory_access([0, 3, 60, -1, 3, 0, 0, 0, 0, 0, 0, 0, 0]) : (reg<amdgpu.vgpr>, reg<amdgpu.vgpr>) -> %704 as reg<amdgpu.vgpr>
+  %706 = low.op<amdgpu.ds_read_u16>(%684) {offset = 576} memory_access([0, 3, 60, -1, 3, 0, 0, 0, 0, 0, 0, 0, 0]) : (reg<amdgpu.vgpr>) -> reg<amdgpu.vgpr>
+  %707 = low.op<amdgpu.ds_load_u16_d16_hi>(%706, %684) {offset = 704} memory_access([0, 3, 60, -1, 3, 0, 0, 0, 0, 0, 0, 0, 0]) : (reg<amdgpu.vgpr>, reg<amdgpu.vgpr>) -> %706 as reg<amdgpu.vgpr>
+  %708 = low.op<amdgpu.ds_read_u16>(%684) {offset = 832} memory_access([0, 3, 60, -1, 3, 0, 0, 0, 0, 0, 0, 0, 0]) : (reg<amdgpu.vgpr>) -> reg<amdgpu.vgpr>
+  %709 = low.op<amdgpu.ds_load_u16_d16_hi>(%708, %684) {offset = 960} memory_access([0, 3, 60, -1, 3, 0, 0, 0, 0, 0, 0, 0, 0]) : (reg<amdgpu.vgpr>, reg<amdgpu.vgpr>) -> %708 as reg<amdgpu.vgpr>
+  %710 = low.op<amdgpu.ds_read_u16>(%684) {offset = 1088} memory_access([0, 3, 60, -1, 3, 0, 0, 0, 0, 0, 0, 0, 0]) : (reg<amdgpu.vgpr>) -> reg<amdgpu.vgpr>
+  %711 = low.op<amdgpu.ds_load_u16_d16_hi>(%710, %684) {offset = 1216} memory_access([0, 3, 60, -1, 3, 0, 0, 0, 0, 0, 0, 0, 0]) : (reg<amdgpu.vgpr>, reg<amdgpu.vgpr>) -> %710 as reg<amdgpu.vgpr>
+  %712 = low.op<amdgpu.ds_read_u16>(%684) {offset = 1344} memory_access([0, 3, 60, -1, 3, 0, 0, 0, 0, 0, 0, 0, 0]) : (reg<amdgpu.vgpr>) -> reg<amdgpu.vgpr>
+  %713 = low.op<amdgpu.ds_load_u16_d16_hi>(%712, %684) {offset = 1472} memory_access([0, 3, 60, -1, 3, 0, 0, 0, 0, 0, 0, 0, 0]) : (reg<amdgpu.vgpr>, reg<amdgpu.vgpr>) -> %712 as reg<amdgpu.vgpr>
+  %714 = low.op<amdgpu.ds_read_u16>(%684) {offset = 1600} memory_access([0, 3, 60, -1, 3, 0, 0, 0, 0, 0, 0, 0, 0]) : (reg<amdgpu.vgpr>) -> reg<amdgpu.vgpr>
+  %715 = low.op<amdgpu.ds_load_u16_d16_hi>(%714, %684) {offset = 1728} memory_access([0, 3, 60, -1, 3, 0, 0, 0, 0, 0, 0, 0, 0]) : (reg<amdgpu.vgpr>, reg<amdgpu.vgpr>) -> %714 as reg<amdgpu.vgpr>
+  %716 = low.op<amdgpu.ds_read_u16>(%684) {offset = 1856} memory_access([0, 3, 60, -1, 3, 0, 0, 0, 0, 0, 0, 0, 0]) : (reg<amdgpu.vgpr>) -> reg<amdgpu.vgpr>
+  %717 = low.op<amdgpu.ds_load_u16_d16_hi>(%716, %684) {offset = 1984} memory_access([0, 3, 60, -1, 3, 0, 0, 0, 0, 0, 0, 0, 0]) : (reg<amdgpu.vgpr>, reg<amdgpu.vgpr>) -> %716 as reg<amdgpu.vgpr>
+  %initial_lhs1 = low.concat(%703, %705, %707, %709, %711, %713, %715, %717) : (reg<amdgpu.vgpr>, reg<amdgpu.vgpr>, reg<amdgpu.vgpr>, reg<amdgpu.vgpr>, reg<amdgpu.vgpr>, reg<amdgpu.vgpr>, reg<amdgpu.vgpr>, reg<amdgpu.vgpr>) -> reg<amdgpu.vgpr x8>
+  %719 = low.const<amdgpu.v_mov_b32> {imm32 = 1280} : reg<amdgpu.vgpr>
+  %720 = low.op<amdgpu.v_mul_lo_u32>(%wave_n_id, %719) : (reg<amdgpu.vgpr>, reg<amdgpu.vgpr>) -> reg<amdgpu.vgpr>
+  %721 = low.op<amdgpu.v_mul_u32_u24.lit>(%682) {imm32 = 80} : (reg<amdgpu.vgpr>) -> reg<amdgpu.vgpr>
+  %722 = low.op<amdgpu.v_add_u32>(%720, %721) : (reg<amdgpu.vgpr>, reg<amdgpu.vgpr>) -> reg<amdgpu.vgpr>
+  %723 = low.op<amdgpu.ds_read_b128>(%722) {offset = 4224} memory_access([0, 3, 60, -1, 3, 0, 0, 0, 0, 0, 0, 0, 0]) : (reg<amdgpu.vgpr>) -> reg<amdgpu.vgpr x4>
+  %724 = low.op<amdgpu.ds_read_b128>(%722) {offset = 4240} memory_access([0, 3, 60, -1, 3, 0, 0, 0, 0, 0, 0, 0, 0]) : (reg<amdgpu.vgpr>) -> reg<amdgpu.vgpr x4>
+  %initial_rhs0 = low.concat(%723, %724) : (reg<amdgpu.vgpr x4>, reg<amdgpu.vgpr x4>) -> reg<amdgpu.vgpr x8>
+  %726 = low.op<amdgpu.ds_read_b128>(%722) {offset = 6784} memory_access([0, 3, 60, -1, 3, 0, 0, 0, 0, 0, 0, 0, 0]) : (reg<amdgpu.vgpr>) -> reg<amdgpu.vgpr x4>
+  %727 = low.op<amdgpu.ds_read_b128>(%722) {offset = 6800} memory_access([0, 3, 60, -1, 3, 0, 0, 0, 0, 0, 0, 0, 0]) : (reg<amdgpu.vgpr>) -> reg<amdgpu.vgpr x4>
+  %initial_rhs1 = low.concat(%726, %727) : (reg<amdgpu.vgpr x4>, reg<amdgpu.vgpr x4>) -> reg<amdgpu.vgpr x8>
+  %729 = low.op<amdgpu.ds_read_b128>(%722) {offset = 9344} memory_access([0, 3, 60, -1, 3, 0, 0, 0, 0, 0, 0, 0, 0]) : (reg<amdgpu.vgpr>) -> reg<amdgpu.vgpr x4>
+  %730 = low.op<amdgpu.ds_read_b128>(%722) {offset = 9360} memory_access([0, 3, 60, -1, 3, 0, 0, 0, 0, 0, 0, 0, 0]) : (reg<amdgpu.vgpr>) -> reg<amdgpu.vgpr x4>
+  %initial_rhs2 = low.concat(%729, %730) : (reg<amdgpu.vgpr x4>, reg<amdgpu.vgpr x4>) -> reg<amdgpu.vgpr x8>
+  %loop_end = low.const<amdgpu.s_mov_b32> {imm32 = 993} : reg<amdgpu.sgpr>
+  %init_742 = low.op<amdgpu.s_lshl_b32.rhs_inline>(%workgroup_m) {imm32 = 7} : (reg<amdgpu.sgpr>) -> reg<amdgpu.sgpr>
+  %init_743 = low.op<amdgpu.s_lshl_b32.rhs_inline>(%zero) {imm32 = 11} : (reg<amdgpu.sgpr>) -> reg<amdgpu.sgpr>
+  %init_744 = low.op<amdgpu.s_add_u32>(%init_742, %init_743) : (reg<amdgpu.sgpr>, reg<amdgpu.sgpr>) -> reg<amdgpu.sgpr>
+  %init_745 = low.const<amdgpu.s_mov_b32> {imm32 = 61456} : reg<amdgpu.sgpr>
+  %init_746 = low.op<amdgpu.s_add_u32>(%init_744, %init_745) : (reg<amdgpu.sgpr>, reg<amdgpu.sgpr>) -> reg<amdgpu.sgpr>
+  %init_odd_av0 = low.op<amdgpu.buffer_load_b128>(%buffer_a, %590, %init_746) {offset = 4080} : (reg<amdgpu.sgpr x4>, reg<amdgpu.vgpr>, reg<amdgpu.sgpr>) -> reg<amdgpu.vgpr x4>
+  %init_760 = low.const<amdgpu.s_mov_b32> {imm32 = 196608} : reg<amdgpu.sgpr>
+  %init_761 = low.op<amdgpu.s_mul_i32>(%workgroup_n, %init_760) : (reg<amdgpu.sgpr>, reg<amdgpu.sgpr>) -> reg<amdgpu.sgpr>
+  %init_762 = low.op<amdgpu.s_lshl_b32.rhs_inline>(%zero) {imm32 = 1} : (reg<amdgpu.sgpr>) -> reg<amdgpu.sgpr>
+  %init_763 = low.op<amdgpu.s_add_u32>(%init_761, %init_762) : (reg<amdgpu.sgpr>, reg<amdgpu.sgpr>) -> reg<amdgpu.sgpr>
+  %init_odd_bv0 = low.op<amdgpu.buffer_load_b128>(%buffer_b, %604, %init_763) {offset = 64} : (reg<amdgpu.sgpr x4>, reg<amdgpu.vgpr>, reg<amdgpu.sgpr>) -> reg<amdgpu.vgpr x4>
+  %init_780 = low.op<amdgpu.s_lshl_b32.rhs_inline>(%workgroup_m) {imm32 = 7} : (reg<amdgpu.sgpr>) -> reg<amdgpu.sgpr>
+  %init_781 = low.op<amdgpu.s_lshl_b32.rhs_inline>(%zero) {imm32 = 11} : (reg<amdgpu.sgpr>) -> reg<amdgpu.sgpr>
+  %init_782 = low.op<amdgpu.s_add_u32>(%init_780, %init_781) : (reg<amdgpu.sgpr>, reg<amdgpu.sgpr>) -> reg<amdgpu.sgpr>
+  %init_784 = low.op<amdgpu.s_add_u32>(%init_782, %init_745) : (reg<amdgpu.sgpr>, reg<amdgpu.sgpr>) -> reg<amdgpu.sgpr>
+  %init_odd_av1 = low.op<amdgpu.buffer_load_b128>(%buffer_a, %621, %init_784) {offset = 4080} : (reg<amdgpu.sgpr x4>, reg<amdgpu.vgpr>, reg<amdgpu.sgpr>) -> reg<amdgpu.vgpr x4>
+  %init_800 = low.op<amdgpu.s_lshl_b32.rhs_inline>(%zero) {imm32 = 1} : (reg<amdgpu.sgpr>) -> reg<amdgpu.sgpr>
+  %init_801 = low.op<amdgpu.s_add_u32>(%init_761, %init_800) : (reg<amdgpu.sgpr>, reg<amdgpu.sgpr>) -> reg<amdgpu.sgpr>
+  %init_odd_bv1 = low.op<amdgpu.buffer_load_b128>(%buffer_b, %635, %init_801) {offset = 64} : (reg<amdgpu.sgpr x4>, reg<amdgpu.vgpr>, reg<amdgpu.sgpr>) -> reg<amdgpu.vgpr x4>
+  %init_818 = low.op<amdgpu.s_lshl_b32.rhs_inline>(%zero) {imm32 = 1} : (reg<amdgpu.sgpr>) -> reg<amdgpu.sgpr>
+  %init_819 = low.op<amdgpu.s_add_u32>(%init_761, %init_818) : (reg<amdgpu.sgpr>, reg<amdgpu.sgpr>) -> reg<amdgpu.sgpr>
+  %init_odd_bv2 = low.op<amdgpu.buffer_load_b128>(%buffer_b, %651, %init_819) {offset = 64} : (reg<amdgpu.sgpr x4>, reg<amdgpu.vgpr>, reg<amdgpu.sgpr>) -> reg<amdgpu.vgpr x4>
+  %initial_a_store_base = low.op<amdgpu.v_xor_b32.lit>(%664) {imm32 = 16384} : (reg<amdgpu.vgpr>) -> reg<amdgpu.vgpr>
+  %initial_b_store_base = low.op<amdgpu.v_xor_b32.lit>(%670) {imm32 = 16384} : (reg<amdgpu.vgpr>) -> reg<amdgpu.vgpr>
+  %steady_end = low.const<amdgpu.s_mov_b32> {imm32 = 960} : reg<amdgpu.sgpr>
+  %ring_a_seed_lo = low.op<amdgpu.s_add_u32>(%buffer_a_lo_raw, %init_746) : (reg<amdgpu.sgpr>, reg<amdgpu.sgpr>) -> reg<amdgpu.sgpr>
+  %ring_a_seed_hi = low.op<amdgpu.s_addc_u32>(%buffer_a_hi, %zero) : (reg<amdgpu.sgpr>, reg<amdgpu.sgpr>) -> reg<amdgpu.sgpr>
+  %ring_a_seed = low.concat(%ring_a_seed_lo, %ring_a_seed_hi, %buffer_extent, %buffer_flags) : (reg<amdgpu.sgpr>, reg<amdgpu.sgpr>, reg<amdgpu.sgpr>, reg<amdgpu.sgpr>) -> reg<amdgpu.sgpr x4>
+  %ring_b_seed_lo = low.op<amdgpu.s_add_u32>(%buffer_b_lo_raw, %init_763) : (reg<amdgpu.sgpr>, reg<amdgpu.sgpr>) -> reg<amdgpu.sgpr>
+  %ring_b_seed_hi = low.op<amdgpu.s_addc_u32>(%buffer_b_hi, %zero) : (reg<amdgpu.sgpr>, reg<amdgpu.sgpr>) -> reg<amdgpu.sgpr>
+  %ring_b_seed = low.concat(%ring_b_seed_lo, %ring_b_seed_hi, %buffer_extent, %buffer_flags) : (reg<amdgpu.sgpr>, reg<amdgpu.sgpr>, reg<amdgpu.sgpr>, reg<amdgpu.sgpr>) -> reg<amdgpu.sgpr x4>
+  %ring_a_stride = low.const<amdgpu.s_mov_b32> {imm32 = 65536} : reg<amdgpu.sgpr>
+  low.br ^_bb1(%zero: reg<amdgpu.sgpr>, %zero_acc0: reg<amdgpu.vgpr x8>, %zero_acc1: reg<amdgpu.vgpr x8>, %zero_acc2: reg<amdgpu.vgpr x8>, %zero_acc3: reg<amdgpu.vgpr x8>, %zero_acc4: reg<amdgpu.vgpr x8>, %zero_acc5: reg<amdgpu.vgpr x8>, %initial_lhs0: reg<amdgpu.vgpr x8>, %initial_lhs1: reg<amdgpu.vgpr x8>, %initial_rhs0: reg<amdgpu.vgpr x8>, %initial_rhs1: reg<amdgpu.vgpr x8>, %initial_rhs2: reg<amdgpu.vgpr x8>, %684: reg<amdgpu.vgpr>, %722: reg<amdgpu.vgpr>, %initial_a_store_base: reg<amdgpu.vgpr>, %initial_b_store_base: reg<amdgpu.vgpr>, %init_odd_av0: reg<amdgpu.vgpr x4>, %init_odd_bv0: reg<amdgpu.vgpr x4>, %init_odd_av1: reg<amdgpu.vgpr x4>, %init_odd_bv1: reg<amdgpu.vgpr x4>, %init_odd_bv2: reg<amdgpu.vgpr x4>, %ring_a_seed: reg<amdgpu.sgpr x4>, %ring_b_seed: reg<amdgpu.sgpr x4>)
+^_bb1(%k_base: reg<amdgpu.sgpr>, %out0: reg<amdgpu.vgpr x8>, %out1: reg<amdgpu.vgpr x8>, %out2: reg<amdgpu.vgpr x8>, %out3: reg<amdgpu.vgpr x8>, %out4: reg<amdgpu.vgpr x8>, %out5: reg<amdgpu.vgpr x8>, %cur_lhs0: reg<amdgpu.vgpr x8>, %cur_lhs1: reg<amdgpu.vgpr x8>, %cur_rhs0: reg<amdgpu.vgpr x8>, %cur_rhs1: reg<amdgpu.vgpr x8>, %cur_rhs2: reg<amdgpu.vgpr x8>, %a_read_base: reg<amdgpu.vgpr>, %b_read_base: reg<amdgpu.vgpr>, %a_store_base: reg<amdgpu.vgpr>, %b_store_base: reg<amdgpu.vgpr>, %cur_odd_av0: reg<amdgpu.vgpr x4>, %cur_odd_bv0: reg<amdgpu.vgpr x4>, %cur_odd_av1: reg<amdgpu.vgpr x4>, %cur_odd_bv1: reg<amdgpu.vgpr x4>, %cur_odd_bv2: reg<amdgpu.vgpr x4>, %ring_a: reg<amdgpu.sgpr x4>, %ring_b: reg<amdgpu.sgpr x4>):
+  low.op<amdgpu.s_waitcnt>() {lgkmcnt = 4, vmcnt = 63} : ()
+  low.schedule.fence
+  %827 = low.copy %out0 : reg<amdgpu.vgpr x8> -> reg<amdgpu.vgpr x8>
+  %even_first_acc0 = low.op<amdgpu.v_wmma_f32_16x16x16_bf16>(%cur_rhs0, %cur_lhs0, %827) : (reg<amdgpu.vgpr x8>, reg<amdgpu.vgpr x8>, reg<amdgpu.vgpr x8>) -> %827 as reg<amdgpu.vgpr x8>
+  low.schedule.fence
+  %839 = low.op<amdgpu.ds_read_u16>(%a_read_base) {offset = 2080} memory_access([0, 3, 60, -1, 3, 0, 0, 0, 0, 0, 0, 0, 0]) : (reg<amdgpu.vgpr>) -> reg<amdgpu.vgpr>
+  low.schedule.fence
+  %840 = low.op<amdgpu.ds_load_u16_d16_hi>(%839, %a_read_base) {offset = 2208} memory_access([0, 3, 60, -1, 3, 0, 0, 0, 0, 0, 0, 0, 0]) : (reg<amdgpu.vgpr>, reg<amdgpu.vgpr>) -> %839 as reg<amdgpu.vgpr>
+  low.schedule.fence
+  %841 = low.op<amdgpu.ds_read_u16>(%a_read_base) {offset = 2336} memory_access([0, 3, 60, -1, 3, 0, 0, 0, 0, 0, 0, 0, 0]) : (reg<amdgpu.vgpr>) -> reg<amdgpu.vgpr>
+  low.schedule.fence
+  %842 = low.op<amdgpu.ds_load_u16_d16_hi>(%841, %a_read_base) {offset = 2464} memory_access([0, 3, 60, -1, 3, 0, 0, 0, 0, 0, 0, 0, 0]) : (reg<amdgpu.vgpr>, reg<amdgpu.vgpr>) -> %841 as reg<amdgpu.vgpr>
+  low.schedule.fence
+  %843 = low.op<amdgpu.ds_read_u16>(%a_read_base) {offset = 2592} memory_access([0, 3, 60, -1, 3, 0, 0, 0, 0, 0, 0, 0, 0]) : (reg<amdgpu.vgpr>) -> reg<amdgpu.vgpr>
+  low.schedule.fence
+  %844 = low.op<amdgpu.ds_load_u16_d16_hi>(%843, %a_read_base) {offset = 2720} memory_access([0, 3, 60, -1, 3, 0, 0, 0, 0, 0, 0, 0, 0]) : (reg<amdgpu.vgpr>, reg<amdgpu.vgpr>) -> %843 as reg<amdgpu.vgpr>
+  low.schedule.fence
+  %845 = low.op<amdgpu.ds_read_u16>(%a_read_base) {offset = 2848} memory_access([0, 3, 60, -1, 3, 0, 0, 0, 0, 0, 0, 0, 0]) : (reg<amdgpu.vgpr>) -> reg<amdgpu.vgpr>
+  low.schedule.fence
+  %846 = low.op<amdgpu.ds_load_u16_d16_hi>(%845, %a_read_base) {offset = 2976} memory_access([0, 3, 60, -1, 3, 0, 0, 0, 0, 0, 0, 0, 0]) : (reg<amdgpu.vgpr>, reg<amdgpu.vgpr>) -> %845 as reg<amdgpu.vgpr>
+  low.schedule.fence
+  %native_salu_a_pre_0 = low.op<amdgpu.s_lshr_b32.rhs_inline>(%k_base) {imm32 = 0} : (reg<amdgpu.sgpr>) -> reg<amdgpu.sgpr>
+  low.schedule.fence
+  %ring_a_lo = low.slice %ring_a[0] : reg<amdgpu.sgpr x4> -> reg<amdgpu.sgpr>
+  %ring_a_hi = low.slice %ring_a[1] : reg<amdgpu.sgpr x4> -> reg<amdgpu.sgpr>
+  %ring_a_extent = low.slice %ring_a[2] : reg<amdgpu.sgpr x4> -> reg<amdgpu.sgpr>
+  %ring_a_flags = low.slice %ring_a[3] : reg<amdgpu.sgpr x4> -> reg<amdgpu.sgpr>
+  %ring_a_next_lo = low.op<amdgpu.s_add_u32>(%ring_a_lo, %ring_a_stride) : (reg<amdgpu.sgpr>, reg<amdgpu.sgpr>) -> reg<amdgpu.sgpr>
+  low.schedule.fence
+  %ring_a_next_hi = low.op<amdgpu.s_addc_u32>(%ring_a_hi, %zero) : (reg<amdgpu.sgpr>, reg<amdgpu.sgpr>) -> reg<amdgpu.sgpr>
+  low.schedule.fence
+  %ring_a_next = low.concat(%ring_a_next_lo, %ring_a_next_hi, %ring_a_extent, %ring_a_flags) : (reg<amdgpu.sgpr>, reg<amdgpu.sgpr>, reg<amdgpu.sgpr>, reg<amdgpu.sgpr>) -> reg<amdgpu.sgpr x4>
+  %884 = low.copy %out3 : reg<amdgpu.vgpr x8> -> reg<amdgpu.vgpr x8>
+  %even_first_acc3 = low.op<amdgpu.v_wmma_f32_16x16x16_bf16>(%cur_rhs0, %cur_lhs1, %884) : (reg<amdgpu.vgpr x8>, reg<amdgpu.vgpr x8>, reg<amdgpu.vgpr x8>) -> %884 as reg<amdgpu.vgpr x8>
+  low.schedule.fence
+  %847 = low.op<amdgpu.ds_read_u16>(%a_read_base) {offset = 3104} memory_access([0, 3, 60, -1, 3, 0, 0, 0, 0, 0, 0, 0, 0]) : (reg<amdgpu.vgpr>) -> reg<amdgpu.vgpr>
+  low.schedule.fence
+  %848 = low.op<amdgpu.ds_load_u16_d16_hi>(%847, %a_read_base) {offset = 3232} memory_access([0, 3, 60, -1, 3, 0, 0, 0, 0, 0, 0, 0, 0]) : (reg<amdgpu.vgpr>, reg<amdgpu.vgpr>) -> %847 as reg<amdgpu.vgpr>
+  low.schedule.fence
+  %849 = low.op<amdgpu.ds_read_u16>(%a_read_base) {offset = 3360} memory_access([0, 3, 60, -1, 3, 0, 0, 0, 0, 0, 0, 0, 0]) : (reg<amdgpu.vgpr>) -> reg<amdgpu.vgpr>
+  low.schedule.fence
+  %850 = low.op<amdgpu.ds_load_u16_d16_hi>(%849, %a_read_base) {offset = 3488} memory_access([0, 3, 60, -1, 3, 0, 0, 0, 0, 0, 0, 0, 0]) : (reg<amdgpu.vgpr>, reg<amdgpu.vgpr>) -> %849 as reg<amdgpu.vgpr>
+  low.schedule.fence
+  %851 = low.op<amdgpu.ds_read_u16>(%a_read_base) {offset = 3616} memory_access([0, 3, 60, -1, 3, 0, 0, 0, 0, 0, 0, 0, 0]) : (reg<amdgpu.vgpr>) -> reg<amdgpu.vgpr>
+  low.schedule.fence
+  %852 = low.op<amdgpu.ds_load_u16_d16_hi>(%851, %a_read_base) {offset = 3744} memory_access([0, 3, 60, -1, 3, 0, 0, 0, 0, 0, 0, 0, 0]) : (reg<amdgpu.vgpr>, reg<amdgpu.vgpr>) -> %851 as reg<amdgpu.vgpr>
+  low.schedule.fence
+  %853 = low.op<amdgpu.ds_read_u16>(%a_read_base) {offset = 3872} memory_access([0, 3, 60, -1, 3, 0, 0, 0, 0, 0, 0, 0, 0]) : (reg<amdgpu.vgpr>) -> reg<amdgpu.vgpr>
+  low.schedule.fence
+  %854 = low.op<amdgpu.ds_load_u16_d16_hi>(%853, %a_read_base) {offset = 4000} memory_access([0, 3, 60, -1, 3, 0, 0, 0, 0, 0, 0, 0, 0]) : (reg<amdgpu.vgpr>, reg<amdgpu.vgpr>) -> %853 as reg<amdgpu.vgpr>
+  low.schedule.fence
+  %even_second_lhs0 = low.concat(%840, %842, %844, %846, %848, %850, %852, %854) : (reg<amdgpu.vgpr>, reg<amdgpu.vgpr>, reg<amdgpu.vgpr>, reg<amdgpu.vgpr>, reg<amdgpu.vgpr>, reg<amdgpu.vgpr>, reg<amdgpu.vgpr>, reg<amdgpu.vgpr>) -> reg<amdgpu.vgpr x8>
+  %ring_b_lo = low.slice %ring_b[0] : reg<amdgpu.sgpr x4> -> reg<amdgpu.sgpr>
+  %ring_b_hi = low.slice %ring_b[1] : reg<amdgpu.sgpr x4> -> reg<amdgpu.sgpr>
+  %ring_b_extent = low.slice %ring_b[2] : reg<amdgpu.sgpr x4> -> reg<amdgpu.sgpr>
+  %ring_b_flags = low.slice %ring_b[3] : reg<amdgpu.sgpr x4> -> reg<amdgpu.sgpr>
+  %ring_b_next_lo = low.op<amdgpu.s_add_u32.rhs_inline>(%ring_b_lo) {imm32 = 64} : (reg<amdgpu.sgpr>) -> reg<amdgpu.sgpr>
+  low.schedule.fence
+  %ring_b_next_hi = low.op<amdgpu.s_addc_u32>(%ring_b_hi, %zero) : (reg<amdgpu.sgpr>, reg<amdgpu.sgpr>) -> reg<amdgpu.sgpr>
+  low.schedule.fence
+  %ring_b_next = low.concat(%ring_b_next_lo, %ring_b_next_hi, %ring_b_extent, %ring_b_flags) : (reg<amdgpu.sgpr>, reg<amdgpu.sgpr>, reg<amdgpu.sgpr>, reg<amdgpu.sgpr>) -> reg<amdgpu.sgpr x4>
+  %native_salu_a_post_0 = low.op<amdgpu.s_lshr_b32.rhs_inline>(%native_salu_a_pre_0) {imm32 = 0} : (reg<amdgpu.sgpr>) -> reg<amdgpu.sgpr>
+  low.schedule.fence
+  low.op<amdgpu.s_waitcnt>() {lgkmcnt = 16, vmcnt = 63} : ()
+  low.schedule.fence
+  %856 = low.copy %out1 : reg<amdgpu.vgpr x8> -> reg<amdgpu.vgpr x8>
+  %even_first_acc1 = low.op<amdgpu.v_wmma_f32_16x16x16_bf16>(%cur_rhs1, %cur_lhs0, %856) : (reg<amdgpu.vgpr x8>, reg<amdgpu.vgpr x8>, reg<amdgpu.vgpr x8>) -> %856 as reg<amdgpu.vgpr x8>
+  low.schedule.fence
+  %881 = low.op<amdgpu.ds_read_b128>(%b_read_base) {offset = 4256} memory_access([0, 3, 60, -1, 3, 0, 0, 0, 0, 0, 0, 0, 0]) : (reg<amdgpu.vgpr>) -> reg<amdgpu.vgpr x4>
+  low.schedule.fence
+  %882 = low.op<amdgpu.ds_read_b128>(%b_read_base) {offset = 4272} memory_access([0, 3, 60, -1, 3, 0, 0, 0, 0, 0, 0, 0, 0]) : (reg<amdgpu.vgpr>) -> reg<amdgpu.vgpr x4>
+  low.schedule.fence
+  %even_second_rhs0 = low.concat(%881, %882) : (reg<amdgpu.vgpr x4>, reg<amdgpu.vgpr x4>) -> reg<amdgpu.vgpr x8>
+  %858 = low.op<amdgpu.ds_read_u16>(%a_read_base) {offset = 2144} memory_access([0, 3, 60, -1, 3, 0, 0, 0, 0, 0, 0, 0, 0]) : (reg<amdgpu.vgpr>) -> reg<amdgpu.vgpr>
+  low.schedule.fence
+  %859 = low.op<amdgpu.ds_load_u16_d16_hi>(%858, %a_read_base) {offset = 2272} memory_access([0, 3, 60, -1, 3, 0, 0, 0, 0, 0, 0, 0, 0]) : (reg<amdgpu.vgpr>, reg<amdgpu.vgpr>) -> %858 as reg<amdgpu.vgpr>
+  low.schedule.fence
+  %860 = low.op<amdgpu.ds_read_u16>(%a_read_base) {offset = 2400} memory_access([0, 3, 60, -1, 3, 0, 0, 0, 0, 0, 0, 0, 0]) : (reg<amdgpu.vgpr>) -> reg<amdgpu.vgpr>
+  low.schedule.fence
+  %861 = low.op<amdgpu.ds_load_u16_d16_hi>(%860, %a_read_base) {offset = 2528} memory_access([0, 3, 60, -1, 3, 0, 0, 0, 0, 0, 0, 0, 0]) : (reg<amdgpu.vgpr>, reg<amdgpu.vgpr>) -> %860 as reg<amdgpu.vgpr>
+  low.schedule.fence
+  %862 = low.op<amdgpu.ds_read_u16>(%a_read_base) {offset = 2656} memory_access([0, 3, 60, -1, 3, 0, 0, 0, 0, 0, 0, 0, 0]) : (reg<amdgpu.vgpr>) -> reg<amdgpu.vgpr>
+  low.schedule.fence
+  %863 = low.op<amdgpu.ds_load_u16_d16_hi>(%862, %a_read_base) {offset = 2784} memory_access([0, 3, 60, -1, 3, 0, 0, 0, 0, 0, 0, 0, 0]) : (reg<amdgpu.vgpr>, reg<amdgpu.vgpr>) -> %862 as reg<amdgpu.vgpr>
+  low.schedule.fence
+  %native_salu_b_band_0 = low.op<amdgpu.s_lshr_b32.rhs_inline>(%native_salu_a_post_0) {imm32 = 0} : (reg<amdgpu.sgpr>) -> reg<amdgpu.sgpr>
+  low.schedule.fence
+  %native_salu_b_band_1 = low.op<amdgpu.s_lshr_b32.rhs_inline>(%native_salu_b_band_0) {imm32 = 0} : (reg<amdgpu.sgpr>) -> reg<amdgpu.sgpr>
+  low.schedule.fence
+  %native_salu_b_band_2 = low.op<amdgpu.s_lshr_b32.rhs_inline>(%native_salu_b_band_1) {imm32 = 0} : (reg<amdgpu.sgpr>) -> reg<amdgpu.sgpr>
+  low.schedule.fence
+  %native_salu_b_band_3 = low.op<amdgpu.s_lshr_b32.rhs_inline>(%native_salu_b_band_2) {imm32 = 0} : (reg<amdgpu.sgpr>) -> reg<amdgpu.sgpr>
+  low.schedule.fence
+  %native_salu_b_band_4 = low.op<amdgpu.s_lshr_b32.rhs_inline>(%native_salu_b_band_3) {imm32 = 0} : (reg<amdgpu.sgpr>) -> reg<amdgpu.sgpr>
+  low.schedule.fence
+  %native_salu_b_band_5 = low.op<amdgpu.s_lshr_b32.rhs_inline>(%native_salu_b_band_4) {imm32 = 0} : (reg<amdgpu.sgpr>) -> reg<amdgpu.sgpr>
+  low.schedule.fence
+  %native_salu_b_band_6 = low.op<amdgpu.s_lshr_b32.rhs_inline>(%native_salu_b_band_5) {imm32 = 0} : (reg<amdgpu.sgpr>) -> reg<amdgpu.sgpr>
+  low.schedule.fence
+  %native_salu_b_band_7 = low.op<amdgpu.s_lshr_b32.rhs_inline>(%native_salu_b_band_6) {imm32 = 0} : (reg<amdgpu.sgpr>) -> reg<amdgpu.sgpr>
+  low.schedule.fence
+  %native_salu_b_band_8 = low.op<amdgpu.s_lshr_b32.rhs_inline>(%native_salu_b_band_7) {imm32 = 0} : (reg<amdgpu.sgpr>) -> reg<amdgpu.sgpr>
+  low.schedule.fence
+  %native_salu_b_band_9 = low.op<amdgpu.s_lshr_b32.rhs_inline>(%native_salu_b_band_8) {imm32 = 0} : (reg<amdgpu.sgpr>) -> reg<amdgpu.sgpr>
+  low.schedule.fence
+  %native_salu_b_band_10 = low.op<amdgpu.s_lshr_b32.rhs_inline>(%native_salu_b_band_9) {imm32 = 0} : (reg<amdgpu.sgpr>) -> reg<amdgpu.sgpr>
+  low.schedule.fence
+  %native_salu_b_band_11 = low.op<amdgpu.s_lshr_b32.rhs_inline>(%native_salu_b_band_10) {imm32 = 0} : (reg<amdgpu.sgpr>) -> reg<amdgpu.sgpr>
+  low.schedule.fence
+  low.op<amdgpu.s_waitcnt>() {lgkmcnt = 63, vmcnt = 4} : ()
+  low.schedule.fence
+  low.op<amdgpu.ds_write_b128>(%a_store_base, %cur_odd_av0) {offset = 0} memory_access([0, 3, 60, -1, 11, 0, 0, 0, 3, 16384, 18446, 16400, 18462]) : (reg<amdgpu.vgpr>, reg<amdgpu.vgpr x4>)
+  low.schedule.fence
+  %odd_av0 = low.op<amdgpu.buffer_load_b128_vaddr_offset>(%ring_a_next, %590) {offset = 4080} : (reg<amdgpu.sgpr x4>, reg<amdgpu.vgpr>) -> reg<amdgpu.vgpr x4>
+  low.schedule.fence
+  low.op<amdgpu.s_waitcnt>() {lgkmcnt = 63, vmcnt = 4} : ()
+  low.schedule.fence
+  low.op<amdgpu.ds_write_b128>(%a_store_base, %cur_odd_av1) {offset = 2080} memory_access([0, 3, 60, -1, 11, 0, 0, 0, 3, 18464, 20526, 18480, 20542]) : (reg<amdgpu.vgpr>, reg<amdgpu.vgpr x4>)
+  low.schedule.fence
+  %odd_av1 = low.op<amdgpu.buffer_load_b128_vaddr_offset>(%ring_a_next, %621) {offset = 4080} : (reg<amdgpu.sgpr x4>, reg<amdgpu.vgpr>) -> reg<amdgpu.vgpr x4>
+  low.schedule.fence
+  low.op<amdgpu.s_waitcnt>() {lgkmcnt = 63, vmcnt = 4} : ()
+  low.schedule.fence
+  low.op<amdgpu.ds_write_b128>(%b_store_base, %cur_odd_bv0) {offset = 4224} memory_access([0, 3, 60, -1, 43, 16, 0, 16, 3, 20608, 23136, 20624, 23152]) : (reg<amdgpu.vgpr>, reg<amdgpu.vgpr x4>)
+  low.schedule.fence
+  %odd_bv0 = low.op<amdgpu.buffer_load_b128_vaddr_offset>(%ring_b_next, %604) {offset = 64} : (reg<amdgpu.sgpr x4>, reg<amdgpu.vgpr>) -> reg<amdgpu.vgpr x4>
+  low.schedule.fence
+  low.op<amdgpu.s_waitcnt>() {lgkmcnt = 63, vmcnt = 4} : ()
+  low.schedule.fence
+  low.op<amdgpu.ds_write_b128>(%b_store_base, %cur_odd_bv1) {offset = 6784} memory_access([0, 3, 60, -1, 43, 16, 0, 16, 3, 23168, 25696, 23184, 25712]) : (reg<amdgpu.vgpr>, reg<amdgpu.vgpr x4>)
+  low.schedule.fence
+  %odd_bv1 = low.op<amdgpu.buffer_load_b128_vaddr_offset>(%ring_b_next, %635) {offset = 64} : (reg<amdgpu.sgpr x4>, reg<amdgpu.vgpr>) -> reg<amdgpu.vgpr x4>
+  low.schedule.fence
+  low.op<amdgpu.s_waitcnt>() {lgkmcnt = 63, vmcnt = 4} : ()
+  low.schedule.fence
+  low.op<amdgpu.ds_write_b128>(%b_store_base, %cur_odd_bv2) {offset = 9344} memory_access([0, 3, 60, -1, 43, 16, 0, 16, 3, 25728, 28256, 25744, 28272]) : (reg<amdgpu.vgpr>, reg<amdgpu.vgpr x4>)
+  low.schedule.fence
+  %odd_bv2 = low.op<amdgpu.buffer_load_b128_vaddr_offset>(%ring_b_next, %651) {offset = 64} : (reg<amdgpu.sgpr x4>, reg<amdgpu.vgpr>) -> reg<amdgpu.vgpr x4>
+  low.schedule.fence
+  %next_a_store_base = low.op<amdgpu.v_xor_b32.lit>(%a_store_base) {imm32 = 16384} : (reg<amdgpu.vgpr>) -> reg<amdgpu.vgpr>
+  low.schedule.fence
+  %next_b_store_base = low.op<amdgpu.v_xor_b32.lit>(%b_store_base) {imm32 = 16384} : (reg<amdgpu.vgpr>) -> reg<amdgpu.vgpr>
+  low.schedule.fence
+  %889 = low.copy %out4 : reg<amdgpu.vgpr x8> -> reg<amdgpu.vgpr x8>
+  %even_first_acc4 = low.op<amdgpu.v_wmma_f32_16x16x16_bf16>(%cur_rhs1, %cur_lhs1, %889) : (reg<amdgpu.vgpr x8>, reg<amdgpu.vgpr x8>, reg<amdgpu.vgpr x8>) -> %889 as reg<amdgpu.vgpr x8>
+  low.schedule.fence
+  %864 = low.op<amdgpu.ds_read_u16>(%a_read_base) {offset = 2912} memory_access([0, 3, 60, -1, 3, 0, 0, 0, 0, 0, 0, 0, 0]) : (reg<amdgpu.vgpr>) -> reg<amdgpu.vgpr>
+  low.schedule.fence
+  %865 = low.op<amdgpu.ds_load_u16_d16_hi>(%864, %a_read_base) {offset = 3040} memory_access([0, 3, 60, -1, 3, 0, 0, 0, 0, 0, 0, 0, 0]) : (reg<amdgpu.vgpr>, reg<amdgpu.vgpr>) -> %864 as reg<amdgpu.vgpr>
+  low.schedule.fence
+  %866 = low.op<amdgpu.ds_read_u16>(%a_read_base) {offset = 3168} memory_access([0, 3, 60, -1, 3, 0, 0, 0, 0, 0, 0, 0, 0]) : (reg<amdgpu.vgpr>) -> reg<amdgpu.vgpr>
+  low.schedule.fence
+  %867 = low.op<amdgpu.ds_load_u16_d16_hi>(%866, %a_read_base) {offset = 3296} memory_access([0, 3, 60, -1, 3, 0, 0, 0, 0, 0, 0, 0, 0]) : (reg<amdgpu.vgpr>, reg<amdgpu.vgpr>) -> %866 as reg<amdgpu.vgpr>
+  low.schedule.fence
+  %868 = low.op<amdgpu.ds_read_u16>(%a_read_base) {offset = 3424} memory_access([0, 3, 60, -1, 3, 0, 0, 0, 0, 0, 0, 0, 0]) : (reg<amdgpu.vgpr>) -> reg<amdgpu.vgpr>
+  low.schedule.fence
+  %869 = low.op<amdgpu.ds_load_u16_d16_hi>(%868, %a_read_base) {offset = 3552} memory_access([0, 3, 60, -1, 3, 0, 0, 0, 0, 0, 0, 0, 0]) : (reg<amdgpu.vgpr>, reg<amdgpu.vgpr>) -> %868 as reg<amdgpu.vgpr>
+  low.schedule.fence
+  %870 = low.op<amdgpu.ds_read_u16>(%a_read_base) {offset = 3680} memory_access([0, 3, 60, -1, 3, 0, 0, 0, 0, 0, 0, 0, 0]) : (reg<amdgpu.vgpr>) -> reg<amdgpu.vgpr>
+  low.schedule.fence
+  %875 = low.copy %out2 : reg<amdgpu.vgpr x8> -> reg<amdgpu.vgpr x8>
+  %even_first_acc2 = low.op<amdgpu.v_wmma_f32_16x16x16_bf16>(%cur_rhs2, %cur_lhs0, %875) : (reg<amdgpu.vgpr x8>, reg<amdgpu.vgpr x8>, reg<amdgpu.vgpr x8>) -> %875 as reg<amdgpu.vgpr x8>
+  low.schedule.fence
+  %871 = low.op<amdgpu.ds_load_u16_d16_hi>(%870, %a_read_base) {offset = 3808} memory_access([0, 3, 60, -1, 3, 0, 0, 0, 0, 0, 0, 0, 0]) : (reg<amdgpu.vgpr>, reg<amdgpu.vgpr>) -> %870 as reg<amdgpu.vgpr>
+  low.schedule.fence
+  %872 = low.op<amdgpu.ds_read_u16>(%a_read_base) {offset = 3936} memory_access([0, 3, 60, -1, 3, 0, 0, 0, 0, 0, 0, 0, 0]) : (reg<amdgpu.vgpr>) -> reg<amdgpu.vgpr>
+  low.schedule.fence
+  %873 = low.op<amdgpu.ds_load_u16_d16_hi>(%872, %a_read_base) {offset = 4064} memory_access([0, 3, 60, -1, 3, 0, 0, 0, 0, 0, 0, 0, 0]) : (reg<amdgpu.vgpr>, reg<amdgpu.vgpr>) -> %872 as reg<amdgpu.vgpr>
+  low.schedule.fence
+  %even_second_lhs1 = low.concat(%859, %861, %863, %865, %867, %869, %871, %873) : (reg<amdgpu.vgpr>, reg<amdgpu.vgpr>, reg<amdgpu.vgpr>, reg<amdgpu.vgpr>, reg<amdgpu.vgpr>, reg<amdgpu.vgpr>, reg<amdgpu.vgpr>, reg<amdgpu.vgpr>) -> reg<amdgpu.vgpr x8>
+  %886 = low.op<amdgpu.ds_read_b128>(%b_read_base) {offset = 6816} memory_access([0, 3, 60, -1, 3, 0, 0, 0, 0, 0, 0, 0, 0]) : (reg<amdgpu.vgpr>) -> reg<amdgpu.vgpr x4>
+  low.schedule.fence
+  %887 = low.op<amdgpu.ds_read_b128>(%b_read_base) {offset = 6832} memory_access([0, 3, 60, -1, 3, 0, 0, 0, 0, 0, 0, 0, 0]) : (reg<amdgpu.vgpr>) -> reg<amdgpu.vgpr x4>
+  low.schedule.fence
+  %even_second_rhs1 = low.concat(%886, %887) : (reg<amdgpu.vgpr x4>, reg<amdgpu.vgpr x4>) -> reg<amdgpu.vgpr x8>
+  %891 = low.op<amdgpu.ds_read_b128>(%b_read_base) {offset = 9376} memory_access([0, 3, 60, -1, 3, 0, 0, 0, 0, 0, 0, 0, 0]) : (reg<amdgpu.vgpr>) -> reg<amdgpu.vgpr x4>
+  low.schedule.fence
+  %892 = low.op<amdgpu.ds_read_b128>(%b_read_base) {offset = 9392} memory_access([0, 3, 60, -1, 3, 0, 0, 0, 0, 0, 0, 0, 0]) : (reg<amdgpu.vgpr>) -> reg<amdgpu.vgpr x4>
+  low.schedule.fence
+  %even_second_rhs2 = low.concat(%891, %892) : (reg<amdgpu.vgpr x4>, reg<amdgpu.vgpr x4>) -> reg<amdgpu.vgpr x8>
+  %next_a_read_base = low.op<amdgpu.v_xor_b32.lit>(%a_read_base) {imm32 = 16384} : (reg<amdgpu.vgpr>) -> reg<amdgpu.vgpr>
+  low.schedule.fence
+  %next_b_read_base = low.op<amdgpu.v_xor_b32.lit>(%b_read_base) {imm32 = 16384} : (reg<amdgpu.vgpr>) -> reg<amdgpu.vgpr>
+  low.schedule.fence
+  %894 = low.copy %out5 : reg<amdgpu.vgpr x8> -> reg<amdgpu.vgpr x8>
+  %even_first_acc5 = low.op<amdgpu.v_wmma_f32_16x16x16_bf16>(%cur_rhs2, %cur_lhs1, %894) : (reg<amdgpu.vgpr x8>, reg<amdgpu.vgpr x8>, reg<amdgpu.vgpr x8>) -> %894 as reg<amdgpu.vgpr x8>
+  low.schedule.fence
+  low.op<amdgpu.s_waitcnt>() {lgkmcnt = 0, vmcnt = 63} : ()
+  low.schedule.fence
+  low.op<amdgpu.s_waitcnt>() {lgkmcnt = 0, vmcnt = 63} : ()
+  low.schedule.fence
+  low.op<amdgpu.s_barrier>() : ()
+  low.op<amdgpu.s_waitcnt>() {lgkmcnt = 0, vmcnt = 63} : ()
+  low.schedule.fence
+  low.schedule.fence
+  %986 = low.copy %even_first_acc0 : reg<amdgpu.vgpr x8> -> reg<amdgpu.vgpr x8>
+  %even_second_acc0 = low.op<amdgpu.v_wmma_f32_16x16x16_bf16>(%even_second_rhs0, %even_second_lhs0, %986) : (reg<amdgpu.vgpr x8>, reg<amdgpu.vgpr x8>, reg<amdgpu.vgpr x8>) -> %986 as reg<amdgpu.vgpr x8>
+  low.schedule.fence
+  %991 = low.op<amdgpu.ds_read_u16>(%next_a_read_base) {offset = 0} memory_access([0, 3, 60, -1, 3, 0, 0, 0, 0, 0, 0, 0, 0]) : (reg<amdgpu.vgpr>) -> reg<amdgpu.vgpr>
+  low.schedule.fence
+  %992 = low.op<amdgpu.ds_load_u16_d16_hi>(%991, %next_a_read_base) {offset = 128} memory_access([0, 3, 60, -1, 3, 0, 0, 0, 0, 0, 0, 0, 0]) : (reg<amdgpu.vgpr>, reg<amdgpu.vgpr>) -> %991 as reg<amdgpu.vgpr>
+  low.schedule.fence
+  %993 = low.op<amdgpu.ds_read_u16>(%next_a_read_base) {offset = 256} memory_access([0, 3, 60, -1, 3, 0, 0, 0, 0, 0, 0, 0, 0]) : (reg<amdgpu.vgpr>) -> reg<amdgpu.vgpr>
+  low.schedule.fence
+  %994 = low.op<amdgpu.ds_load_u16_d16_hi>(%993, %next_a_read_base) {offset = 384} memory_access([0, 3, 60, -1, 3, 0, 0, 0, 0, 0, 0, 0, 0]) : (reg<amdgpu.vgpr>, reg<amdgpu.vgpr>) -> %993 as reg<amdgpu.vgpr>
+  low.schedule.fence
+  %995 = low.op<amdgpu.ds_read_u16>(%next_a_read_base) {offset = 512} memory_access([0, 3, 60, -1, 3, 0, 0, 0, 0, 0, 0, 0, 0]) : (reg<amdgpu.vgpr>) -> reg<amdgpu.vgpr>
+  low.schedule.fence
+  %996 = low.op<amdgpu.ds_load_u16_d16_hi>(%995, %next_a_read_base) {offset = 640} memory_access([0, 3, 60, -1, 3, 0, 0, 0, 0, 0, 0, 0, 0]) : (reg<amdgpu.vgpr>, reg<amdgpu.vgpr>) -> %995 as reg<amdgpu.vgpr>
+  low.schedule.fence
+  %997 = low.op<amdgpu.ds_read_u16>(%next_a_read_base) {offset = 768} memory_access([0, 3, 60, -1, 3, 0, 0, 0, 0, 0, 0, 0, 0]) : (reg<amdgpu.vgpr>) -> reg<amdgpu.vgpr>
+  low.schedule.fence
+  %998 = low.op<amdgpu.ds_load_u16_d16_hi>(%997, %next_a_read_base) {offset = 896} memory_access([0, 3, 60, -1, 3, 0, 0, 0, 0, 0, 0, 0, 0]) : (reg<amdgpu.vgpr>, reg<amdgpu.vgpr>) -> %997 as reg<amdgpu.vgpr>
+  low.schedule.fence
+  %1036 = low.copy %even_first_acc3 : reg<amdgpu.vgpr x8> -> reg<amdgpu.vgpr x8>
+  %even_second_acc3 = low.op<amdgpu.v_wmma_f32_16x16x16_bf16>(%even_second_rhs0, %even_second_lhs1, %1036) : (reg<amdgpu.vgpr x8>, reg<amdgpu.vgpr x8>, reg<amdgpu.vgpr x8>) -> %1036 as reg<amdgpu.vgpr x8>
+  low.schedule.fence
+  %999 = low.op<amdgpu.ds_read_u16>(%next_a_read_base) {offset = 1024} memory_access([0, 3, 60, -1, 3, 0, 0, 0, 0, 0, 0, 0, 0]) : (reg<amdgpu.vgpr>) -> reg<amdgpu.vgpr>
+  low.schedule.fence
+  %1000 = low.op<amdgpu.ds_load_u16_d16_hi>(%999, %next_a_read_base) {offset = 1152} memory_access([0, 3, 60, -1, 3, 0, 0, 0, 0, 0, 0, 0, 0]) : (reg<amdgpu.vgpr>, reg<amdgpu.vgpr>) -> %999 as reg<amdgpu.vgpr>
+  low.schedule.fence
+  %1001 = low.op<amdgpu.ds_read_u16>(%next_a_read_base) {offset = 1280} memory_access([0, 3, 60, -1, 3, 0, 0, 0, 0, 0, 0, 0, 0]) : (reg<amdgpu.vgpr>) -> reg<amdgpu.vgpr>
+  low.schedule.fence
+  %1002 = low.op<amdgpu.ds_load_u16_d16_hi>(%1001, %next_a_read_base) {offset = 1408} memory_access([0, 3, 60, -1, 3, 0, 0, 0, 0, 0, 0, 0, 0]) : (reg<amdgpu.vgpr>, reg<amdgpu.vgpr>) -> %1001 as reg<amdgpu.vgpr>
+  low.schedule.fence
+  %1003 = low.op<amdgpu.ds_read_u16>(%next_a_read_base) {offset = 1536} memory_access([0, 3, 60, -1, 3, 0, 0, 0, 0, 0, 0, 0, 0]) : (reg<amdgpu.vgpr>) -> reg<amdgpu.vgpr>
+  low.schedule.fence
+  %1004 = low.op<amdgpu.ds_load_u16_d16_hi>(%1003, %next_a_read_base) {offset = 1664} memory_access([0, 3, 60, -1, 3, 0, 0, 0, 0, 0, 0, 0, 0]) : (reg<amdgpu.vgpr>, reg<amdgpu.vgpr>) -> %1003 as reg<amdgpu.vgpr>
+  low.schedule.fence
+  %1005 = low.op<amdgpu.ds_read_u16>(%next_a_read_base) {offset = 1792} memory_access([0, 3, 60, -1, 3, 0, 0, 0, 0, 0, 0, 0, 0]) : (reg<amdgpu.vgpr>) -> reg<amdgpu.vgpr>
+  low.schedule.fence
+  %1006 = low.op<amdgpu.ds_load_u16_d16_hi>(%1005, %next_a_read_base) {offset = 1920} memory_access([0, 3, 60, -1, 3, 0, 0, 0, 0, 0, 0, 0, 0]) : (reg<amdgpu.vgpr>, reg<amdgpu.vgpr>) -> %1005 as reg<amdgpu.vgpr>
+  low.schedule.fence
+  %odd_first_lhs0 = low.concat(%992, %994, %996, %998, %1000, %1002, %1004, %1006) : (reg<amdgpu.vgpr>, reg<amdgpu.vgpr>, reg<amdgpu.vgpr>, reg<amdgpu.vgpr>, reg<amdgpu.vgpr>, reg<amdgpu.vgpr>, reg<amdgpu.vgpr>, reg<amdgpu.vgpr>) -> reg<amdgpu.vgpr x8>
+  %1008 = low.copy %even_first_acc1 : reg<amdgpu.vgpr x8> -> reg<amdgpu.vgpr x8>
+  %even_second_acc1 = low.op<amdgpu.v_wmma_f32_16x16x16_bf16>(%even_second_rhs1, %even_second_lhs0, %1008) : (reg<amdgpu.vgpr x8>, reg<amdgpu.vgpr x8>, reg<amdgpu.vgpr x8>) -> %1008 as reg<amdgpu.vgpr x8>
+  low.schedule.fence
+  %1033 = low.op<amdgpu.ds_read_b128>(%next_b_read_base) {offset = 4224} memory_access([0, 3, 60, -1, 3, 0, 0, 0, 0, 0, 0, 0, 0]) : (reg<amdgpu.vgpr>) -> reg<amdgpu.vgpr x4>
+  low.schedule.fence
+  %1034 = low.op<amdgpu.ds_read_b128>(%next_b_read_base) {offset = 4240} memory_access([0, 3, 60, -1, 3, 0, 0, 0, 0, 0, 0, 0, 0]) : (reg<amdgpu.vgpr>) -> reg<amdgpu.vgpr x4>
+  low.schedule.fence
+  %odd_first_rhs0 = low.concat(%1033, %1034) : (reg<amdgpu.vgpr x4>, reg<amdgpu.vgpr x4>) -> reg<amdgpu.vgpr x8>
+  %1010 = low.op<amdgpu.ds_read_u16>(%next_a_read_base) {offset = 64} memory_access([0, 3, 60, -1, 3, 0, 0, 0, 0, 0, 0, 0, 0]) : (reg<amdgpu.vgpr>) -> reg<amdgpu.vgpr>
+  low.schedule.fence
+  %1011 = low.op<amdgpu.ds_load_u16_d16_hi>(%1010, %next_a_read_base) {offset = 192} memory_access([0, 3, 60, -1, 3, 0, 0, 0, 0, 0, 0, 0, 0]) : (reg<amdgpu.vgpr>, reg<amdgpu.vgpr>) -> %1010 as reg<amdgpu.vgpr>
+  low.schedule.fence
+  %1012 = low.op<amdgpu.ds_read_u16>(%next_a_read_base) {offset = 320} memory_access([0, 3, 60, -1, 3, 0, 0, 0, 0, 0, 0, 0, 0]) : (reg<amdgpu.vgpr>) -> reg<amdgpu.vgpr>
+  low.schedule.fence
+  %1013 = low.op<amdgpu.ds_load_u16_d16_hi>(%1012, %next_a_read_base) {offset = 448} memory_access([0, 3, 60, -1, 3, 0, 0, 0, 0, 0, 0, 0, 0]) : (reg<amdgpu.vgpr>, reg<amdgpu.vgpr>) -> %1012 as reg<amdgpu.vgpr>
+  low.schedule.fence
+  %1014 = low.op<amdgpu.ds_read_u16>(%next_a_read_base) {offset = 576} memory_access([0, 3, 60, -1, 3, 0, 0, 0, 0, 0, 0, 0, 0]) : (reg<amdgpu.vgpr>) -> reg<amdgpu.vgpr>
+  low.schedule.fence
+  %1015 = low.op<amdgpu.ds_load_u16_d16_hi>(%1014, %next_a_read_base) {offset = 704} memory_access([0, 3, 60, -1, 3, 0, 0, 0, 0, 0, 0, 0, 0]) : (reg<amdgpu.vgpr>, reg<amdgpu.vgpr>) -> %1014 as reg<amdgpu.vgpr>
+  low.schedule.fence
+  %1041 = low.copy %even_first_acc4 : reg<amdgpu.vgpr x8> -> reg<amdgpu.vgpr x8>
+  %even_second_acc4 = low.op<amdgpu.v_wmma_f32_16x16x16_bf16>(%even_second_rhs1, %even_second_lhs1, %1041) : (reg<amdgpu.vgpr x8>, reg<amdgpu.vgpr x8>, reg<amdgpu.vgpr x8>) -> %1041 as reg<amdgpu.vgpr x8>
+  low.schedule.fence
+  %1016 = low.op<amdgpu.ds_read_u16>(%next_a_read_base) {offset = 832} memory_access([0, 3, 60, -1, 3, 0, 0, 0, 0, 0, 0, 0, 0]) : (reg<amdgpu.vgpr>) -> reg<amdgpu.vgpr>
+  low.schedule.fence
+  %1017 = low.op<amdgpu.ds_load_u16_d16_hi>(%1016, %next_a_read_base) {offset = 960} memory_access([0, 3, 60, -1, 3, 0, 0, 0, 0, 0, 0, 0, 0]) : (reg<amdgpu.vgpr>, reg<amdgpu.vgpr>) -> %1016 as reg<amdgpu.vgpr>
+  low.schedule.fence
+  %1018 = low.op<amdgpu.ds_read_u16>(%next_a_read_base) {offset = 1088} memory_access([0, 3, 60, -1, 3, 0, 0, 0, 0, 0, 0, 0, 0]) : (reg<amdgpu.vgpr>) -> reg<amdgpu.vgpr>
+  low.schedule.fence
+  %1019 = low.op<amdgpu.ds_load_u16_d16_hi>(%1018, %next_a_read_base) {offset = 1216} memory_access([0, 3, 60, -1, 3, 0, 0, 0, 0, 0, 0, 0, 0]) : (reg<amdgpu.vgpr>, reg<amdgpu.vgpr>) -> %1018 as reg<amdgpu.vgpr>
+  low.schedule.fence
+  %1020 = low.op<amdgpu.ds_read_u16>(%next_a_read_base) {offset = 1344} memory_access([0, 3, 60, -1, 3, 0, 0, 0, 0, 0, 0, 0, 0]) : (reg<amdgpu.vgpr>) -> reg<amdgpu.vgpr>
+  low.schedule.fence
+  %1021 = low.op<amdgpu.ds_load_u16_d16_hi>(%1020, %next_a_read_base) {offset = 1472} memory_access([0, 3, 60, -1, 3, 0, 0, 0, 0, 0, 0, 0, 0]) : (reg<amdgpu.vgpr>, reg<amdgpu.vgpr>) -> %1020 as reg<amdgpu.vgpr>
+  low.schedule.fence
+  %1022 = low.op<amdgpu.ds_read_u16>(%next_a_read_base) {offset = 1600} memory_access([0, 3, 60, -1, 3, 0, 0, 0, 0, 0, 0, 0, 0]) : (reg<amdgpu.vgpr>) -> reg<amdgpu.vgpr>
+  low.schedule.fence
+  %1027 = low.copy %even_first_acc2 : reg<amdgpu.vgpr x8> -> reg<amdgpu.vgpr x8>
+  %even_second_acc2 = low.op<amdgpu.v_wmma_f32_16x16x16_bf16>(%even_second_rhs2, %even_second_lhs0, %1027) : (reg<amdgpu.vgpr x8>, reg<amdgpu.vgpr x8>, reg<amdgpu.vgpr x8>) -> %1027 as reg<amdgpu.vgpr x8>
+  low.schedule.fence
+  %1023 = low.op<amdgpu.ds_load_u16_d16_hi>(%1022, %next_a_read_base) {offset = 1728} memory_access([0, 3, 60, -1, 3, 0, 0, 0, 0, 0, 0, 0, 0]) : (reg<amdgpu.vgpr>, reg<amdgpu.vgpr>) -> %1022 as reg<amdgpu.vgpr>
+  low.schedule.fence
+  %1024 = low.op<amdgpu.ds_read_u16>(%next_a_read_base) {offset = 1856} memory_access([0, 3, 60, -1, 3, 0, 0, 0, 0, 0, 0, 0, 0]) : (reg<amdgpu.vgpr>) -> reg<amdgpu.vgpr>
+  low.schedule.fence
+  %1025 = low.op<amdgpu.ds_load_u16_d16_hi>(%1024, %next_a_read_base) {offset = 1984} memory_access([0, 3, 60, -1, 3, 0, 0, 0, 0, 0, 0, 0, 0]) : (reg<amdgpu.vgpr>, reg<amdgpu.vgpr>) -> %1024 as reg<amdgpu.vgpr>
+  low.schedule.fence
+  %odd_first_lhs1 = low.concat(%1011, %1013, %1015, %1017, %1019, %1021, %1023, %1025) : (reg<amdgpu.vgpr>, reg<amdgpu.vgpr>, reg<amdgpu.vgpr>, reg<amdgpu.vgpr>, reg<amdgpu.vgpr>, reg<amdgpu.vgpr>, reg<amdgpu.vgpr>, reg<amdgpu.vgpr>) -> reg<amdgpu.vgpr x8>
+  %1038 = low.op<amdgpu.ds_read_b128>(%next_b_read_base) {offset = 6784} memory_access([0, 3, 60, -1, 3, 0, 0, 0, 0, 0, 0, 0, 0]) : (reg<amdgpu.vgpr>) -> reg<amdgpu.vgpr x4>
+  low.schedule.fence
+  %1039 = low.op<amdgpu.ds_read_b128>(%next_b_read_base) {offset = 6800} memory_access([0, 3, 60, -1, 3, 0, 0, 0, 0, 0, 0, 0, 0]) : (reg<amdgpu.vgpr>) -> reg<amdgpu.vgpr x4>
+  low.schedule.fence
+  %odd_first_rhs1 = low.concat(%1038, %1039) : (reg<amdgpu.vgpr x4>, reg<amdgpu.vgpr x4>) -> reg<amdgpu.vgpr x8>
+  %1043 = low.op<amdgpu.ds_read_b128>(%next_b_read_base) {offset = 9344} memory_access([0, 3, 60, -1, 3, 0, 0, 0, 0, 0, 0, 0, 0]) : (reg<amdgpu.vgpr>) -> reg<amdgpu.vgpr x4>
+  low.schedule.fence
+  %1044 = low.op<amdgpu.ds_read_b128>(%next_b_read_base) {offset = 9360} memory_access([0, 3, 60, -1, 3, 0, 0, 0, 0, 0, 0, 0, 0]) : (reg<amdgpu.vgpr>) -> reg<amdgpu.vgpr x4>
+  low.schedule.fence
+  %odd_first_rhs2 = low.concat(%1043, %1044) : (reg<amdgpu.vgpr x4>, reg<amdgpu.vgpr x4>) -> reg<amdgpu.vgpr x8>
+  %1046 = low.copy %even_first_acc5 : reg<amdgpu.vgpr x8> -> reg<amdgpu.vgpr x8>
+  %even_second_acc5 = low.op<amdgpu.v_wmma_f32_16x16x16_bf16>(%even_second_rhs2, %even_second_lhs1, %1046) : (reg<amdgpu.vgpr x8>, reg<amdgpu.vgpr x8>, reg<amdgpu.vgpr x8>) -> %1046 as reg<amdgpu.vgpr x8>
+  low.schedule.fence
+  %k_next = low.op<amdgpu.s_add_u32.rhs_inline>(%native_salu_b_band_11) {imm32 = 32} : (reg<amdgpu.sgpr>) -> reg<amdgpu.sgpr>
+  low.schedule.fence
+  %steady_continue = low.op<amdgpu.s_cmp_lt_i32>(%k_next, %steady_end) : (reg<amdgpu.sgpr>, reg<amdgpu.sgpr>) -> reg<amdgpu.scc>
+  low.cond_br %steady_continue, ^_bb_backedge_dispatch, ^_bb_tail_dispatch : reg<amdgpu.scc>
+^_bb_backedge_dispatch:
+  low.br ^_bb1(%k_next: reg<amdgpu.sgpr>, %even_second_acc0: reg<amdgpu.vgpr x8>, %even_second_acc1: reg<amdgpu.vgpr x8>, %even_second_acc2: reg<amdgpu.vgpr x8>, %even_second_acc3: reg<amdgpu.vgpr x8>, %even_second_acc4: reg<amdgpu.vgpr x8>, %even_second_acc5: reg<amdgpu.vgpr x8>, %odd_first_lhs0: reg<amdgpu.vgpr x8>, %odd_first_lhs1: reg<amdgpu.vgpr x8>, %odd_first_rhs0: reg<amdgpu.vgpr x8>, %odd_first_rhs1: reg<amdgpu.vgpr x8>, %odd_first_rhs2: reg<amdgpu.vgpr x8>, %next_a_read_base: reg<amdgpu.vgpr>, %next_b_read_base: reg<amdgpu.vgpr>, %next_a_store_base: reg<amdgpu.vgpr>, %next_b_store_base: reg<amdgpu.vgpr>, %odd_av0: reg<amdgpu.vgpr x4>, %odd_bv0: reg<amdgpu.vgpr x4>, %odd_av1: reg<amdgpu.vgpr x4>, %odd_bv1: reg<amdgpu.vgpr x4>, %odd_bv2: reg<amdgpu.vgpr x4>, %ring_a_next: reg<amdgpu.sgpr x4>, %ring_b_next: reg<amdgpu.sgpr x4>)
+^_bb_tail_dispatch:
+  low.br ^_bb_tail1(%k_next: reg<amdgpu.sgpr>, %even_second_acc0: reg<amdgpu.vgpr x8>, %even_second_acc1: reg<amdgpu.vgpr x8>, %even_second_acc2: reg<amdgpu.vgpr x8>, %even_second_acc3: reg<amdgpu.vgpr x8>, %even_second_acc4: reg<amdgpu.vgpr x8>, %even_second_acc5: reg<amdgpu.vgpr x8>, %odd_first_lhs0: reg<amdgpu.vgpr x8>, %odd_first_lhs1: reg<amdgpu.vgpr x8>, %odd_first_rhs0: reg<amdgpu.vgpr x8>, %odd_first_rhs1: reg<amdgpu.vgpr x8>, %odd_first_rhs2: reg<amdgpu.vgpr x8>, %next_a_read_base: reg<amdgpu.vgpr>, %next_b_read_base: reg<amdgpu.vgpr>, %next_a_store_base: reg<amdgpu.vgpr>, %next_b_store_base: reg<amdgpu.vgpr>, %odd_av0: reg<amdgpu.vgpr x4>, %odd_bv0: reg<amdgpu.vgpr x4>, %odd_av1: reg<amdgpu.vgpr x4>, %odd_bv1: reg<amdgpu.vgpr x4>, %odd_bv2: reg<amdgpu.vgpr x4>)
+^_bb_tail1(%t1_k_base: reg<amdgpu.sgpr>, %t1_out0: reg<amdgpu.vgpr x8>, %t1_out1: reg<amdgpu.vgpr x8>, %t1_out2: reg<amdgpu.vgpr x8>, %t1_out3: reg<amdgpu.vgpr x8>, %t1_out4: reg<amdgpu.vgpr x8>, %t1_out5: reg<amdgpu.vgpr x8>, %t1_cur_lhs0: reg<amdgpu.vgpr x8>, %t1_cur_lhs1: reg<amdgpu.vgpr x8>, %t1_cur_rhs0: reg<amdgpu.vgpr x8>, %t1_cur_rhs1: reg<amdgpu.vgpr x8>, %t1_cur_rhs2: reg<amdgpu.vgpr x8>, %t1_a_read_base: reg<amdgpu.vgpr>, %t1_b_read_base: reg<amdgpu.vgpr>, %t1_a_store_base: reg<amdgpu.vgpr>, %t1_b_store_base: reg<amdgpu.vgpr>, %t1_cur_odd_av0: reg<amdgpu.vgpr x4>, %t1_cur_odd_bv0: reg<amdgpu.vgpr x4>, %t1_cur_odd_av1: reg<amdgpu.vgpr x4>, %t1_cur_odd_bv1: reg<amdgpu.vgpr x4>, %t1_cur_odd_bv2: reg<amdgpu.vgpr x4>):
+  low.op<amdgpu.s_waitcnt>() {lgkmcnt = 4, vmcnt = 63} : ()
+  low.schedule.fence
+  %t1_827 = low.copy %t1_out0 : reg<amdgpu.vgpr x8> -> reg<amdgpu.vgpr x8>
+  %t1_even_first_acc0 = low.op<amdgpu.v_wmma_f32_16x16x16_bf16>(%t1_cur_rhs0, %t1_cur_lhs0, %t1_827) : (reg<amdgpu.vgpr x8>, reg<amdgpu.vgpr x8>, reg<amdgpu.vgpr x8>) -> %t1_827 as reg<amdgpu.vgpr x8>
+  low.schedule.fence
+  %t1_839 = low.op<amdgpu.ds_read_u16>(%t1_a_read_base) {offset = 2080} memory_access([0, 3, 60, -1, 3, 0, 0, 0, 0, 0, 0, 0, 0]) : (reg<amdgpu.vgpr>) -> reg<amdgpu.vgpr>
+  low.schedule.fence
+  %t1_840 = low.op<amdgpu.ds_load_u16_d16_hi>(%t1_839, %t1_a_read_base) {offset = 2208} memory_access([0, 3, 60, -1, 3, 0, 0, 0, 0, 0, 0, 0, 0]) : (reg<amdgpu.vgpr>, reg<amdgpu.vgpr>) -> %t1_839 as reg<amdgpu.vgpr>
+  low.schedule.fence
+  %t1_841 = low.op<amdgpu.ds_read_u16>(%t1_a_read_base) {offset = 2336} memory_access([0, 3, 60, -1, 3, 0, 0, 0, 0, 0, 0, 0, 0]) : (reg<amdgpu.vgpr>) -> reg<amdgpu.vgpr>
+  low.schedule.fence
+  %t1_842 = low.op<amdgpu.ds_load_u16_d16_hi>(%t1_841, %t1_a_read_base) {offset = 2464} memory_access([0, 3, 60, -1, 3, 0, 0, 0, 0, 0, 0, 0, 0]) : (reg<amdgpu.vgpr>, reg<amdgpu.vgpr>) -> %t1_841 as reg<amdgpu.vgpr>
+  low.schedule.fence
+  %t1_843 = low.op<amdgpu.ds_read_u16>(%t1_a_read_base) {offset = 2592} memory_access([0, 3, 60, -1, 3, 0, 0, 0, 0, 0, 0, 0, 0]) : (reg<amdgpu.vgpr>) -> reg<amdgpu.vgpr>
+  low.schedule.fence
+  %t1_844 = low.op<amdgpu.ds_load_u16_d16_hi>(%t1_843, %t1_a_read_base) {offset = 2720} memory_access([0, 3, 60, -1, 3, 0, 0, 0, 0, 0, 0, 0, 0]) : (reg<amdgpu.vgpr>, reg<amdgpu.vgpr>) -> %t1_843 as reg<amdgpu.vgpr>
+  low.schedule.fence
+  %t1_845 = low.op<amdgpu.ds_read_u16>(%t1_a_read_base) {offset = 2848} memory_access([0, 3, 60, -1, 3, 0, 0, 0, 0, 0, 0, 0, 0]) : (reg<amdgpu.vgpr>) -> reg<amdgpu.vgpr>
+  low.schedule.fence
+  %t1_846 = low.op<amdgpu.ds_load_u16_d16_hi>(%t1_845, %t1_a_read_base) {offset = 2976} memory_access([0, 3, 60, -1, 3, 0, 0, 0, 0, 0, 0, 0, 0]) : (reg<amdgpu.vgpr>, reg<amdgpu.vgpr>) -> %t1_845 as reg<amdgpu.vgpr>
+  low.schedule.fence
+  %t1_884 = low.copy %t1_out3 : reg<amdgpu.vgpr x8> -> reg<amdgpu.vgpr x8>
+  %t1_even_first_acc3 = low.op<amdgpu.v_wmma_f32_16x16x16_bf16>(%t1_cur_rhs0, %t1_cur_lhs1, %t1_884) : (reg<amdgpu.vgpr x8>, reg<amdgpu.vgpr x8>, reg<amdgpu.vgpr x8>) -> %t1_884 as reg<amdgpu.vgpr x8>
+  low.schedule.fence
+  %t1_847 = low.op<amdgpu.ds_read_u16>(%t1_a_read_base) {offset = 3104} memory_access([0, 3, 60, -1, 3, 0, 0, 0, 0, 0, 0, 0, 0]) : (reg<amdgpu.vgpr>) -> reg<amdgpu.vgpr>
+  low.schedule.fence
+  %t1_848 = low.op<amdgpu.ds_load_u16_d16_hi>(%t1_847, %t1_a_read_base) {offset = 3232} memory_access([0, 3, 60, -1, 3, 0, 0, 0, 0, 0, 0, 0, 0]) : (reg<amdgpu.vgpr>, reg<amdgpu.vgpr>) -> %t1_847 as reg<amdgpu.vgpr>
+  low.schedule.fence
+  %t1_849 = low.op<amdgpu.ds_read_u16>(%t1_a_read_base) {offset = 3360} memory_access([0, 3, 60, -1, 3, 0, 0, 0, 0, 0, 0, 0, 0]) : (reg<amdgpu.vgpr>) -> reg<amdgpu.vgpr>
+  low.schedule.fence
+  %t1_850 = low.op<amdgpu.ds_load_u16_d16_hi>(%t1_849, %t1_a_read_base) {offset = 3488} memory_access([0, 3, 60, -1, 3, 0, 0, 0, 0, 0, 0, 0, 0]) : (reg<amdgpu.vgpr>, reg<amdgpu.vgpr>) -> %t1_849 as reg<amdgpu.vgpr>
+  low.schedule.fence
+  %t1_851 = low.op<amdgpu.ds_read_u16>(%t1_a_read_base) {offset = 3616} memory_access([0, 3, 60, -1, 3, 0, 0, 0, 0, 0, 0, 0, 0]) : (reg<amdgpu.vgpr>) -> reg<amdgpu.vgpr>
+  low.schedule.fence
+  %t1_852 = low.op<amdgpu.ds_load_u16_d16_hi>(%t1_851, %t1_a_read_base) {offset = 3744} memory_access([0, 3, 60, -1, 3, 0, 0, 0, 0, 0, 0, 0, 0]) : (reg<amdgpu.vgpr>, reg<amdgpu.vgpr>) -> %t1_851 as reg<amdgpu.vgpr>
+  low.schedule.fence
+  %t1_853 = low.op<amdgpu.ds_read_u16>(%t1_a_read_base) {offset = 3872} memory_access([0, 3, 60, -1, 3, 0, 0, 0, 0, 0, 0, 0, 0]) : (reg<amdgpu.vgpr>) -> reg<amdgpu.vgpr>
+  low.schedule.fence
+  %t1_854 = low.op<amdgpu.ds_load_u16_d16_hi>(%t1_853, %t1_a_read_base) {offset = 4000} memory_access([0, 3, 60, -1, 3, 0, 0, 0, 0, 0, 0, 0, 0]) : (reg<amdgpu.vgpr>, reg<amdgpu.vgpr>) -> %t1_853 as reg<amdgpu.vgpr>
+  low.schedule.fence
+  %t1_even_second_lhs0 = low.concat(%t1_840, %t1_842, %t1_844, %t1_846, %t1_848, %t1_850, %t1_852, %t1_854) : (reg<amdgpu.vgpr>, reg<amdgpu.vgpr>, reg<amdgpu.vgpr>, reg<amdgpu.vgpr>, reg<amdgpu.vgpr>, reg<amdgpu.vgpr>, reg<amdgpu.vgpr>, reg<amdgpu.vgpr>) -> reg<amdgpu.vgpr x8>
+  low.op<amdgpu.s_waitcnt>() {lgkmcnt = 16, vmcnt = 63} : ()
+  low.schedule.fence
+  %t1_856 = low.copy %t1_out1 : reg<amdgpu.vgpr x8> -> reg<amdgpu.vgpr x8>
+  %t1_even_first_acc1 = low.op<amdgpu.v_wmma_f32_16x16x16_bf16>(%t1_cur_rhs1, %t1_cur_lhs0, %t1_856) : (reg<amdgpu.vgpr x8>, reg<amdgpu.vgpr x8>, reg<amdgpu.vgpr x8>) -> %t1_856 as reg<amdgpu.vgpr x8>
+  low.schedule.fence
+  %t1_881 = low.op<amdgpu.ds_read_b128>(%t1_b_read_base) {offset = 4256} memory_access([0, 3, 60, -1, 3, 0, 0, 0, 0, 0, 0, 0, 0]) : (reg<amdgpu.vgpr>) -> reg<amdgpu.vgpr x4>
+  low.schedule.fence
+  %t1_882 = low.op<amdgpu.ds_read_b128>(%t1_b_read_base) {offset = 4272} memory_access([0, 3, 60, -1, 3, 0, 0, 0, 0, 0, 0, 0, 0]) : (reg<amdgpu.vgpr>) -> reg<amdgpu.vgpr x4>
+  low.schedule.fence
+  %t1_even_second_rhs0 = low.concat(%t1_881, %t1_882) : (reg<amdgpu.vgpr x4>, reg<amdgpu.vgpr x4>) -> reg<amdgpu.vgpr x8>
+  %t1_858 = low.op<amdgpu.ds_read_u16>(%t1_a_read_base) {offset = 2144} memory_access([0, 3, 60, -1, 3, 0, 0, 0, 0, 0, 0, 0, 0]) : (reg<amdgpu.vgpr>) -> reg<amdgpu.vgpr>
+  low.schedule.fence
+  %t1_859 = low.op<amdgpu.ds_load_u16_d16_hi>(%t1_858, %t1_a_read_base) {offset = 2272} memory_access([0, 3, 60, -1, 3, 0, 0, 0, 0, 0, 0, 0, 0]) : (reg<amdgpu.vgpr>, reg<amdgpu.vgpr>) -> %t1_858 as reg<amdgpu.vgpr>
+  low.schedule.fence
+  %t1_860 = low.op<amdgpu.ds_read_u16>(%t1_a_read_base) {offset = 2400} memory_access([0, 3, 60, -1, 3, 0, 0, 0, 0, 0, 0, 0, 0]) : (reg<amdgpu.vgpr>) -> reg<amdgpu.vgpr>
+  low.schedule.fence
+  %t1_861 = low.op<amdgpu.ds_load_u16_d16_hi>(%t1_860, %t1_a_read_base) {offset = 2528} memory_access([0, 3, 60, -1, 3, 0, 0, 0, 0, 0, 0, 0, 0]) : (reg<amdgpu.vgpr>, reg<amdgpu.vgpr>) -> %t1_860 as reg<amdgpu.vgpr>
+  low.schedule.fence
+  %t1_862 = low.op<amdgpu.ds_read_u16>(%t1_a_read_base) {offset = 2656} memory_access([0, 3, 60, -1, 3, 0, 0, 0, 0, 0, 0, 0, 0]) : (reg<amdgpu.vgpr>) -> reg<amdgpu.vgpr>
+  low.schedule.fence
+  %t1_863 = low.op<amdgpu.ds_load_u16_d16_hi>(%t1_862, %t1_a_read_base) {offset = 2784} memory_access([0, 3, 60, -1, 3, 0, 0, 0, 0, 0, 0, 0, 0]) : (reg<amdgpu.vgpr>, reg<amdgpu.vgpr>) -> %t1_862 as reg<amdgpu.vgpr>
+  low.schedule.fence
+  low.op<amdgpu.s_waitcnt>() {lgkmcnt = 63, vmcnt = 4} : ()
+  low.schedule.fence
+  low.op<amdgpu.ds_write_b128>(%t1_a_store_base, %t1_cur_odd_av0) {offset = 0} memory_access([0, 3, 60, -1, 11, 0, 0, 0, 3, 16384, 18446, 16400, 18462]) : (reg<amdgpu.vgpr>, reg<amdgpu.vgpr x4>)
+  low.schedule.fence
+  low.op<amdgpu.s_waitcnt>() {lgkmcnt = 63, vmcnt = 3} : ()
+  low.schedule.fence
+  low.op<amdgpu.ds_write_b128>(%t1_a_store_base, %t1_cur_odd_av1) {offset = 2080} memory_access([0, 3, 60, -1, 11, 0, 0, 0, 3, 18464, 20526, 18480, 20542]) : (reg<amdgpu.vgpr>, reg<amdgpu.vgpr x4>)
+  low.schedule.fence
+  low.op<amdgpu.s_waitcnt>() {lgkmcnt = 63, vmcnt = 2} : ()
+  low.schedule.fence
+  low.op<amdgpu.ds_write_b128>(%t1_b_store_base, %t1_cur_odd_bv0) {offset = 4224} memory_access([0, 3, 60, -1, 43, 16, 0, 16, 3, 20608, 23136, 20624, 23152]) : (reg<amdgpu.vgpr>, reg<amdgpu.vgpr x4>)
+  low.schedule.fence
+  low.op<amdgpu.s_waitcnt>() {lgkmcnt = 63, vmcnt = 1} : ()
+  low.schedule.fence
+  low.op<amdgpu.ds_write_b128>(%t1_b_store_base, %t1_cur_odd_bv1) {offset = 6784} memory_access([0, 3, 60, -1, 43, 16, 0, 16, 3, 23168, 25696, 23184, 25712]) : (reg<amdgpu.vgpr>, reg<amdgpu.vgpr x4>)
+  low.schedule.fence
+  low.op<amdgpu.s_waitcnt>() {lgkmcnt = 63, vmcnt = 0} : ()
+  low.schedule.fence
+  low.op<amdgpu.ds_write_b128>(%t1_b_store_base, %t1_cur_odd_bv2) {offset = 9344} memory_access([0, 3, 60, -1, 43, 16, 0, 16, 3, 25728, 28256, 25744, 28272]) : (reg<amdgpu.vgpr>, reg<amdgpu.vgpr x4>)
+  low.schedule.fence
+  %t1_889 = low.copy %t1_out4 : reg<amdgpu.vgpr x8> -> reg<amdgpu.vgpr x8>
+  %t1_even_first_acc4 = low.op<amdgpu.v_wmma_f32_16x16x16_bf16>(%t1_cur_rhs1, %t1_cur_lhs1, %t1_889) : (reg<amdgpu.vgpr x8>, reg<amdgpu.vgpr x8>, reg<amdgpu.vgpr x8>) -> %t1_889 as reg<amdgpu.vgpr x8>
+  low.schedule.fence
+  %t1_864 = low.op<amdgpu.ds_read_u16>(%t1_a_read_base) {offset = 2912} memory_access([0, 3, 60, -1, 3, 0, 0, 0, 0, 0, 0, 0, 0]) : (reg<amdgpu.vgpr>) -> reg<amdgpu.vgpr>
+  low.schedule.fence
+  %t1_865 = low.op<amdgpu.ds_load_u16_d16_hi>(%t1_864, %t1_a_read_base) {offset = 3040} memory_access([0, 3, 60, -1, 3, 0, 0, 0, 0, 0, 0, 0, 0]) : (reg<amdgpu.vgpr>, reg<amdgpu.vgpr>) -> %t1_864 as reg<amdgpu.vgpr>
+  low.schedule.fence
+  %t1_866 = low.op<amdgpu.ds_read_u16>(%t1_a_read_base) {offset = 3168} memory_access([0, 3, 60, -1, 3, 0, 0, 0, 0, 0, 0, 0, 0]) : (reg<amdgpu.vgpr>) -> reg<amdgpu.vgpr>
+  low.schedule.fence
+  %t1_867 = low.op<amdgpu.ds_load_u16_d16_hi>(%t1_866, %t1_a_read_base) {offset = 3296} memory_access([0, 3, 60, -1, 3, 0, 0, 0, 0, 0, 0, 0, 0]) : (reg<amdgpu.vgpr>, reg<amdgpu.vgpr>) -> %t1_866 as reg<amdgpu.vgpr>
+  low.schedule.fence
+  %t1_868 = low.op<amdgpu.ds_read_u16>(%t1_a_read_base) {offset = 3424} memory_access([0, 3, 60, -1, 3, 0, 0, 0, 0, 0, 0, 0, 0]) : (reg<amdgpu.vgpr>) -> reg<amdgpu.vgpr>
+  low.schedule.fence
+  %t1_869 = low.op<amdgpu.ds_load_u16_d16_hi>(%t1_868, %t1_a_read_base) {offset = 3552} memory_access([0, 3, 60, -1, 3, 0, 0, 0, 0, 0, 0, 0, 0]) : (reg<amdgpu.vgpr>, reg<amdgpu.vgpr>) -> %t1_868 as reg<amdgpu.vgpr>
+  low.schedule.fence
+  %t1_870 = low.op<amdgpu.ds_read_u16>(%t1_a_read_base) {offset = 3680} memory_access([0, 3, 60, -1, 3, 0, 0, 0, 0, 0, 0, 0, 0]) : (reg<amdgpu.vgpr>) -> reg<amdgpu.vgpr>
+  low.schedule.fence
+  %t1_875 = low.copy %t1_out2 : reg<amdgpu.vgpr x8> -> reg<amdgpu.vgpr x8>
+  %t1_even_first_acc2 = low.op<amdgpu.v_wmma_f32_16x16x16_bf16>(%t1_cur_rhs2, %t1_cur_lhs0, %t1_875) : (reg<amdgpu.vgpr x8>, reg<amdgpu.vgpr x8>, reg<amdgpu.vgpr x8>) -> %t1_875 as reg<amdgpu.vgpr x8>
+  low.schedule.fence
+  %t1_871 = low.op<amdgpu.ds_load_u16_d16_hi>(%t1_870, %t1_a_read_base) {offset = 3808} memory_access([0, 3, 60, -1, 3, 0, 0, 0, 0, 0, 0, 0, 0]) : (reg<amdgpu.vgpr>, reg<amdgpu.vgpr>) -> %t1_870 as reg<amdgpu.vgpr>
+  low.schedule.fence
+  %t1_872 = low.op<amdgpu.ds_read_u16>(%t1_a_read_base) {offset = 3936} memory_access([0, 3, 60, -1, 3, 0, 0, 0, 0, 0, 0, 0, 0]) : (reg<amdgpu.vgpr>) -> reg<amdgpu.vgpr>
+  low.schedule.fence
+  %t1_873 = low.op<amdgpu.ds_load_u16_d16_hi>(%t1_872, %t1_a_read_base) {offset = 4064} memory_access([0, 3, 60, -1, 3, 0, 0, 0, 0, 0, 0, 0, 0]) : (reg<amdgpu.vgpr>, reg<amdgpu.vgpr>) -> %t1_872 as reg<amdgpu.vgpr>
+  low.schedule.fence
+  %t1_even_second_lhs1 = low.concat(%t1_859, %t1_861, %t1_863, %t1_865, %t1_867, %t1_869, %t1_871, %t1_873) : (reg<amdgpu.vgpr>, reg<amdgpu.vgpr>, reg<amdgpu.vgpr>, reg<amdgpu.vgpr>, reg<amdgpu.vgpr>, reg<amdgpu.vgpr>, reg<amdgpu.vgpr>, reg<amdgpu.vgpr>) -> reg<amdgpu.vgpr x8>
+  %t1_886 = low.op<amdgpu.ds_read_b128>(%t1_b_read_base) {offset = 6816} memory_access([0, 3, 60, -1, 3, 0, 0, 0, 0, 0, 0, 0, 0]) : (reg<amdgpu.vgpr>) -> reg<amdgpu.vgpr x4>
+  low.schedule.fence
+  %t1_887 = low.op<amdgpu.ds_read_b128>(%t1_b_read_base) {offset = 6832} memory_access([0, 3, 60, -1, 3, 0, 0, 0, 0, 0, 0, 0, 0]) : (reg<amdgpu.vgpr>) -> reg<amdgpu.vgpr x4>
+  low.schedule.fence
+  %t1_even_second_rhs1 = low.concat(%t1_886, %t1_887) : (reg<amdgpu.vgpr x4>, reg<amdgpu.vgpr x4>) -> reg<amdgpu.vgpr x8>
+  %t1_891 = low.op<amdgpu.ds_read_b128>(%t1_b_read_base) {offset = 9376} memory_access([0, 3, 60, -1, 3, 0, 0, 0, 0, 0, 0, 0, 0]) : (reg<amdgpu.vgpr>) -> reg<amdgpu.vgpr x4>
+  low.schedule.fence
+  %t1_892 = low.op<amdgpu.ds_read_b128>(%t1_b_read_base) {offset = 9392} memory_access([0, 3, 60, -1, 3, 0, 0, 0, 0, 0, 0, 0, 0]) : (reg<amdgpu.vgpr>) -> reg<amdgpu.vgpr x4>
+  low.schedule.fence
+  %t1_even_second_rhs2 = low.concat(%t1_891, %t1_892) : (reg<amdgpu.vgpr x4>, reg<amdgpu.vgpr x4>) -> reg<amdgpu.vgpr x8>
+  %t1_next_a_read_base = low.op<amdgpu.v_xor_b32.lit>(%t1_a_read_base) {imm32 = 16384} : (reg<amdgpu.vgpr>) -> reg<amdgpu.vgpr>
+  low.schedule.fence
+  %t1_next_b_read_base = low.op<amdgpu.v_xor_b32.lit>(%t1_b_read_base) {imm32 = 16384} : (reg<amdgpu.vgpr>) -> reg<amdgpu.vgpr>
+  low.schedule.fence
+  %t1_894 = low.copy %t1_out5 : reg<amdgpu.vgpr x8> -> reg<amdgpu.vgpr x8>
+  %t1_even_first_acc5 = low.op<amdgpu.v_wmma_f32_16x16x16_bf16>(%t1_cur_rhs2, %t1_cur_lhs1, %t1_894) : (reg<amdgpu.vgpr x8>, reg<amdgpu.vgpr x8>, reg<amdgpu.vgpr x8>) -> %t1_894 as reg<amdgpu.vgpr x8>
+  low.schedule.fence
+  low.op<amdgpu.s_waitcnt>() {lgkmcnt = 0, vmcnt = 63} : ()
+  low.schedule.fence
+  low.op<amdgpu.s_waitcnt>() {lgkmcnt = 0, vmcnt = 63} : ()
+  low.schedule.fence
+  low.op<amdgpu.s_barrier>() : ()
+  low.op<amdgpu.s_waitcnt>() {lgkmcnt = 0, vmcnt = 63} : ()
+  low.schedule.fence
+  low.schedule.fence
+  %t1_986 = low.copy %t1_even_first_acc0 : reg<amdgpu.vgpr x8> -> reg<amdgpu.vgpr x8>
+  %t1_even_second_acc0 = low.op<amdgpu.v_wmma_f32_16x16x16_bf16>(%t1_even_second_rhs0, %t1_even_second_lhs0, %t1_986) : (reg<amdgpu.vgpr x8>, reg<amdgpu.vgpr x8>, reg<amdgpu.vgpr x8>) -> %t1_986 as reg<amdgpu.vgpr x8>
+  low.schedule.fence
+  %t1_991 = low.op<amdgpu.ds_read_u16>(%t1_next_a_read_base) {offset = 0} memory_access([0, 3, 60, -1, 3, 0, 0, 0, 0, 0, 0, 0, 0]) : (reg<amdgpu.vgpr>) -> reg<amdgpu.vgpr>
+  low.schedule.fence
+  %t1_992 = low.op<amdgpu.ds_load_u16_d16_hi>(%t1_991, %t1_next_a_read_base) {offset = 128} memory_access([0, 3, 60, -1, 3, 0, 0, 0, 0, 0, 0, 0, 0]) : (reg<amdgpu.vgpr>, reg<amdgpu.vgpr>) -> %t1_991 as reg<amdgpu.vgpr>
+  low.schedule.fence
+  %t1_993 = low.op<amdgpu.ds_read_u16>(%t1_next_a_read_base) {offset = 256} memory_access([0, 3, 60, -1, 3, 0, 0, 0, 0, 0, 0, 0, 0]) : (reg<amdgpu.vgpr>) -> reg<amdgpu.vgpr>
+  low.schedule.fence
+  %t1_994 = low.op<amdgpu.ds_load_u16_d16_hi>(%t1_993, %t1_next_a_read_base) {offset = 384} memory_access([0, 3, 60, -1, 3, 0, 0, 0, 0, 0, 0, 0, 0]) : (reg<amdgpu.vgpr>, reg<amdgpu.vgpr>) -> %t1_993 as reg<amdgpu.vgpr>
+  low.schedule.fence
+  %t1_995 = low.op<amdgpu.ds_read_u16>(%t1_next_a_read_base) {offset = 512} memory_access([0, 3, 60, -1, 3, 0, 0, 0, 0, 0, 0, 0, 0]) : (reg<amdgpu.vgpr>) -> reg<amdgpu.vgpr>
+  low.schedule.fence
+  %t1_996 = low.op<amdgpu.ds_load_u16_d16_hi>(%t1_995, %t1_next_a_read_base) {offset = 640} memory_access([0, 3, 60, -1, 3, 0, 0, 0, 0, 0, 0, 0, 0]) : (reg<amdgpu.vgpr>, reg<amdgpu.vgpr>) -> %t1_995 as reg<amdgpu.vgpr>
+  low.schedule.fence
+  %t1_997 = low.op<amdgpu.ds_read_u16>(%t1_next_a_read_base) {offset = 768} memory_access([0, 3, 60, -1, 3, 0, 0, 0, 0, 0, 0, 0, 0]) : (reg<amdgpu.vgpr>) -> reg<amdgpu.vgpr>
+  low.schedule.fence
+  %t1_998 = low.op<amdgpu.ds_load_u16_d16_hi>(%t1_997, %t1_next_a_read_base) {offset = 896} memory_access([0, 3, 60, -1, 3, 0, 0, 0, 0, 0, 0, 0, 0]) : (reg<amdgpu.vgpr>, reg<amdgpu.vgpr>) -> %t1_997 as reg<amdgpu.vgpr>
+  low.schedule.fence
+  %t1_1036 = low.copy %t1_even_first_acc3 : reg<amdgpu.vgpr x8> -> reg<amdgpu.vgpr x8>
+  %t1_even_second_acc3 = low.op<amdgpu.v_wmma_f32_16x16x16_bf16>(%t1_even_second_rhs0, %t1_even_second_lhs1, %t1_1036) : (reg<amdgpu.vgpr x8>, reg<amdgpu.vgpr x8>, reg<amdgpu.vgpr x8>) -> %t1_1036 as reg<amdgpu.vgpr x8>
+  low.schedule.fence
+  %t1_999 = low.op<amdgpu.ds_read_u16>(%t1_next_a_read_base) {offset = 1024} memory_access([0, 3, 60, -1, 3, 0, 0, 0, 0, 0, 0, 0, 0]) : (reg<amdgpu.vgpr>) -> reg<amdgpu.vgpr>
+  low.schedule.fence
+  %t1_1000 = low.op<amdgpu.ds_load_u16_d16_hi>(%t1_999, %t1_next_a_read_base) {offset = 1152} memory_access([0, 3, 60, -1, 3, 0, 0, 0, 0, 0, 0, 0, 0]) : (reg<amdgpu.vgpr>, reg<amdgpu.vgpr>) -> %t1_999 as reg<amdgpu.vgpr>
+  low.schedule.fence
+  %t1_1001 = low.op<amdgpu.ds_read_u16>(%t1_next_a_read_base) {offset = 1280} memory_access([0, 3, 60, -1, 3, 0, 0, 0, 0, 0, 0, 0, 0]) : (reg<amdgpu.vgpr>) -> reg<amdgpu.vgpr>
+  low.schedule.fence
+  %t1_1002 = low.op<amdgpu.ds_load_u16_d16_hi>(%t1_1001, %t1_next_a_read_base) {offset = 1408} memory_access([0, 3, 60, -1, 3, 0, 0, 0, 0, 0, 0, 0, 0]) : (reg<amdgpu.vgpr>, reg<amdgpu.vgpr>) -> %t1_1001 as reg<amdgpu.vgpr>
+  low.schedule.fence
+  %t1_1003 = low.op<amdgpu.ds_read_u16>(%t1_next_a_read_base) {offset = 1536} memory_access([0, 3, 60, -1, 3, 0, 0, 0, 0, 0, 0, 0, 0]) : (reg<amdgpu.vgpr>) -> reg<amdgpu.vgpr>
+  low.schedule.fence
+  %t1_1004 = low.op<amdgpu.ds_load_u16_d16_hi>(%t1_1003, %t1_next_a_read_base) {offset = 1664} memory_access([0, 3, 60, -1, 3, 0, 0, 0, 0, 0, 0, 0, 0]) : (reg<amdgpu.vgpr>, reg<amdgpu.vgpr>) -> %t1_1003 as reg<amdgpu.vgpr>
+  low.schedule.fence
+  %t1_1005 = low.op<amdgpu.ds_read_u16>(%t1_next_a_read_base) {offset = 1792} memory_access([0, 3, 60, -1, 3, 0, 0, 0, 0, 0, 0, 0, 0]) : (reg<amdgpu.vgpr>) -> reg<amdgpu.vgpr>
+  low.schedule.fence
+  %t1_1006 = low.op<amdgpu.ds_load_u16_d16_hi>(%t1_1005, %t1_next_a_read_base) {offset = 1920} memory_access([0, 3, 60, -1, 3, 0, 0, 0, 0, 0, 0, 0, 0]) : (reg<amdgpu.vgpr>, reg<amdgpu.vgpr>) -> %t1_1005 as reg<amdgpu.vgpr>
+  low.schedule.fence
+  %t1_odd_first_lhs0 = low.concat(%t1_992, %t1_994, %t1_996, %t1_998, %t1_1000, %t1_1002, %t1_1004, %t1_1006) : (reg<amdgpu.vgpr>, reg<amdgpu.vgpr>, reg<amdgpu.vgpr>, reg<amdgpu.vgpr>, reg<amdgpu.vgpr>, reg<amdgpu.vgpr>, reg<amdgpu.vgpr>, reg<amdgpu.vgpr>) -> reg<amdgpu.vgpr x8>
+  %t1_1008 = low.copy %t1_even_first_acc1 : reg<amdgpu.vgpr x8> -> reg<amdgpu.vgpr x8>
+  %t1_even_second_acc1 = low.op<amdgpu.v_wmma_f32_16x16x16_bf16>(%t1_even_second_rhs1, %t1_even_second_lhs0, %t1_1008) : (reg<amdgpu.vgpr x8>, reg<amdgpu.vgpr x8>, reg<amdgpu.vgpr x8>) -> %t1_1008 as reg<amdgpu.vgpr x8>
+  low.schedule.fence
+  %t1_1033 = low.op<amdgpu.ds_read_b128>(%t1_next_b_read_base) {offset = 4224} memory_access([0, 3, 60, -1, 3, 0, 0, 0, 0, 0, 0, 0, 0]) : (reg<amdgpu.vgpr>) -> reg<amdgpu.vgpr x4>
+  low.schedule.fence
+  %t1_1034 = low.op<amdgpu.ds_read_b128>(%t1_next_b_read_base) {offset = 4240} memory_access([0, 3, 60, -1, 3, 0, 0, 0, 0, 0, 0, 0, 0]) : (reg<amdgpu.vgpr>) -> reg<amdgpu.vgpr x4>
+  low.schedule.fence
+  %t1_odd_first_rhs0 = low.concat(%t1_1033, %t1_1034) : (reg<amdgpu.vgpr x4>, reg<amdgpu.vgpr x4>) -> reg<amdgpu.vgpr x8>
+  %t1_1010 = low.op<amdgpu.ds_read_u16>(%t1_next_a_read_base) {offset = 64} memory_access([0, 3, 60, -1, 3, 0, 0, 0, 0, 0, 0, 0, 0]) : (reg<amdgpu.vgpr>) -> reg<amdgpu.vgpr>
+  low.schedule.fence
+  %t1_1011 = low.op<amdgpu.ds_load_u16_d16_hi>(%t1_1010, %t1_next_a_read_base) {offset = 192} memory_access([0, 3, 60, -1, 3, 0, 0, 0, 0, 0, 0, 0, 0]) : (reg<amdgpu.vgpr>, reg<amdgpu.vgpr>) -> %t1_1010 as reg<amdgpu.vgpr>
+  low.schedule.fence
+  %t1_1012 = low.op<amdgpu.ds_read_u16>(%t1_next_a_read_base) {offset = 320} memory_access([0, 3, 60, -1, 3, 0, 0, 0, 0, 0, 0, 0, 0]) : (reg<amdgpu.vgpr>) -> reg<amdgpu.vgpr>
+  low.schedule.fence
+  %t1_1013 = low.op<amdgpu.ds_load_u16_d16_hi>(%t1_1012, %t1_next_a_read_base) {offset = 448} memory_access([0, 3, 60, -1, 3, 0, 0, 0, 0, 0, 0, 0, 0]) : (reg<amdgpu.vgpr>, reg<amdgpu.vgpr>) -> %t1_1012 as reg<amdgpu.vgpr>
+  low.schedule.fence
+  %t1_1014 = low.op<amdgpu.ds_read_u16>(%t1_next_a_read_base) {offset = 576} memory_access([0, 3, 60, -1, 3, 0, 0, 0, 0, 0, 0, 0, 0]) : (reg<amdgpu.vgpr>) -> reg<amdgpu.vgpr>
+  low.schedule.fence
+  %t1_1015 = low.op<amdgpu.ds_load_u16_d16_hi>(%t1_1014, %t1_next_a_read_base) {offset = 704} memory_access([0, 3, 60, -1, 3, 0, 0, 0, 0, 0, 0, 0, 0]) : (reg<amdgpu.vgpr>, reg<amdgpu.vgpr>) -> %t1_1014 as reg<amdgpu.vgpr>
+  low.schedule.fence
+  %t1_1041 = low.copy %t1_even_first_acc4 : reg<amdgpu.vgpr x8> -> reg<amdgpu.vgpr x8>
+  %t1_even_second_acc4 = low.op<amdgpu.v_wmma_f32_16x16x16_bf16>(%t1_even_second_rhs1, %t1_even_second_lhs1, %t1_1041) : (reg<amdgpu.vgpr x8>, reg<amdgpu.vgpr x8>, reg<amdgpu.vgpr x8>) -> %t1_1041 as reg<amdgpu.vgpr x8>
+  low.schedule.fence
+  %t1_1016 = low.op<amdgpu.ds_read_u16>(%t1_next_a_read_base) {offset = 832} memory_access([0, 3, 60, -1, 3, 0, 0, 0, 0, 0, 0, 0, 0]) : (reg<amdgpu.vgpr>) -> reg<amdgpu.vgpr>
+  low.schedule.fence
+  %t1_1017 = low.op<amdgpu.ds_load_u16_d16_hi>(%t1_1016, %t1_next_a_read_base) {offset = 960} memory_access([0, 3, 60, -1, 3, 0, 0, 0, 0, 0, 0, 0, 0]) : (reg<amdgpu.vgpr>, reg<amdgpu.vgpr>) -> %t1_1016 as reg<amdgpu.vgpr>
+  low.schedule.fence
+  %t1_1018 = low.op<amdgpu.ds_read_u16>(%t1_next_a_read_base) {offset = 1088} memory_access([0, 3, 60, -1, 3, 0, 0, 0, 0, 0, 0, 0, 0]) : (reg<amdgpu.vgpr>) -> reg<amdgpu.vgpr>
+  low.schedule.fence
+  %t1_1019 = low.op<amdgpu.ds_load_u16_d16_hi>(%t1_1018, %t1_next_a_read_base) {offset = 1216} memory_access([0, 3, 60, -1, 3, 0, 0, 0, 0, 0, 0, 0, 0]) : (reg<amdgpu.vgpr>, reg<amdgpu.vgpr>) -> %t1_1018 as reg<amdgpu.vgpr>
+  low.schedule.fence
+  %t1_1020 = low.op<amdgpu.ds_read_u16>(%t1_next_a_read_base) {offset = 1344} memory_access([0, 3, 60, -1, 3, 0, 0, 0, 0, 0, 0, 0, 0]) : (reg<amdgpu.vgpr>) -> reg<amdgpu.vgpr>
+  low.schedule.fence
+  %t1_1021 = low.op<amdgpu.ds_load_u16_d16_hi>(%t1_1020, %t1_next_a_read_base) {offset = 1472} memory_access([0, 3, 60, -1, 3, 0, 0, 0, 0, 0, 0, 0, 0]) : (reg<amdgpu.vgpr>, reg<amdgpu.vgpr>) -> %t1_1020 as reg<amdgpu.vgpr>
+  low.schedule.fence
+  %t1_1022 = low.op<amdgpu.ds_read_u16>(%t1_next_a_read_base) {offset = 1600} memory_access([0, 3, 60, -1, 3, 0, 0, 0, 0, 0, 0, 0, 0]) : (reg<amdgpu.vgpr>) -> reg<amdgpu.vgpr>
+  low.schedule.fence
+  %t1_1027 = low.copy %t1_even_first_acc2 : reg<amdgpu.vgpr x8> -> reg<amdgpu.vgpr x8>
+  %t1_even_second_acc2 = low.op<amdgpu.v_wmma_f32_16x16x16_bf16>(%t1_even_second_rhs2, %t1_even_second_lhs0, %t1_1027) : (reg<amdgpu.vgpr x8>, reg<amdgpu.vgpr x8>, reg<amdgpu.vgpr x8>) -> %t1_1027 as reg<amdgpu.vgpr x8>
+  low.schedule.fence
+  %t1_1023 = low.op<amdgpu.ds_load_u16_d16_hi>(%t1_1022, %t1_next_a_read_base) {offset = 1728} memory_access([0, 3, 60, -1, 3, 0, 0, 0, 0, 0, 0, 0, 0]) : (reg<amdgpu.vgpr>, reg<amdgpu.vgpr>) -> %t1_1022 as reg<amdgpu.vgpr>
+  low.schedule.fence
+  %t1_1024 = low.op<amdgpu.ds_read_u16>(%t1_next_a_read_base) {offset = 1856} memory_access([0, 3, 60, -1, 3, 0, 0, 0, 0, 0, 0, 0, 0]) : (reg<amdgpu.vgpr>) -> reg<amdgpu.vgpr>
+  low.schedule.fence
+  %t1_1025 = low.op<amdgpu.ds_load_u16_d16_hi>(%t1_1024, %t1_next_a_read_base) {offset = 1984} memory_access([0, 3, 60, -1, 3, 0, 0, 0, 0, 0, 0, 0, 0]) : (reg<amdgpu.vgpr>, reg<amdgpu.vgpr>) -> %t1_1024 as reg<amdgpu.vgpr>
+  low.schedule.fence
+  %t1_odd_first_lhs1 = low.concat(%t1_1011, %t1_1013, %t1_1015, %t1_1017, %t1_1019, %t1_1021, %t1_1023, %t1_1025) : (reg<amdgpu.vgpr>, reg<amdgpu.vgpr>, reg<amdgpu.vgpr>, reg<amdgpu.vgpr>, reg<amdgpu.vgpr>, reg<amdgpu.vgpr>, reg<amdgpu.vgpr>, reg<amdgpu.vgpr>) -> reg<amdgpu.vgpr x8>
+  %t1_1038 = low.op<amdgpu.ds_read_b128>(%t1_next_b_read_base) {offset = 6784} memory_access([0, 3, 60, -1, 3, 0, 0, 0, 0, 0, 0, 0, 0]) : (reg<amdgpu.vgpr>) -> reg<amdgpu.vgpr x4>
+  low.schedule.fence
+  %t1_1039 = low.op<amdgpu.ds_read_b128>(%t1_next_b_read_base) {offset = 6800} memory_access([0, 3, 60, -1, 3, 0, 0, 0, 0, 0, 0, 0, 0]) : (reg<amdgpu.vgpr>) -> reg<amdgpu.vgpr x4>
+  low.schedule.fence
+  %t1_odd_first_rhs1 = low.concat(%t1_1038, %t1_1039) : (reg<amdgpu.vgpr x4>, reg<amdgpu.vgpr x4>) -> reg<amdgpu.vgpr x8>
+  %t1_1043 = low.op<amdgpu.ds_read_b128>(%t1_next_b_read_base) {offset = 9344} memory_access([0, 3, 60, -1, 3, 0, 0, 0, 0, 0, 0, 0, 0]) : (reg<amdgpu.vgpr>) -> reg<amdgpu.vgpr x4>
+  low.schedule.fence
+  %t1_1044 = low.op<amdgpu.ds_read_b128>(%t1_next_b_read_base) {offset = 9360} memory_access([0, 3, 60, -1, 3, 0, 0, 0, 0, 0, 0, 0, 0]) : (reg<amdgpu.vgpr>) -> reg<amdgpu.vgpr x4>
+  low.schedule.fence
+  %t1_odd_first_rhs2 = low.concat(%t1_1043, %t1_1044) : (reg<amdgpu.vgpr x4>, reg<amdgpu.vgpr x4>) -> reg<amdgpu.vgpr x8>
+  %t1_1046 = low.copy %t1_even_first_acc5 : reg<amdgpu.vgpr x8> -> reg<amdgpu.vgpr x8>
+  %t1_even_second_acc5 = low.op<amdgpu.v_wmma_f32_16x16x16_bf16>(%t1_even_second_rhs2, %t1_even_second_lhs1, %t1_1046) : (reg<amdgpu.vgpr x8>, reg<amdgpu.vgpr x8>, reg<amdgpu.vgpr x8>) -> %t1_1046 as reg<amdgpu.vgpr x8>
+  low.schedule.fence
+  low.schedule.fence
+  low.br ^_bb_tail2(%t1_even_second_acc0: reg<amdgpu.vgpr x8>, %t1_even_second_acc1: reg<amdgpu.vgpr x8>, %t1_even_second_acc2: reg<amdgpu.vgpr x8>, %t1_even_second_acc3: reg<amdgpu.vgpr x8>, %t1_even_second_acc4: reg<amdgpu.vgpr x8>, %t1_even_second_acc5: reg<amdgpu.vgpr x8>, %t1_odd_first_lhs0: reg<amdgpu.vgpr x8>, %t1_odd_first_lhs1: reg<amdgpu.vgpr x8>, %t1_odd_first_rhs0: reg<amdgpu.vgpr x8>, %t1_odd_first_rhs1: reg<amdgpu.vgpr x8>, %t1_odd_first_rhs2: reg<amdgpu.vgpr x8>, %t1_next_a_read_base: reg<amdgpu.vgpr>, %t1_next_b_read_base: reg<amdgpu.vgpr>)
+^_bb_tail2(%t2_out0: reg<amdgpu.vgpr x8>, %t2_out1: reg<amdgpu.vgpr x8>, %t2_out2: reg<amdgpu.vgpr x8>, %t2_out3: reg<amdgpu.vgpr x8>, %t2_out4: reg<amdgpu.vgpr x8>, %t2_out5: reg<amdgpu.vgpr x8>, %t2_cur_lhs0: reg<amdgpu.vgpr x8>, %t2_cur_lhs1: reg<amdgpu.vgpr x8>, %t2_cur_rhs0: reg<amdgpu.vgpr x8>, %t2_cur_rhs1: reg<amdgpu.vgpr x8>, %t2_cur_rhs2: reg<amdgpu.vgpr x8>, %t2_a_read_base: reg<amdgpu.vgpr>, %t2_b_read_base: reg<amdgpu.vgpr>):
+  low.op<amdgpu.s_waitcnt>() {lgkmcnt = 4, vmcnt = 63} : ()
+  low.schedule.fence
+  %t2_827 = low.copy %t2_out0 : reg<amdgpu.vgpr x8> -> reg<amdgpu.vgpr x8>
+  %t2_even_first_acc0 = low.op<amdgpu.v_wmma_f32_16x16x16_bf16>(%t2_cur_rhs0, %t2_cur_lhs0, %t2_827) : (reg<amdgpu.vgpr x8>, reg<amdgpu.vgpr x8>, reg<amdgpu.vgpr x8>) -> %t2_827 as reg<amdgpu.vgpr x8>
+  low.schedule.fence
+  %t2_839 = low.op<amdgpu.ds_read_u16>(%t2_a_read_base) {offset = 2080} memory_access([0, 3, 60, -1, 3, 0, 0, 0, 0, 0, 0, 0, 0]) : (reg<amdgpu.vgpr>) -> reg<amdgpu.vgpr>
+  low.schedule.fence
+  %t2_840 = low.op<amdgpu.ds_load_u16_d16_hi>(%t2_839, %t2_a_read_base) {offset = 2208} memory_access([0, 3, 60, -1, 3, 0, 0, 0, 0, 0, 0, 0, 0]) : (reg<amdgpu.vgpr>, reg<amdgpu.vgpr>) -> %t2_839 as reg<amdgpu.vgpr>
+  low.schedule.fence
+  %t2_841 = low.op<amdgpu.ds_read_u16>(%t2_a_read_base) {offset = 2336} memory_access([0, 3, 60, -1, 3, 0, 0, 0, 0, 0, 0, 0, 0]) : (reg<amdgpu.vgpr>) -> reg<amdgpu.vgpr>
+  low.schedule.fence
+  %t2_842 = low.op<amdgpu.ds_load_u16_d16_hi>(%t2_841, %t2_a_read_base) {offset = 2464} memory_access([0, 3, 60, -1, 3, 0, 0, 0, 0, 0, 0, 0, 0]) : (reg<amdgpu.vgpr>, reg<amdgpu.vgpr>) -> %t2_841 as reg<amdgpu.vgpr>
+  low.schedule.fence
+  %t2_843 = low.op<amdgpu.ds_read_u16>(%t2_a_read_base) {offset = 2592} memory_access([0, 3, 60, -1, 3, 0, 0, 0, 0, 0, 0, 0, 0]) : (reg<amdgpu.vgpr>) -> reg<amdgpu.vgpr>
+  low.schedule.fence
+  %t2_844 = low.op<amdgpu.ds_load_u16_d16_hi>(%t2_843, %t2_a_read_base) {offset = 2720} memory_access([0, 3, 60, -1, 3, 0, 0, 0, 0, 0, 0, 0, 0]) : (reg<amdgpu.vgpr>, reg<amdgpu.vgpr>) -> %t2_843 as reg<amdgpu.vgpr>
+  low.schedule.fence
+  %t2_845 = low.op<amdgpu.ds_read_u16>(%t2_a_read_base) {offset = 2848} memory_access([0, 3, 60, -1, 3, 0, 0, 0, 0, 0, 0, 0, 0]) : (reg<amdgpu.vgpr>) -> reg<amdgpu.vgpr>
+  low.schedule.fence
+  %t2_846 = low.op<amdgpu.ds_load_u16_d16_hi>(%t2_845, %t2_a_read_base) {offset = 2976} memory_access([0, 3, 60, -1, 3, 0, 0, 0, 0, 0, 0, 0, 0]) : (reg<amdgpu.vgpr>, reg<amdgpu.vgpr>) -> %t2_845 as reg<amdgpu.vgpr>
+  low.schedule.fence
+  %t2_884 = low.copy %t2_out3 : reg<amdgpu.vgpr x8> -> reg<amdgpu.vgpr x8>
+  %t2_even_first_acc3 = low.op<amdgpu.v_wmma_f32_16x16x16_bf16>(%t2_cur_rhs0, %t2_cur_lhs1, %t2_884) : (reg<amdgpu.vgpr x8>, reg<amdgpu.vgpr x8>, reg<amdgpu.vgpr x8>) -> %t2_884 as reg<amdgpu.vgpr x8>
+  low.schedule.fence
+  %t2_847 = low.op<amdgpu.ds_read_u16>(%t2_a_read_base) {offset = 3104} memory_access([0, 3, 60, -1, 3, 0, 0, 0, 0, 0, 0, 0, 0]) : (reg<amdgpu.vgpr>) -> reg<amdgpu.vgpr>
+  low.schedule.fence
+  %t2_848 = low.op<amdgpu.ds_load_u16_d16_hi>(%t2_847, %t2_a_read_base) {offset = 3232} memory_access([0, 3, 60, -1, 3, 0, 0, 0, 0, 0, 0, 0, 0]) : (reg<amdgpu.vgpr>, reg<amdgpu.vgpr>) -> %t2_847 as reg<amdgpu.vgpr>
+  low.schedule.fence
+  %t2_849 = low.op<amdgpu.ds_read_u16>(%t2_a_read_base) {offset = 3360} memory_access([0, 3, 60, -1, 3, 0, 0, 0, 0, 0, 0, 0, 0]) : (reg<amdgpu.vgpr>) -> reg<amdgpu.vgpr>
+  low.schedule.fence
+  %t2_850 = low.op<amdgpu.ds_load_u16_d16_hi>(%t2_849, %t2_a_read_base) {offset = 3488} memory_access([0, 3, 60, -1, 3, 0, 0, 0, 0, 0, 0, 0, 0]) : (reg<amdgpu.vgpr>, reg<amdgpu.vgpr>) -> %t2_849 as reg<amdgpu.vgpr>
+  low.schedule.fence
+  %t2_851 = low.op<amdgpu.ds_read_u16>(%t2_a_read_base) {offset = 3616} memory_access([0, 3, 60, -1, 3, 0, 0, 0, 0, 0, 0, 0, 0]) : (reg<amdgpu.vgpr>) -> reg<amdgpu.vgpr>
+  low.schedule.fence
+  %t2_852 = low.op<amdgpu.ds_load_u16_d16_hi>(%t2_851, %t2_a_read_base) {offset = 3744} memory_access([0, 3, 60, -1, 3, 0, 0, 0, 0, 0, 0, 0, 0]) : (reg<amdgpu.vgpr>, reg<amdgpu.vgpr>) -> %t2_851 as reg<amdgpu.vgpr>
+  low.schedule.fence
+  %t2_853 = low.op<amdgpu.ds_read_u16>(%t2_a_read_base) {offset = 3872} memory_access([0, 3, 60, -1, 3, 0, 0, 0, 0, 0, 0, 0, 0]) : (reg<amdgpu.vgpr>) -> reg<amdgpu.vgpr>
+  low.schedule.fence
+  %t2_854 = low.op<amdgpu.ds_load_u16_d16_hi>(%t2_853, %t2_a_read_base) {offset = 4000} memory_access([0, 3, 60, -1, 3, 0, 0, 0, 0, 0, 0, 0, 0]) : (reg<amdgpu.vgpr>, reg<amdgpu.vgpr>) -> %t2_853 as reg<amdgpu.vgpr>
+  low.schedule.fence
+  %t2_even_second_lhs0 = low.concat(%t2_840, %t2_842, %t2_844, %t2_846, %t2_848, %t2_850, %t2_852, %t2_854) : (reg<amdgpu.vgpr>, reg<amdgpu.vgpr>, reg<amdgpu.vgpr>, reg<amdgpu.vgpr>, reg<amdgpu.vgpr>, reg<amdgpu.vgpr>, reg<amdgpu.vgpr>, reg<amdgpu.vgpr>) -> reg<amdgpu.vgpr x8>
+  low.op<amdgpu.s_waitcnt>() {lgkmcnt = 16, vmcnt = 63} : ()
+  low.schedule.fence
+  %t2_856 = low.copy %t2_out1 : reg<amdgpu.vgpr x8> -> reg<amdgpu.vgpr x8>
+  %t2_even_first_acc1 = low.op<amdgpu.v_wmma_f32_16x16x16_bf16>(%t2_cur_rhs1, %t2_cur_lhs0, %t2_856) : (reg<amdgpu.vgpr x8>, reg<amdgpu.vgpr x8>, reg<amdgpu.vgpr x8>) -> %t2_856 as reg<amdgpu.vgpr x8>
+  low.schedule.fence
+  %t2_881 = low.op<amdgpu.ds_read_b128>(%t2_b_read_base) {offset = 4256} memory_access([0, 3, 60, -1, 3, 0, 0, 0, 0, 0, 0, 0, 0]) : (reg<amdgpu.vgpr>) -> reg<amdgpu.vgpr x4>
+  low.schedule.fence
+  %t2_882 = low.op<amdgpu.ds_read_b128>(%t2_b_read_base) {offset = 4272} memory_access([0, 3, 60, -1, 3, 0, 0, 0, 0, 0, 0, 0, 0]) : (reg<amdgpu.vgpr>) -> reg<amdgpu.vgpr x4>
+  low.schedule.fence
+  %t2_even_second_rhs0 = low.concat(%t2_881, %t2_882) : (reg<amdgpu.vgpr x4>, reg<amdgpu.vgpr x4>) -> reg<amdgpu.vgpr x8>
+  %t2_858 = low.op<amdgpu.ds_read_u16>(%t2_a_read_base) {offset = 2144} memory_access([0, 3, 60, -1, 3, 0, 0, 0, 0, 0, 0, 0, 0]) : (reg<amdgpu.vgpr>) -> reg<amdgpu.vgpr>
+  low.schedule.fence
+  %t2_859 = low.op<amdgpu.ds_load_u16_d16_hi>(%t2_858, %t2_a_read_base) {offset = 2272} memory_access([0, 3, 60, -1, 3, 0, 0, 0, 0, 0, 0, 0, 0]) : (reg<amdgpu.vgpr>, reg<amdgpu.vgpr>) -> %t2_858 as reg<amdgpu.vgpr>
+  low.schedule.fence
+  %t2_860 = low.op<amdgpu.ds_read_u16>(%t2_a_read_base) {offset = 2400} memory_access([0, 3, 60, -1, 3, 0, 0, 0, 0, 0, 0, 0, 0]) : (reg<amdgpu.vgpr>) -> reg<amdgpu.vgpr>
+  low.schedule.fence
+  %t2_861 = low.op<amdgpu.ds_load_u16_d16_hi>(%t2_860, %t2_a_read_base) {offset = 2528} memory_access([0, 3, 60, -1, 3, 0, 0, 0, 0, 0, 0, 0, 0]) : (reg<amdgpu.vgpr>, reg<amdgpu.vgpr>) -> %t2_860 as reg<amdgpu.vgpr>
+  low.schedule.fence
+  %t2_862 = low.op<amdgpu.ds_read_u16>(%t2_a_read_base) {offset = 2656} memory_access([0, 3, 60, -1, 3, 0, 0, 0, 0, 0, 0, 0, 0]) : (reg<amdgpu.vgpr>) -> reg<amdgpu.vgpr>
+  low.schedule.fence
+  %t2_863 = low.op<amdgpu.ds_load_u16_d16_hi>(%t2_862, %t2_a_read_base) {offset = 2784} memory_access([0, 3, 60, -1, 3, 0, 0, 0, 0, 0, 0, 0, 0]) : (reg<amdgpu.vgpr>, reg<amdgpu.vgpr>) -> %t2_862 as reg<amdgpu.vgpr>
+  low.schedule.fence
+  %t2_889 = low.copy %t2_out4 : reg<amdgpu.vgpr x8> -> reg<amdgpu.vgpr x8>
+  %t2_even_first_acc4 = low.op<amdgpu.v_wmma_f32_16x16x16_bf16>(%t2_cur_rhs1, %t2_cur_lhs1, %t2_889) : (reg<amdgpu.vgpr x8>, reg<amdgpu.vgpr x8>, reg<amdgpu.vgpr x8>) -> %t2_889 as reg<amdgpu.vgpr x8>
+  low.schedule.fence
+  %t2_864 = low.op<amdgpu.ds_read_u16>(%t2_a_read_base) {offset = 2912} memory_access([0, 3, 60, -1, 3, 0, 0, 0, 0, 0, 0, 0, 0]) : (reg<amdgpu.vgpr>) -> reg<amdgpu.vgpr>
+  low.schedule.fence
+  %t2_865 = low.op<amdgpu.ds_load_u16_d16_hi>(%t2_864, %t2_a_read_base) {offset = 3040} memory_access([0, 3, 60, -1, 3, 0, 0, 0, 0, 0, 0, 0, 0]) : (reg<amdgpu.vgpr>, reg<amdgpu.vgpr>) -> %t2_864 as reg<amdgpu.vgpr>
+  low.schedule.fence
+  %t2_866 = low.op<amdgpu.ds_read_u16>(%t2_a_read_base) {offset = 3168} memory_access([0, 3, 60, -1, 3, 0, 0, 0, 0, 0, 0, 0, 0]) : (reg<amdgpu.vgpr>) -> reg<amdgpu.vgpr>
+  low.schedule.fence
+  %t2_867 = low.op<amdgpu.ds_load_u16_d16_hi>(%t2_866, %t2_a_read_base) {offset = 3296} memory_access([0, 3, 60, -1, 3, 0, 0, 0, 0, 0, 0, 0, 0]) : (reg<amdgpu.vgpr>, reg<amdgpu.vgpr>) -> %t2_866 as reg<amdgpu.vgpr>
+  low.schedule.fence
+  %t2_868 = low.op<amdgpu.ds_read_u16>(%t2_a_read_base) {offset = 3424} memory_access([0, 3, 60, -1, 3, 0, 0, 0, 0, 0, 0, 0, 0]) : (reg<amdgpu.vgpr>) -> reg<amdgpu.vgpr>
+  low.schedule.fence
+  %t2_869 = low.op<amdgpu.ds_load_u16_d16_hi>(%t2_868, %t2_a_read_base) {offset = 3552} memory_access([0, 3, 60, -1, 3, 0, 0, 0, 0, 0, 0, 0, 0]) : (reg<amdgpu.vgpr>, reg<amdgpu.vgpr>) -> %t2_868 as reg<amdgpu.vgpr>
+  low.schedule.fence
+  %t2_870 = low.op<amdgpu.ds_read_u16>(%t2_a_read_base) {offset = 3680} memory_access([0, 3, 60, -1, 3, 0, 0, 0, 0, 0, 0, 0, 0]) : (reg<amdgpu.vgpr>) -> reg<amdgpu.vgpr>
+  low.schedule.fence
+  %t2_875 = low.copy %t2_out2 : reg<amdgpu.vgpr x8> -> reg<amdgpu.vgpr x8>
+  %t2_even_first_acc2 = low.op<amdgpu.v_wmma_f32_16x16x16_bf16>(%t2_cur_rhs2, %t2_cur_lhs0, %t2_875) : (reg<amdgpu.vgpr x8>, reg<amdgpu.vgpr x8>, reg<amdgpu.vgpr x8>) -> %t2_875 as reg<amdgpu.vgpr x8>
+  low.schedule.fence
+  %t2_871 = low.op<amdgpu.ds_load_u16_d16_hi>(%t2_870, %t2_a_read_base) {offset = 3808} memory_access([0, 3, 60, -1, 3, 0, 0, 0, 0, 0, 0, 0, 0]) : (reg<amdgpu.vgpr>, reg<amdgpu.vgpr>) -> %t2_870 as reg<amdgpu.vgpr>
+  low.schedule.fence
+  %t2_872 = low.op<amdgpu.ds_read_u16>(%t2_a_read_base) {offset = 3936} memory_access([0, 3, 60, -1, 3, 0, 0, 0, 0, 0, 0, 0, 0]) : (reg<amdgpu.vgpr>) -> reg<amdgpu.vgpr>
+  low.schedule.fence
+  %t2_873 = low.op<amdgpu.ds_load_u16_d16_hi>(%t2_872, %t2_a_read_base) {offset = 4064} memory_access([0, 3, 60, -1, 3, 0, 0, 0, 0, 0, 0, 0, 0]) : (reg<amdgpu.vgpr>, reg<amdgpu.vgpr>) -> %t2_872 as reg<amdgpu.vgpr>
+  low.schedule.fence
+  %t2_even_second_lhs1 = low.concat(%t2_859, %t2_861, %t2_863, %t2_865, %t2_867, %t2_869, %t2_871, %t2_873) : (reg<amdgpu.vgpr>, reg<amdgpu.vgpr>, reg<amdgpu.vgpr>, reg<amdgpu.vgpr>, reg<amdgpu.vgpr>, reg<amdgpu.vgpr>, reg<amdgpu.vgpr>, reg<amdgpu.vgpr>) -> reg<amdgpu.vgpr x8>
+  %t2_886 = low.op<amdgpu.ds_read_b128>(%t2_b_read_base) {offset = 6816} memory_access([0, 3, 60, -1, 3, 0, 0, 0, 0, 0, 0, 0, 0]) : (reg<amdgpu.vgpr>) -> reg<amdgpu.vgpr x4>
+  low.schedule.fence
+  %t2_887 = low.op<amdgpu.ds_read_b128>(%t2_b_read_base) {offset = 6832} memory_access([0, 3, 60, -1, 3, 0, 0, 0, 0, 0, 0, 0, 0]) : (reg<amdgpu.vgpr>) -> reg<amdgpu.vgpr x4>
+  low.schedule.fence
+  %t2_even_second_rhs1 = low.concat(%t2_886, %t2_887) : (reg<amdgpu.vgpr x4>, reg<amdgpu.vgpr x4>) -> reg<amdgpu.vgpr x8>
+  %t2_891 = low.op<amdgpu.ds_read_b128>(%t2_b_read_base) {offset = 9376} memory_access([0, 3, 60, -1, 3, 0, 0, 0, 0, 0, 0, 0, 0]) : (reg<amdgpu.vgpr>) -> reg<amdgpu.vgpr x4>
+  low.schedule.fence
+  %t2_892 = low.op<amdgpu.ds_read_b128>(%t2_b_read_base) {offset = 9392} memory_access([0, 3, 60, -1, 3, 0, 0, 0, 0, 0, 0, 0, 0]) : (reg<amdgpu.vgpr>) -> reg<amdgpu.vgpr x4>
+  low.schedule.fence
+  %t2_even_second_rhs2 = low.concat(%t2_891, %t2_892) : (reg<amdgpu.vgpr x4>, reg<amdgpu.vgpr x4>) -> reg<amdgpu.vgpr x8>
+  %t2_894 = low.copy %t2_out5 : reg<amdgpu.vgpr x8> -> reg<amdgpu.vgpr x8>
+  %t2_even_first_acc5 = low.op<amdgpu.v_wmma_f32_16x16x16_bf16>(%t2_cur_rhs2, %t2_cur_lhs1, %t2_894) : (reg<amdgpu.vgpr x8>, reg<amdgpu.vgpr x8>, reg<amdgpu.vgpr x8>) -> %t2_894 as reg<amdgpu.vgpr x8>
+  low.schedule.fence
+  low.schedule.fence
+  %t2_986 = low.copy %t2_even_first_acc0 : reg<amdgpu.vgpr x8> -> reg<amdgpu.vgpr x8>
+  %t2_even_second_acc0 = low.op<amdgpu.v_wmma_f32_16x16x16_bf16>(%t2_even_second_rhs0, %t2_even_second_lhs0, %t2_986) : (reg<amdgpu.vgpr x8>, reg<amdgpu.vgpr x8>, reg<amdgpu.vgpr x8>) -> %t2_986 as reg<amdgpu.vgpr x8>
+  low.schedule.fence
+  %t2_1036 = low.copy %t2_even_first_acc3 : reg<amdgpu.vgpr x8> -> reg<amdgpu.vgpr x8>
+  %t2_even_second_acc3 = low.op<amdgpu.v_wmma_f32_16x16x16_bf16>(%t2_even_second_rhs0, %t2_even_second_lhs1, %t2_1036) : (reg<amdgpu.vgpr x8>, reg<amdgpu.vgpr x8>, reg<amdgpu.vgpr x8>) -> %t2_1036 as reg<amdgpu.vgpr x8>
+  low.schedule.fence
+  %t2_1008 = low.copy %t2_even_first_acc1 : reg<amdgpu.vgpr x8> -> reg<amdgpu.vgpr x8>
+  %t2_even_second_acc1 = low.op<amdgpu.v_wmma_f32_16x16x16_bf16>(%t2_even_second_rhs1, %t2_even_second_lhs0, %t2_1008) : (reg<amdgpu.vgpr x8>, reg<amdgpu.vgpr x8>, reg<amdgpu.vgpr x8>) -> %t2_1008 as reg<amdgpu.vgpr x8>
+  low.schedule.fence
+  %t2_1041 = low.copy %t2_even_first_acc4 : reg<amdgpu.vgpr x8> -> reg<amdgpu.vgpr x8>
+  %t2_even_second_acc4 = low.op<amdgpu.v_wmma_f32_16x16x16_bf16>(%t2_even_second_rhs1, %t2_even_second_lhs1, %t2_1041) : (reg<amdgpu.vgpr x8>, reg<amdgpu.vgpr x8>, reg<amdgpu.vgpr x8>) -> %t2_1041 as reg<amdgpu.vgpr x8>
+  low.schedule.fence
+  %t2_1027 = low.copy %t2_even_first_acc2 : reg<amdgpu.vgpr x8> -> reg<amdgpu.vgpr x8>
+  %t2_even_second_acc2 = low.op<amdgpu.v_wmma_f32_16x16x16_bf16>(%t2_even_second_rhs2, %t2_even_second_lhs0, %t2_1027) : (reg<amdgpu.vgpr x8>, reg<amdgpu.vgpr x8>, reg<amdgpu.vgpr x8>) -> %t2_1027 as reg<amdgpu.vgpr x8>
+  low.schedule.fence
+  %t2_1046 = low.copy %t2_even_first_acc5 : reg<amdgpu.vgpr x8> -> reg<amdgpu.vgpr x8>
+  %t2_even_second_acc5 = low.op<amdgpu.v_wmma_f32_16x16x16_bf16>(%t2_even_second_rhs2, %t2_even_second_lhs1, %t2_1046) : (reg<amdgpu.vgpr x8>, reg<amdgpu.vgpr x8>, reg<amdgpu.vgpr x8>) -> %t2_1046 as reg<amdgpu.vgpr x8>
+  low.schedule.fence
+  low.schedule.fence
+  low.br ^_bb3(%t2_even_second_acc0: reg<amdgpu.vgpr x8>, %t2_even_second_acc1: reg<amdgpu.vgpr x8>, %t2_even_second_acc2: reg<amdgpu.vgpr x8>, %t2_even_second_acc3: reg<amdgpu.vgpr x8>, %t2_even_second_acc4: reg<amdgpu.vgpr x8>, %t2_even_second_acc5: reg<amdgpu.vgpr x8>)
+^_bb3(%final_out0: reg<amdgpu.vgpr x8>, %final_out1: reg<amdgpu.vgpr x8>, %final_out2: reg<amdgpu.vgpr x8>, %final_out3: reg<amdgpu.vgpr x8>, %final_out4: reg<amdgpu.vgpr x8>, %final_out5: reg<amdgpu.vgpr x8>):
+  %native_lane_raw = low.op<amdgpu.v_and_b32.lit>(%packed_tid_saved) {imm32 = 1023} : (reg<amdgpu.vgpr>) -> reg<amdgpu.vgpr>
+  %native_lane = low.op<amdgpu.v_and_b32.src0_inline>(%native_lane_raw) {imm32 = 31} : (reg<amdgpu.vgpr>) -> reg<amdgpu.vgpr>
+  %native_wave_raw = low.op<amdgpu.v_lshrrev_b32.src0_inline>(%packed_tid_saved) {imm32 = 10} : (reg<amdgpu.vgpr>) -> reg<amdgpu.vgpr>
+  %native_wave = low.op<amdgpu.v_and_b32.lit>(%native_wave_raw) {imm32 = 1023} : (reg<amdgpu.vgpr>) -> reg<amdgpu.vgpr>
+  %native_lane_low = low.op<amdgpu.v_and_b32.src0_inline>(%native_lane) {imm32 = 15} : (reg<amdgpu.vgpr>) -> reg<amdgpu.vgpr>
+  %native_lane_low_bytes = low.op<amdgpu.v_lshlrev_b32.src0_inline>(%native_lane_low) {imm32 = 1} : (reg<amdgpu.vgpr>) -> reg<amdgpu.vgpr>
+  %native_lane_high = low.op<amdgpu.v_lshrrev_b32.src0_inline>(%native_lane) {imm32 = 4} : (reg<amdgpu.vgpr>) -> reg<amdgpu.vgpr>
+  %native_lane_high_bytes = low.op<amdgpu.v_lshlrev_b32.src0_inline>(%native_lane_high) {imm32 = 11} : (reg<amdgpu.vgpr>) -> reg<amdgpu.vgpr>
+  %native_wave_m = low.op<amdgpu.v_and_b32.src0_inline>(%native_wave) {imm32 = 1} : (reg<amdgpu.vgpr>) -> reg<amdgpu.vgpr>
+  %native_wave_m_bytes = low.op<amdgpu.v_lshlrev_b32.src0_inline>(%native_wave_m) {imm32 = 5} : (reg<amdgpu.vgpr>) -> reg<amdgpu.vgpr>
+  %native_wave_n = low.op<amdgpu.v_lshrrev_b32.src0_inline>(%native_wave) {imm32 = 1} : (reg<amdgpu.vgpr>) -> reg<amdgpu.vgpr>
+  %native_wave_n_bytes = low.op<amdgpu.v_lshlrev_b32.src0_inline>(%native_wave_n) {imm32 = 15} : (reg<amdgpu.vgpr>) -> reg<amdgpu.vgpr>
+  %native_lane_bytes = low.op<amdgpu.v_add_u32>(%native_lane_low_bytes, %native_lane_high_bytes) : (reg<amdgpu.vgpr>, reg<amdgpu.vgpr>) -> reg<amdgpu.vgpr>
+  %native_wave_bytes0 = low.op<amdgpu.v_add_u32>(%native_wave_m_bytes, %native_wave_n_bytes) : (reg<amdgpu.vgpr>, reg<amdgpu.vgpr>) -> reg<amdgpu.vgpr>
+  %native_in_tile = low.op<amdgpu.v_add_u32>(%native_lane_bytes, %native_wave_bytes0) : (reg<amdgpu.vgpr>, reg<amdgpu.vgpr>) -> reg<amdgpu.vgpr>
+  %native_wg_m_bytes = low.op<amdgpu.s_lshl_b32.rhs_inline>(%workgroup_m) {imm32 = 7} : (reg<amdgpu.sgpr>) -> reg<amdgpu.sgpr>
+  %native_wg_n_scale = low.const<amdgpu.s_mov_b32> {imm32 = 196608} : reg<amdgpu.sgpr>
+  %native_wg_n_bytes = low.op<amdgpu.s_mul_i32>(%workgroup_n, %native_wg_n_scale) : (reg<amdgpu.sgpr>, reg<amdgpu.sgpr>) -> reg<amdgpu.sgpr>
+  %native_grid_base = low.op<amdgpu.s_add_u32>(%native_wg_m_bytes, %native_wg_n_bytes) : (reg<amdgpu.sgpr>, reg<amdgpu.sgpr>) -> reg<amdgpu.sgpr>
+  %native_d_base = low.op<amdgpu.v_add_u32>(%native_grid_base, %native_in_tile) : (reg<amdgpu.sgpr>, reg<amdgpu.vgpr>) -> reg<amdgpu.vgpr>
+  %native_d_a0_e0 = low.slice %final_out0[0] : reg<amdgpu.vgpr x8> -> reg<amdgpu.vgpr>
+  %native_d_a0_e0_lsb = low.op<amdgpu.v_bfe_u32.offset_width_inline>(%native_d_a0_e0) {offset = 16, width = 1} : (reg<amdgpu.vgpr>) -> reg<amdgpu.vgpr>
+  %native_d_a0_e0_bias = low.op<amdgpu.v_add_u32.lit>(%native_d_a0_e0_lsb) {imm32 = 32767} : (reg<amdgpu.vgpr>) -> reg<amdgpu.vgpr>
+  %native_d_a0_e0_rounded = low.op<amdgpu.v_add_u32>(%native_d_a0_e0, %native_d_a0_e0_bias) : (reg<amdgpu.vgpr>, reg<amdgpu.vgpr>) -> reg<amdgpu.vgpr>
+  %native_d_a0_e0_f16 = low.op<amdgpu.v_lshrrev_b32.src0_inline>(%native_d_a0_e0_rounded) {imm32 = 16} : (reg<amdgpu.vgpr>) -> reg<amdgpu.vgpr>
+  low.op<amdgpu.global_store_b16_saddr>(%native_d_base, %native_d_a0_e0_f16, %d) {offset = 0} : (reg<amdgpu.vgpr>, reg<amdgpu.vgpr>, reg<amdgpu.sgpr x2>)
+  %native_d_a3_e0 = low.slice %final_out3[0] : reg<amdgpu.vgpr x8> -> reg<amdgpu.vgpr>
+  %native_d_a3_e0_lsb = low.op<amdgpu.v_bfe_u32.offset_width_inline>(%native_d_a3_e0) {offset = 16, width = 1} : (reg<amdgpu.vgpr>) -> reg<amdgpu.vgpr>
+  %native_d_a3_e0_bias = low.op<amdgpu.v_add_u32.lit>(%native_d_a3_e0_lsb) {imm32 = 32767} : (reg<amdgpu.vgpr>) -> reg<amdgpu.vgpr>
+  %native_d_a3_e0_rounded = low.op<amdgpu.v_add_u32>(%native_d_a3_e0, %native_d_a3_e0_bias) : (reg<amdgpu.vgpr>, reg<amdgpu.vgpr>) -> reg<amdgpu.vgpr>
+  %native_d_a3_e0_f16 = low.op<amdgpu.v_lshrrev_b32.src0_inline>(%native_d_a3_e0_rounded) {imm32 = 16} : (reg<amdgpu.vgpr>) -> reg<amdgpu.vgpr>
+  low.op<amdgpu.global_store_b16_saddr>(%native_d_base, %native_d_a3_e0_f16, %d) {offset = 64} : (reg<amdgpu.vgpr>, reg<amdgpu.vgpr>, reg<amdgpu.sgpr x2>)
+  %native_d_base_n0_e1 = low.op<amdgpu.v_add_u32.lit>(%native_d_base) {imm32 = 4096} : (reg<amdgpu.vgpr>) -> reg<amdgpu.vgpr>
+  %native_d_a0_e1 = low.slice %final_out0[1] : reg<amdgpu.vgpr x8> -> reg<amdgpu.vgpr>
+  %native_d_a0_e1_lsb = low.op<amdgpu.v_bfe_u32.offset_width_inline>(%native_d_a0_e1) {offset = 16, width = 1} : (reg<amdgpu.vgpr>) -> reg<amdgpu.vgpr>
+  %native_d_a0_e1_bias = low.op<amdgpu.v_add_u32.lit>(%native_d_a0_e1_lsb) {imm32 = 32767} : (reg<amdgpu.vgpr>) -> reg<amdgpu.vgpr>
+  %native_d_a0_e1_rounded = low.op<amdgpu.v_add_u32>(%native_d_a0_e1, %native_d_a0_e1_bias) : (reg<amdgpu.vgpr>, reg<amdgpu.vgpr>) -> reg<amdgpu.vgpr>
+  %native_d_a0_e1_f16 = low.op<amdgpu.v_lshrrev_b32.src0_inline>(%native_d_a0_e1_rounded) {imm32 = 16} : (reg<amdgpu.vgpr>) -> reg<amdgpu.vgpr>
+  low.op<amdgpu.global_store_b16_saddr>(%native_d_base_n0_e1, %native_d_a0_e1_f16, %d) {offset = 0} : (reg<amdgpu.vgpr>, reg<amdgpu.vgpr>, reg<amdgpu.sgpr x2>)
+  %native_d_a3_e1 = low.slice %final_out3[1] : reg<amdgpu.vgpr x8> -> reg<amdgpu.vgpr>
+  %native_d_a3_e1_lsb = low.op<amdgpu.v_bfe_u32.offset_width_inline>(%native_d_a3_e1) {offset = 16, width = 1} : (reg<amdgpu.vgpr>) -> reg<amdgpu.vgpr>
+  %native_d_a3_e1_bias = low.op<amdgpu.v_add_u32.lit>(%native_d_a3_e1_lsb) {imm32 = 32767} : (reg<amdgpu.vgpr>) -> reg<amdgpu.vgpr>
+  %native_d_a3_e1_rounded = low.op<amdgpu.v_add_u32>(%native_d_a3_e1, %native_d_a3_e1_bias) : (reg<amdgpu.vgpr>, reg<amdgpu.vgpr>) -> reg<amdgpu.vgpr>
+  %native_d_a3_e1_f16 = low.op<amdgpu.v_lshrrev_b32.src0_inline>(%native_d_a3_e1_rounded) {imm32 = 16} : (reg<amdgpu.vgpr>) -> reg<amdgpu.vgpr>
+  low.op<amdgpu.global_store_b16_saddr>(%native_d_base_n0_e1, %native_d_a3_e1_f16, %d) {offset = 64} : (reg<amdgpu.vgpr>, reg<amdgpu.vgpr>, reg<amdgpu.sgpr x2>)
+  %native_d_base_n0_e2 = low.op<amdgpu.v_add_u32.lit>(%native_d_base) {imm32 = 8192} : (reg<amdgpu.vgpr>) -> reg<amdgpu.vgpr>
+  %native_d_a0_e2 = low.slice %final_out0[2] : reg<amdgpu.vgpr x8> -> reg<amdgpu.vgpr>
+  %native_d_a0_e2_lsb = low.op<amdgpu.v_bfe_u32.offset_width_inline>(%native_d_a0_e2) {offset = 16, width = 1} : (reg<amdgpu.vgpr>) -> reg<amdgpu.vgpr>
+  %native_d_a0_e2_bias = low.op<amdgpu.v_add_u32.lit>(%native_d_a0_e2_lsb) {imm32 = 32767} : (reg<amdgpu.vgpr>) -> reg<amdgpu.vgpr>
+  %native_d_a0_e2_rounded = low.op<amdgpu.v_add_u32>(%native_d_a0_e2, %native_d_a0_e2_bias) : (reg<amdgpu.vgpr>, reg<amdgpu.vgpr>) -> reg<amdgpu.vgpr>
+  %native_d_a0_e2_f16 = low.op<amdgpu.v_lshrrev_b32.src0_inline>(%native_d_a0_e2_rounded) {imm32 = 16} : (reg<amdgpu.vgpr>) -> reg<amdgpu.vgpr>
+  low.op<amdgpu.global_store_b16_saddr>(%native_d_base_n0_e2, %native_d_a0_e2_f16, %d) {offset = 0} : (reg<amdgpu.vgpr>, reg<amdgpu.vgpr>, reg<amdgpu.sgpr x2>)
+  %native_d_a3_e2 = low.slice %final_out3[2] : reg<amdgpu.vgpr x8> -> reg<amdgpu.vgpr>
+  %native_d_a3_e2_lsb = low.op<amdgpu.v_bfe_u32.offset_width_inline>(%native_d_a3_e2) {offset = 16, width = 1} : (reg<amdgpu.vgpr>) -> reg<amdgpu.vgpr>
+  %native_d_a3_e2_bias = low.op<amdgpu.v_add_u32.lit>(%native_d_a3_e2_lsb) {imm32 = 32767} : (reg<amdgpu.vgpr>) -> reg<amdgpu.vgpr>
+  %native_d_a3_e2_rounded = low.op<amdgpu.v_add_u32>(%native_d_a3_e2, %native_d_a3_e2_bias) : (reg<amdgpu.vgpr>, reg<amdgpu.vgpr>) -> reg<amdgpu.vgpr>
+  %native_d_a3_e2_f16 = low.op<amdgpu.v_lshrrev_b32.src0_inline>(%native_d_a3_e2_rounded) {imm32 = 16} : (reg<amdgpu.vgpr>) -> reg<amdgpu.vgpr>
+  low.op<amdgpu.global_store_b16_saddr>(%native_d_base_n0_e2, %native_d_a3_e2_f16, %d) {offset = 64} : (reg<amdgpu.vgpr>, reg<amdgpu.vgpr>, reg<amdgpu.sgpr x2>)
+  %native_d_base_n0_e3 = low.op<amdgpu.v_add_u32.lit>(%native_d_base) {imm32 = 12288} : (reg<amdgpu.vgpr>) -> reg<amdgpu.vgpr>
+  %native_d_a0_e3 = low.slice %final_out0[3] : reg<amdgpu.vgpr x8> -> reg<amdgpu.vgpr>
+  %native_d_a0_e3_lsb = low.op<amdgpu.v_bfe_u32.offset_width_inline>(%native_d_a0_e3) {offset = 16, width = 1} : (reg<amdgpu.vgpr>) -> reg<amdgpu.vgpr>
+  %native_d_a0_e3_bias = low.op<amdgpu.v_add_u32.lit>(%native_d_a0_e3_lsb) {imm32 = 32767} : (reg<amdgpu.vgpr>) -> reg<amdgpu.vgpr>
+  %native_d_a0_e3_rounded = low.op<amdgpu.v_add_u32>(%native_d_a0_e3, %native_d_a0_e3_bias) : (reg<amdgpu.vgpr>, reg<amdgpu.vgpr>) -> reg<amdgpu.vgpr>
+  %native_d_a0_e3_f16 = low.op<amdgpu.v_lshrrev_b32.src0_inline>(%native_d_a0_e3_rounded) {imm32 = 16} : (reg<amdgpu.vgpr>) -> reg<amdgpu.vgpr>
+  low.op<amdgpu.global_store_b16_saddr>(%native_d_base_n0_e3, %native_d_a0_e3_f16, %d) {offset = 0} : (reg<amdgpu.vgpr>, reg<amdgpu.vgpr>, reg<amdgpu.sgpr x2>)
+  %native_d_a3_e3 = low.slice %final_out3[3] : reg<amdgpu.vgpr x8> -> reg<amdgpu.vgpr>
+  %native_d_a3_e3_lsb = low.op<amdgpu.v_bfe_u32.offset_width_inline>(%native_d_a3_e3) {offset = 16, width = 1} : (reg<amdgpu.vgpr>) -> reg<amdgpu.vgpr>
+  %native_d_a3_e3_bias = low.op<amdgpu.v_add_u32.lit>(%native_d_a3_e3_lsb) {imm32 = 32767} : (reg<amdgpu.vgpr>) -> reg<amdgpu.vgpr>
+  %native_d_a3_e3_rounded = low.op<amdgpu.v_add_u32>(%native_d_a3_e3, %native_d_a3_e3_bias) : (reg<amdgpu.vgpr>, reg<amdgpu.vgpr>) -> reg<amdgpu.vgpr>
+  %native_d_a3_e3_f16 = low.op<amdgpu.v_lshrrev_b32.src0_inline>(%native_d_a3_e3_rounded) {imm32 = 16} : (reg<amdgpu.vgpr>) -> reg<amdgpu.vgpr>
+  low.op<amdgpu.global_store_b16_saddr>(%native_d_base_n0_e3, %native_d_a3_e3_f16, %d) {offset = 64} : (reg<amdgpu.vgpr>, reg<amdgpu.vgpr>, reg<amdgpu.sgpr x2>)
+  %native_d_base_n0_e4 = low.op<amdgpu.v_add_u32.lit>(%native_d_base) {imm32 = 16384} : (reg<amdgpu.vgpr>) -> reg<amdgpu.vgpr>
+  %native_d_a0_e4 = low.slice %final_out0[4] : reg<amdgpu.vgpr x8> -> reg<amdgpu.vgpr>
+  %native_d_a0_e4_lsb = low.op<amdgpu.v_bfe_u32.offset_width_inline>(%native_d_a0_e4) {offset = 16, width = 1} : (reg<amdgpu.vgpr>) -> reg<amdgpu.vgpr>
+  %native_d_a0_e4_bias = low.op<amdgpu.v_add_u32.lit>(%native_d_a0_e4_lsb) {imm32 = 32767} : (reg<amdgpu.vgpr>) -> reg<amdgpu.vgpr>
+  %native_d_a0_e4_rounded = low.op<amdgpu.v_add_u32>(%native_d_a0_e4, %native_d_a0_e4_bias) : (reg<amdgpu.vgpr>, reg<amdgpu.vgpr>) -> reg<amdgpu.vgpr>
+  %native_d_a0_e4_f16 = low.op<amdgpu.v_lshrrev_b32.src0_inline>(%native_d_a0_e4_rounded) {imm32 = 16} : (reg<amdgpu.vgpr>) -> reg<amdgpu.vgpr>
+  low.op<amdgpu.global_store_b16_saddr>(%native_d_base_n0_e4, %native_d_a0_e4_f16, %d) {offset = 0} : (reg<amdgpu.vgpr>, reg<amdgpu.vgpr>, reg<amdgpu.sgpr x2>)
+  %native_d_a3_e4 = low.slice %final_out3[4] : reg<amdgpu.vgpr x8> -> reg<amdgpu.vgpr>
+  %native_d_a3_e4_lsb = low.op<amdgpu.v_bfe_u32.offset_width_inline>(%native_d_a3_e4) {offset = 16, width = 1} : (reg<amdgpu.vgpr>) -> reg<amdgpu.vgpr>
+  %native_d_a3_e4_bias = low.op<amdgpu.v_add_u32.lit>(%native_d_a3_e4_lsb) {imm32 = 32767} : (reg<amdgpu.vgpr>) -> reg<amdgpu.vgpr>
+  %native_d_a3_e4_rounded = low.op<amdgpu.v_add_u32>(%native_d_a3_e4, %native_d_a3_e4_bias) : (reg<amdgpu.vgpr>, reg<amdgpu.vgpr>) -> reg<amdgpu.vgpr>
+  %native_d_a3_e4_f16 = low.op<amdgpu.v_lshrrev_b32.src0_inline>(%native_d_a3_e4_rounded) {imm32 = 16} : (reg<amdgpu.vgpr>) -> reg<amdgpu.vgpr>
+  low.op<amdgpu.global_store_b16_saddr>(%native_d_base_n0_e4, %native_d_a3_e4_f16, %d) {offset = 64} : (reg<amdgpu.vgpr>, reg<amdgpu.vgpr>, reg<amdgpu.sgpr x2>)
+  %native_d_base_n0_e5 = low.op<amdgpu.v_add_u32.lit>(%native_d_base) {imm32 = 20480} : (reg<amdgpu.vgpr>) -> reg<amdgpu.vgpr>
+  %native_d_a0_e5 = low.slice %final_out0[5] : reg<amdgpu.vgpr x8> -> reg<amdgpu.vgpr>
+  %native_d_a0_e5_lsb = low.op<amdgpu.v_bfe_u32.offset_width_inline>(%native_d_a0_e5) {offset = 16, width = 1} : (reg<amdgpu.vgpr>) -> reg<amdgpu.vgpr>
+  %native_d_a0_e5_bias = low.op<amdgpu.v_add_u32.lit>(%native_d_a0_e5_lsb) {imm32 = 32767} : (reg<amdgpu.vgpr>) -> reg<amdgpu.vgpr>
+  %native_d_a0_e5_rounded = low.op<amdgpu.v_add_u32>(%native_d_a0_e5, %native_d_a0_e5_bias) : (reg<amdgpu.vgpr>, reg<amdgpu.vgpr>) -> reg<amdgpu.vgpr>
+  %native_d_a0_e5_f16 = low.op<amdgpu.v_lshrrev_b32.src0_inline>(%native_d_a0_e5_rounded) {imm32 = 16} : (reg<amdgpu.vgpr>) -> reg<amdgpu.vgpr>
+  low.op<amdgpu.global_store_b16_saddr>(%native_d_base_n0_e5, %native_d_a0_e5_f16, %d) {offset = 0} : (reg<amdgpu.vgpr>, reg<amdgpu.vgpr>, reg<amdgpu.sgpr x2>)
+  %native_d_a3_e5 = low.slice %final_out3[5] : reg<amdgpu.vgpr x8> -> reg<amdgpu.vgpr>
+  %native_d_a3_e5_lsb = low.op<amdgpu.v_bfe_u32.offset_width_inline>(%native_d_a3_e5) {offset = 16, width = 1} : (reg<amdgpu.vgpr>) -> reg<amdgpu.vgpr>
+  %native_d_a3_e5_bias = low.op<amdgpu.v_add_u32.lit>(%native_d_a3_e5_lsb) {imm32 = 32767} : (reg<amdgpu.vgpr>) -> reg<amdgpu.vgpr>
+  %native_d_a3_e5_rounded = low.op<amdgpu.v_add_u32>(%native_d_a3_e5, %native_d_a3_e5_bias) : (reg<amdgpu.vgpr>, reg<amdgpu.vgpr>) -> reg<amdgpu.vgpr>
+  %native_d_a3_e5_f16 = low.op<amdgpu.v_lshrrev_b32.src0_inline>(%native_d_a3_e5_rounded) {imm32 = 16} : (reg<amdgpu.vgpr>) -> reg<amdgpu.vgpr>
+  low.op<amdgpu.global_store_b16_saddr>(%native_d_base_n0_e5, %native_d_a3_e5_f16, %d) {offset = 64} : (reg<amdgpu.vgpr>, reg<amdgpu.vgpr>, reg<amdgpu.sgpr x2>)
+  %native_d_base_n0_e6 = low.op<amdgpu.v_add_u32.lit>(%native_d_base) {imm32 = 24576} : (reg<amdgpu.vgpr>) -> reg<amdgpu.vgpr>
+  %native_d_a0_e6 = low.slice %final_out0[6] : reg<amdgpu.vgpr x8> -> reg<amdgpu.vgpr>
+  %native_d_a0_e6_lsb = low.op<amdgpu.v_bfe_u32.offset_width_inline>(%native_d_a0_e6) {offset = 16, width = 1} : (reg<amdgpu.vgpr>) -> reg<amdgpu.vgpr>
+  %native_d_a0_e6_bias = low.op<amdgpu.v_add_u32.lit>(%native_d_a0_e6_lsb) {imm32 = 32767} : (reg<amdgpu.vgpr>) -> reg<amdgpu.vgpr>
+  %native_d_a0_e6_rounded = low.op<amdgpu.v_add_u32>(%native_d_a0_e6, %native_d_a0_e6_bias) : (reg<amdgpu.vgpr>, reg<amdgpu.vgpr>) -> reg<amdgpu.vgpr>
+  %native_d_a0_e6_f16 = low.op<amdgpu.v_lshrrev_b32.src0_inline>(%native_d_a0_e6_rounded) {imm32 = 16} : (reg<amdgpu.vgpr>) -> reg<amdgpu.vgpr>
+  low.op<amdgpu.global_store_b16_saddr>(%native_d_base_n0_e6, %native_d_a0_e6_f16, %d) {offset = 0} : (reg<amdgpu.vgpr>, reg<amdgpu.vgpr>, reg<amdgpu.sgpr x2>)
+  %native_d_a3_e6 = low.slice %final_out3[6] : reg<amdgpu.vgpr x8> -> reg<amdgpu.vgpr>
+  %native_d_a3_e6_lsb = low.op<amdgpu.v_bfe_u32.offset_width_inline>(%native_d_a3_e6) {offset = 16, width = 1} : (reg<amdgpu.vgpr>) -> reg<amdgpu.vgpr>
+  %native_d_a3_e6_bias = low.op<amdgpu.v_add_u32.lit>(%native_d_a3_e6_lsb) {imm32 = 32767} : (reg<amdgpu.vgpr>) -> reg<amdgpu.vgpr>
+  %native_d_a3_e6_rounded = low.op<amdgpu.v_add_u32>(%native_d_a3_e6, %native_d_a3_e6_bias) : (reg<amdgpu.vgpr>, reg<amdgpu.vgpr>) -> reg<amdgpu.vgpr>
+  %native_d_a3_e6_f16 = low.op<amdgpu.v_lshrrev_b32.src0_inline>(%native_d_a3_e6_rounded) {imm32 = 16} : (reg<amdgpu.vgpr>) -> reg<amdgpu.vgpr>
+  low.op<amdgpu.global_store_b16_saddr>(%native_d_base_n0_e6, %native_d_a3_e6_f16, %d) {offset = 64} : (reg<amdgpu.vgpr>, reg<amdgpu.vgpr>, reg<amdgpu.sgpr x2>)
+  %native_d_base_n0_e7 = low.op<amdgpu.v_add_u32.lit>(%native_d_base) {imm32 = 28672} : (reg<amdgpu.vgpr>) -> reg<amdgpu.vgpr>
+  %native_d_a0_e7 = low.slice %final_out0[7] : reg<amdgpu.vgpr x8> -> reg<amdgpu.vgpr>
+  %native_d_a0_e7_lsb = low.op<amdgpu.v_bfe_u32.offset_width_inline>(%native_d_a0_e7) {offset = 16, width = 1} : (reg<amdgpu.vgpr>) -> reg<amdgpu.vgpr>
+  %native_d_a0_e7_bias = low.op<amdgpu.v_add_u32.lit>(%native_d_a0_e7_lsb) {imm32 = 32767} : (reg<amdgpu.vgpr>) -> reg<amdgpu.vgpr>
+  %native_d_a0_e7_rounded = low.op<amdgpu.v_add_u32>(%native_d_a0_e7, %native_d_a0_e7_bias) : (reg<amdgpu.vgpr>, reg<amdgpu.vgpr>) -> reg<amdgpu.vgpr>
+  %native_d_a0_e7_f16 = low.op<amdgpu.v_lshrrev_b32.src0_inline>(%native_d_a0_e7_rounded) {imm32 = 16} : (reg<amdgpu.vgpr>) -> reg<amdgpu.vgpr>
+  low.op<amdgpu.global_store_b16_saddr>(%native_d_base_n0_e7, %native_d_a0_e7_f16, %d) {offset = 0} : (reg<amdgpu.vgpr>, reg<amdgpu.vgpr>, reg<amdgpu.sgpr x2>)
+  %native_d_a3_e7 = low.slice %final_out3[7] : reg<amdgpu.vgpr x8> -> reg<amdgpu.vgpr>
+  %native_d_a3_e7_lsb = low.op<amdgpu.v_bfe_u32.offset_width_inline>(%native_d_a3_e7) {offset = 16, width = 1} : (reg<amdgpu.vgpr>) -> reg<amdgpu.vgpr>
+  %native_d_a3_e7_bias = low.op<amdgpu.v_add_u32.lit>(%native_d_a3_e7_lsb) {imm32 = 32767} : (reg<amdgpu.vgpr>) -> reg<amdgpu.vgpr>
+  %native_d_a3_e7_rounded = low.op<amdgpu.v_add_u32>(%native_d_a3_e7, %native_d_a3_e7_bias) : (reg<amdgpu.vgpr>, reg<amdgpu.vgpr>) -> reg<amdgpu.vgpr>
+  %native_d_a3_e7_f16 = low.op<amdgpu.v_lshrrev_b32.src0_inline>(%native_d_a3_e7_rounded) {imm32 = 16} : (reg<amdgpu.vgpr>) -> reg<amdgpu.vgpr>
+  low.op<amdgpu.global_store_b16_saddr>(%native_d_base_n0_e7, %native_d_a3_e7_f16, %d) {offset = 64} : (reg<amdgpu.vgpr>, reg<amdgpu.vgpr>, reg<amdgpu.sgpr x2>)
+  %native_d_base_n1_e0 = low.op<amdgpu.v_add_u32.lit>(%native_d_base) {imm32 = 65536} : (reg<amdgpu.vgpr>) -> reg<amdgpu.vgpr>
+  %native_d_a1_e0 = low.slice %final_out1[0] : reg<amdgpu.vgpr x8> -> reg<amdgpu.vgpr>
+  %native_d_a1_e0_lsb = low.op<amdgpu.v_bfe_u32.offset_width_inline>(%native_d_a1_e0) {offset = 16, width = 1} : (reg<amdgpu.vgpr>) -> reg<amdgpu.vgpr>
+  %native_d_a1_e0_bias = low.op<amdgpu.v_add_u32.lit>(%native_d_a1_e0_lsb) {imm32 = 32767} : (reg<amdgpu.vgpr>) -> reg<amdgpu.vgpr>
+  %native_d_a1_e0_rounded = low.op<amdgpu.v_add_u32>(%native_d_a1_e0, %native_d_a1_e0_bias) : (reg<amdgpu.vgpr>, reg<amdgpu.vgpr>) -> reg<amdgpu.vgpr>
+  %native_d_a1_e0_f16 = low.op<amdgpu.v_lshrrev_b32.src0_inline>(%native_d_a1_e0_rounded) {imm32 = 16} : (reg<amdgpu.vgpr>) -> reg<amdgpu.vgpr>
+  low.op<amdgpu.global_store_b16_saddr>(%native_d_base_n1_e0, %native_d_a1_e0_f16, %d) {offset = 0} : (reg<amdgpu.vgpr>, reg<amdgpu.vgpr>, reg<amdgpu.sgpr x2>)
+  %native_d_a4_e0 = low.slice %final_out4[0] : reg<amdgpu.vgpr x8> -> reg<amdgpu.vgpr>
+  %native_d_a4_e0_lsb = low.op<amdgpu.v_bfe_u32.offset_width_inline>(%native_d_a4_e0) {offset = 16, width = 1} : (reg<amdgpu.vgpr>) -> reg<amdgpu.vgpr>
+  %native_d_a4_e0_bias = low.op<amdgpu.v_add_u32.lit>(%native_d_a4_e0_lsb) {imm32 = 32767} : (reg<amdgpu.vgpr>) -> reg<amdgpu.vgpr>
+  %native_d_a4_e0_rounded = low.op<amdgpu.v_add_u32>(%native_d_a4_e0, %native_d_a4_e0_bias) : (reg<amdgpu.vgpr>, reg<amdgpu.vgpr>) -> reg<amdgpu.vgpr>
+  %native_d_a4_e0_f16 = low.op<amdgpu.v_lshrrev_b32.src0_inline>(%native_d_a4_e0_rounded) {imm32 = 16} : (reg<amdgpu.vgpr>) -> reg<amdgpu.vgpr>
+  low.op<amdgpu.global_store_b16_saddr>(%native_d_base_n1_e0, %native_d_a4_e0_f16, %d) {offset = 64} : (reg<amdgpu.vgpr>, reg<amdgpu.vgpr>, reg<amdgpu.sgpr x2>)
+  %native_d_base_n1_e1 = low.op<amdgpu.v_add_u32.lit>(%native_d_base) {imm32 = 69632} : (reg<amdgpu.vgpr>) -> reg<amdgpu.vgpr>
+  %native_d_a1_e1 = low.slice %final_out1[1] : reg<amdgpu.vgpr x8> -> reg<amdgpu.vgpr>
+  %native_d_a1_e1_lsb = low.op<amdgpu.v_bfe_u32.offset_width_inline>(%native_d_a1_e1) {offset = 16, width = 1} : (reg<amdgpu.vgpr>) -> reg<amdgpu.vgpr>
+  %native_d_a1_e1_bias = low.op<amdgpu.v_add_u32.lit>(%native_d_a1_e1_lsb) {imm32 = 32767} : (reg<amdgpu.vgpr>) -> reg<amdgpu.vgpr>
+  %native_d_a1_e1_rounded = low.op<amdgpu.v_add_u32>(%native_d_a1_e1, %native_d_a1_e1_bias) : (reg<amdgpu.vgpr>, reg<amdgpu.vgpr>) -> reg<amdgpu.vgpr>
+  %native_d_a1_e1_f16 = low.op<amdgpu.v_lshrrev_b32.src0_inline>(%native_d_a1_e1_rounded) {imm32 = 16} : (reg<amdgpu.vgpr>) -> reg<amdgpu.vgpr>
+  low.op<amdgpu.global_store_b16_saddr>(%native_d_base_n1_e1, %native_d_a1_e1_f16, %d) {offset = 0} : (reg<amdgpu.vgpr>, reg<amdgpu.vgpr>, reg<amdgpu.sgpr x2>)
+  %native_d_a4_e1 = low.slice %final_out4[1] : reg<amdgpu.vgpr x8> -> reg<amdgpu.vgpr>
+  %native_d_a4_e1_lsb = low.op<amdgpu.v_bfe_u32.offset_width_inline>(%native_d_a4_e1) {offset = 16, width = 1} : (reg<amdgpu.vgpr>) -> reg<amdgpu.vgpr>
+  %native_d_a4_e1_bias = low.op<amdgpu.v_add_u32.lit>(%native_d_a4_e1_lsb) {imm32 = 32767} : (reg<amdgpu.vgpr>) -> reg<amdgpu.vgpr>
+  %native_d_a4_e1_rounded = low.op<amdgpu.v_add_u32>(%native_d_a4_e1, %native_d_a4_e1_bias) : (reg<amdgpu.vgpr>, reg<amdgpu.vgpr>) -> reg<amdgpu.vgpr>
+  %native_d_a4_e1_f16 = low.op<amdgpu.v_lshrrev_b32.src0_inline>(%native_d_a4_e1_rounded) {imm32 = 16} : (reg<amdgpu.vgpr>) -> reg<amdgpu.vgpr>
+  low.op<amdgpu.global_store_b16_saddr>(%native_d_base_n1_e1, %native_d_a4_e1_f16, %d) {offset = 64} : (reg<amdgpu.vgpr>, reg<amdgpu.vgpr>, reg<amdgpu.sgpr x2>)
+  %native_d_base_n1_e2 = low.op<amdgpu.v_add_u32.lit>(%native_d_base) {imm32 = 73728} : (reg<amdgpu.vgpr>) -> reg<amdgpu.vgpr>
+  %native_d_a1_e2 = low.slice %final_out1[2] : reg<amdgpu.vgpr x8> -> reg<amdgpu.vgpr>
+  %native_d_a1_e2_lsb = low.op<amdgpu.v_bfe_u32.offset_width_inline>(%native_d_a1_e2) {offset = 16, width = 1} : (reg<amdgpu.vgpr>) -> reg<amdgpu.vgpr>
+  %native_d_a1_e2_bias = low.op<amdgpu.v_add_u32.lit>(%native_d_a1_e2_lsb) {imm32 = 32767} : (reg<amdgpu.vgpr>) -> reg<amdgpu.vgpr>
+  %native_d_a1_e2_rounded = low.op<amdgpu.v_add_u32>(%native_d_a1_e2, %native_d_a1_e2_bias) : (reg<amdgpu.vgpr>, reg<amdgpu.vgpr>) -> reg<amdgpu.vgpr>
+  %native_d_a1_e2_f16 = low.op<amdgpu.v_lshrrev_b32.src0_inline>(%native_d_a1_e2_rounded) {imm32 = 16} : (reg<amdgpu.vgpr>) -> reg<amdgpu.vgpr>
+  low.op<amdgpu.global_store_b16_saddr>(%native_d_base_n1_e2, %native_d_a1_e2_f16, %d) {offset = 0} : (reg<amdgpu.vgpr>, reg<amdgpu.vgpr>, reg<amdgpu.sgpr x2>)
+  %native_d_a4_e2 = low.slice %final_out4[2] : reg<amdgpu.vgpr x8> -> reg<amdgpu.vgpr>
+  %native_d_a4_e2_lsb = low.op<amdgpu.v_bfe_u32.offset_width_inline>(%native_d_a4_e2) {offset = 16, width = 1} : (reg<amdgpu.vgpr>) -> reg<amdgpu.vgpr>
+  %native_d_a4_e2_bias = low.op<amdgpu.v_add_u32.lit>(%native_d_a4_e2_lsb) {imm32 = 32767} : (reg<amdgpu.vgpr>) -> reg<amdgpu.vgpr>
+  %native_d_a4_e2_rounded = low.op<amdgpu.v_add_u32>(%native_d_a4_e2, %native_d_a4_e2_bias) : (reg<amdgpu.vgpr>, reg<amdgpu.vgpr>) -> reg<amdgpu.vgpr>
+  %native_d_a4_e2_f16 = low.op<amdgpu.v_lshrrev_b32.src0_inline>(%native_d_a4_e2_rounded) {imm32 = 16} : (reg<amdgpu.vgpr>) -> reg<amdgpu.vgpr>
+  low.op<amdgpu.global_store_b16_saddr>(%native_d_base_n1_e2, %native_d_a4_e2_f16, %d) {offset = 64} : (reg<amdgpu.vgpr>, reg<amdgpu.vgpr>, reg<amdgpu.sgpr x2>)
+  %native_d_base_n1_e3 = low.op<amdgpu.v_add_u32.lit>(%native_d_base) {imm32 = 77824} : (reg<amdgpu.vgpr>) -> reg<amdgpu.vgpr>
+  %native_d_a1_e3 = low.slice %final_out1[3] : reg<amdgpu.vgpr x8> -> reg<amdgpu.vgpr>
+  %native_d_a1_e3_lsb = low.op<amdgpu.v_bfe_u32.offset_width_inline>(%native_d_a1_e3) {offset = 16, width = 1} : (reg<amdgpu.vgpr>) -> reg<amdgpu.vgpr>
+  %native_d_a1_e3_bias = low.op<amdgpu.v_add_u32.lit>(%native_d_a1_e3_lsb) {imm32 = 32767} : (reg<amdgpu.vgpr>) -> reg<amdgpu.vgpr>
+  %native_d_a1_e3_rounded = low.op<amdgpu.v_add_u32>(%native_d_a1_e3, %native_d_a1_e3_bias) : (reg<amdgpu.vgpr>, reg<amdgpu.vgpr>) -> reg<amdgpu.vgpr>
+  %native_d_a1_e3_f16 = low.op<amdgpu.v_lshrrev_b32.src0_inline>(%native_d_a1_e3_rounded) {imm32 = 16} : (reg<amdgpu.vgpr>) -> reg<amdgpu.vgpr>
+  low.op<amdgpu.global_store_b16_saddr>(%native_d_base_n1_e3, %native_d_a1_e3_f16, %d) {offset = 0} : (reg<amdgpu.vgpr>, reg<amdgpu.vgpr>, reg<amdgpu.sgpr x2>)
+  %native_d_a4_e3 = low.slice %final_out4[3] : reg<amdgpu.vgpr x8> -> reg<amdgpu.vgpr>
+  %native_d_a4_e3_lsb = low.op<amdgpu.v_bfe_u32.offset_width_inline>(%native_d_a4_e3) {offset = 16, width = 1} : (reg<amdgpu.vgpr>) -> reg<amdgpu.vgpr>
+  %native_d_a4_e3_bias = low.op<amdgpu.v_add_u32.lit>(%native_d_a4_e3_lsb) {imm32 = 32767} : (reg<amdgpu.vgpr>) -> reg<amdgpu.vgpr>
+  %native_d_a4_e3_rounded = low.op<amdgpu.v_add_u32>(%native_d_a4_e3, %native_d_a4_e3_bias) : (reg<amdgpu.vgpr>, reg<amdgpu.vgpr>) -> reg<amdgpu.vgpr>
+  %native_d_a4_e3_f16 = low.op<amdgpu.v_lshrrev_b32.src0_inline>(%native_d_a4_e3_rounded) {imm32 = 16} : (reg<amdgpu.vgpr>) -> reg<amdgpu.vgpr>
+  low.op<amdgpu.global_store_b16_saddr>(%native_d_base_n1_e3, %native_d_a4_e3_f16, %d) {offset = 64} : (reg<amdgpu.vgpr>, reg<amdgpu.vgpr>, reg<amdgpu.sgpr x2>)
+  %native_d_base_n1_e4 = low.op<amdgpu.v_add_u32.lit>(%native_d_base) {imm32 = 81920} : (reg<amdgpu.vgpr>) -> reg<amdgpu.vgpr>
+  %native_d_a1_e4 = low.slice %final_out1[4] : reg<amdgpu.vgpr x8> -> reg<amdgpu.vgpr>
+  %native_d_a1_e4_lsb = low.op<amdgpu.v_bfe_u32.offset_width_inline>(%native_d_a1_e4) {offset = 16, width = 1} : (reg<amdgpu.vgpr>) -> reg<amdgpu.vgpr>
+  %native_d_a1_e4_bias = low.op<amdgpu.v_add_u32.lit>(%native_d_a1_e4_lsb) {imm32 = 32767} : (reg<amdgpu.vgpr>) -> reg<amdgpu.vgpr>
+  %native_d_a1_e4_rounded = low.op<amdgpu.v_add_u32>(%native_d_a1_e4, %native_d_a1_e4_bias) : (reg<amdgpu.vgpr>, reg<amdgpu.vgpr>) -> reg<amdgpu.vgpr>
+  %native_d_a1_e4_f16 = low.op<amdgpu.v_lshrrev_b32.src0_inline>(%native_d_a1_e4_rounded) {imm32 = 16} : (reg<amdgpu.vgpr>) -> reg<amdgpu.vgpr>
+  low.op<amdgpu.global_store_b16_saddr>(%native_d_base_n1_e4, %native_d_a1_e4_f16, %d) {offset = 0} : (reg<amdgpu.vgpr>, reg<amdgpu.vgpr>, reg<amdgpu.sgpr x2>)
+  %native_d_a4_e4 = low.slice %final_out4[4] : reg<amdgpu.vgpr x8> -> reg<amdgpu.vgpr>
+  %native_d_a4_e4_lsb = low.op<amdgpu.v_bfe_u32.offset_width_inline>(%native_d_a4_e4) {offset = 16, width = 1} : (reg<amdgpu.vgpr>) -> reg<amdgpu.vgpr>
+  %native_d_a4_e4_bias = low.op<amdgpu.v_add_u32.lit>(%native_d_a4_e4_lsb) {imm32 = 32767} : (reg<amdgpu.vgpr>) -> reg<amdgpu.vgpr>
+  %native_d_a4_e4_rounded = low.op<amdgpu.v_add_u32>(%native_d_a4_e4, %native_d_a4_e4_bias) : (reg<amdgpu.vgpr>, reg<amdgpu.vgpr>) -> reg<amdgpu.vgpr>
+  %native_d_a4_e4_f16 = low.op<amdgpu.v_lshrrev_b32.src0_inline>(%native_d_a4_e4_rounded) {imm32 = 16} : (reg<amdgpu.vgpr>) -> reg<amdgpu.vgpr>
+  low.op<amdgpu.global_store_b16_saddr>(%native_d_base_n1_e4, %native_d_a4_e4_f16, %d) {offset = 64} : (reg<amdgpu.vgpr>, reg<amdgpu.vgpr>, reg<amdgpu.sgpr x2>)
+  %native_d_base_n1_e5 = low.op<amdgpu.v_add_u32.lit>(%native_d_base) {imm32 = 86016} : (reg<amdgpu.vgpr>) -> reg<amdgpu.vgpr>
+  %native_d_a1_e5 = low.slice %final_out1[5] : reg<amdgpu.vgpr x8> -> reg<amdgpu.vgpr>
+  %native_d_a1_e5_lsb = low.op<amdgpu.v_bfe_u32.offset_width_inline>(%native_d_a1_e5) {offset = 16, width = 1} : (reg<amdgpu.vgpr>) -> reg<amdgpu.vgpr>
+  %native_d_a1_e5_bias = low.op<amdgpu.v_add_u32.lit>(%native_d_a1_e5_lsb) {imm32 = 32767} : (reg<amdgpu.vgpr>) -> reg<amdgpu.vgpr>
+  %native_d_a1_e5_rounded = low.op<amdgpu.v_add_u32>(%native_d_a1_e5, %native_d_a1_e5_bias) : (reg<amdgpu.vgpr>, reg<amdgpu.vgpr>) -> reg<amdgpu.vgpr>
+  %native_d_a1_e5_f16 = low.op<amdgpu.v_lshrrev_b32.src0_inline>(%native_d_a1_e5_rounded) {imm32 = 16} : (reg<amdgpu.vgpr>) -> reg<amdgpu.vgpr>
+  low.op<amdgpu.global_store_b16_saddr>(%native_d_base_n1_e5, %native_d_a1_e5_f16, %d) {offset = 0} : (reg<amdgpu.vgpr>, reg<amdgpu.vgpr>, reg<amdgpu.sgpr x2>)
+  %native_d_a4_e5 = low.slice %final_out4[5] : reg<amdgpu.vgpr x8> -> reg<amdgpu.vgpr>
+  %native_d_a4_e5_lsb = low.op<amdgpu.v_bfe_u32.offset_width_inline>(%native_d_a4_e5) {offset = 16, width = 1} : (reg<amdgpu.vgpr>) -> reg<amdgpu.vgpr>
+  %native_d_a4_e5_bias = low.op<amdgpu.v_add_u32.lit>(%native_d_a4_e5_lsb) {imm32 = 32767} : (reg<amdgpu.vgpr>) -> reg<amdgpu.vgpr>
+  %native_d_a4_e5_rounded = low.op<amdgpu.v_add_u32>(%native_d_a4_e5, %native_d_a4_e5_bias) : (reg<amdgpu.vgpr>, reg<amdgpu.vgpr>) -> reg<amdgpu.vgpr>
+  %native_d_a4_e5_f16 = low.op<amdgpu.v_lshrrev_b32.src0_inline>(%native_d_a4_e5_rounded) {imm32 = 16} : (reg<amdgpu.vgpr>) -> reg<amdgpu.vgpr>
+  low.op<amdgpu.global_store_b16_saddr>(%native_d_base_n1_e5, %native_d_a4_e5_f16, %d) {offset = 64} : (reg<amdgpu.vgpr>, reg<amdgpu.vgpr>, reg<amdgpu.sgpr x2>)
+  %native_d_base_n1_e6 = low.op<amdgpu.v_add_u32.lit>(%native_d_base) {imm32 = 90112} : (reg<amdgpu.vgpr>) -> reg<amdgpu.vgpr>
+  %native_d_a1_e6 = low.slice %final_out1[6] : reg<amdgpu.vgpr x8> -> reg<amdgpu.vgpr>
+  %native_d_a1_e6_lsb = low.op<amdgpu.v_bfe_u32.offset_width_inline>(%native_d_a1_e6) {offset = 16, width = 1} : (reg<amdgpu.vgpr>) -> reg<amdgpu.vgpr>
+  %native_d_a1_e6_bias = low.op<amdgpu.v_add_u32.lit>(%native_d_a1_e6_lsb) {imm32 = 32767} : (reg<amdgpu.vgpr>) -> reg<amdgpu.vgpr>
+  %native_d_a1_e6_rounded = low.op<amdgpu.v_add_u32>(%native_d_a1_e6, %native_d_a1_e6_bias) : (reg<amdgpu.vgpr>, reg<amdgpu.vgpr>) -> reg<amdgpu.vgpr>
+  %native_d_a1_e6_f16 = low.op<amdgpu.v_lshrrev_b32.src0_inline>(%native_d_a1_e6_rounded) {imm32 = 16} : (reg<amdgpu.vgpr>) -> reg<amdgpu.vgpr>
+  low.op<amdgpu.global_store_b16_saddr>(%native_d_base_n1_e6, %native_d_a1_e6_f16, %d) {offset = 0} : (reg<amdgpu.vgpr>, reg<amdgpu.vgpr>, reg<amdgpu.sgpr x2>)
+  %native_d_a4_e6 = low.slice %final_out4[6] : reg<amdgpu.vgpr x8> -> reg<amdgpu.vgpr>
+  %native_d_a4_e6_lsb = low.op<amdgpu.v_bfe_u32.offset_width_inline>(%native_d_a4_e6) {offset = 16, width = 1} : (reg<amdgpu.vgpr>) -> reg<amdgpu.vgpr>
+  %native_d_a4_e6_bias = low.op<amdgpu.v_add_u32.lit>(%native_d_a4_e6_lsb) {imm32 = 32767} : (reg<amdgpu.vgpr>) -> reg<amdgpu.vgpr>
+  %native_d_a4_e6_rounded = low.op<amdgpu.v_add_u32>(%native_d_a4_e6, %native_d_a4_e6_bias) : (reg<amdgpu.vgpr>, reg<amdgpu.vgpr>) -> reg<amdgpu.vgpr>
+  %native_d_a4_e6_f16 = low.op<amdgpu.v_lshrrev_b32.src0_inline>(%native_d_a4_e6_rounded) {imm32 = 16} : (reg<amdgpu.vgpr>) -> reg<amdgpu.vgpr>
+  low.op<amdgpu.global_store_b16_saddr>(%native_d_base_n1_e6, %native_d_a4_e6_f16, %d) {offset = 64} : (reg<amdgpu.vgpr>, reg<amdgpu.vgpr>, reg<amdgpu.sgpr x2>)
+  %native_d_base_n1_e7 = low.op<amdgpu.v_add_u32.lit>(%native_d_base) {imm32 = 94208} : (reg<amdgpu.vgpr>) -> reg<amdgpu.vgpr>
+  %native_d_a1_e7 = low.slice %final_out1[7] : reg<amdgpu.vgpr x8> -> reg<amdgpu.vgpr>
+  %native_d_a1_e7_lsb = low.op<amdgpu.v_bfe_u32.offset_width_inline>(%native_d_a1_e7) {offset = 16, width = 1} : (reg<amdgpu.vgpr>) -> reg<amdgpu.vgpr>
+  %native_d_a1_e7_bias = low.op<amdgpu.v_add_u32.lit>(%native_d_a1_e7_lsb) {imm32 = 32767} : (reg<amdgpu.vgpr>) -> reg<amdgpu.vgpr>
+  %native_d_a1_e7_rounded = low.op<amdgpu.v_add_u32>(%native_d_a1_e7, %native_d_a1_e7_bias) : (reg<amdgpu.vgpr>, reg<amdgpu.vgpr>) -> reg<amdgpu.vgpr>
+  %native_d_a1_e7_f16 = low.op<amdgpu.v_lshrrev_b32.src0_inline>(%native_d_a1_e7_rounded) {imm32 = 16} : (reg<amdgpu.vgpr>) -> reg<amdgpu.vgpr>
+  low.op<amdgpu.global_store_b16_saddr>(%native_d_base_n1_e7, %native_d_a1_e7_f16, %d) {offset = 0} : (reg<amdgpu.vgpr>, reg<amdgpu.vgpr>, reg<amdgpu.sgpr x2>)
+  %native_d_a4_e7 = low.slice %final_out4[7] : reg<amdgpu.vgpr x8> -> reg<amdgpu.vgpr>
+  %native_d_a4_e7_lsb = low.op<amdgpu.v_bfe_u32.offset_width_inline>(%native_d_a4_e7) {offset = 16, width = 1} : (reg<amdgpu.vgpr>) -> reg<amdgpu.vgpr>
+  %native_d_a4_e7_bias = low.op<amdgpu.v_add_u32.lit>(%native_d_a4_e7_lsb) {imm32 = 32767} : (reg<amdgpu.vgpr>) -> reg<amdgpu.vgpr>
+  %native_d_a4_e7_rounded = low.op<amdgpu.v_add_u32>(%native_d_a4_e7, %native_d_a4_e7_bias) : (reg<amdgpu.vgpr>, reg<amdgpu.vgpr>) -> reg<amdgpu.vgpr>
+  %native_d_a4_e7_f16 = low.op<amdgpu.v_lshrrev_b32.src0_inline>(%native_d_a4_e7_rounded) {imm32 = 16} : (reg<amdgpu.vgpr>) -> reg<amdgpu.vgpr>
+  low.op<amdgpu.global_store_b16_saddr>(%native_d_base_n1_e7, %native_d_a4_e7_f16, %d) {offset = 64} : (reg<amdgpu.vgpr>, reg<amdgpu.vgpr>, reg<amdgpu.sgpr x2>)
+  %native_d_base_n2_e0 = low.op<amdgpu.v_add_u32.lit>(%native_d_base) {imm32 = 131072} : (reg<amdgpu.vgpr>) -> reg<amdgpu.vgpr>
+  %native_d_a2_e0 = low.slice %final_out2[0] : reg<amdgpu.vgpr x8> -> reg<amdgpu.vgpr>
+  %native_d_a2_e0_lsb = low.op<amdgpu.v_bfe_u32.offset_width_inline>(%native_d_a2_e0) {offset = 16, width = 1} : (reg<amdgpu.vgpr>) -> reg<amdgpu.vgpr>
+  %native_d_a2_e0_bias = low.op<amdgpu.v_add_u32.lit>(%native_d_a2_e0_lsb) {imm32 = 32767} : (reg<amdgpu.vgpr>) -> reg<amdgpu.vgpr>
+  %native_d_a2_e0_rounded = low.op<amdgpu.v_add_u32>(%native_d_a2_e0, %native_d_a2_e0_bias) : (reg<amdgpu.vgpr>, reg<amdgpu.vgpr>) -> reg<amdgpu.vgpr>
+  %native_d_a2_e0_f16 = low.op<amdgpu.v_lshrrev_b32.src0_inline>(%native_d_a2_e0_rounded) {imm32 = 16} : (reg<amdgpu.vgpr>) -> reg<amdgpu.vgpr>
+  low.op<amdgpu.global_store_b16_saddr>(%native_d_base_n2_e0, %native_d_a2_e0_f16, %d) {offset = 0} : (reg<amdgpu.vgpr>, reg<amdgpu.vgpr>, reg<amdgpu.sgpr x2>)
+  %native_d_a5_e0 = low.slice %final_out5[0] : reg<amdgpu.vgpr x8> -> reg<amdgpu.vgpr>
+  %native_d_a5_e0_lsb = low.op<amdgpu.v_bfe_u32.offset_width_inline>(%native_d_a5_e0) {offset = 16, width = 1} : (reg<amdgpu.vgpr>) -> reg<amdgpu.vgpr>
+  %native_d_a5_e0_bias = low.op<amdgpu.v_add_u32.lit>(%native_d_a5_e0_lsb) {imm32 = 32767} : (reg<amdgpu.vgpr>) -> reg<amdgpu.vgpr>
+  %native_d_a5_e0_rounded = low.op<amdgpu.v_add_u32>(%native_d_a5_e0, %native_d_a5_e0_bias) : (reg<amdgpu.vgpr>, reg<amdgpu.vgpr>) -> reg<amdgpu.vgpr>
+  %native_d_a5_e0_f16 = low.op<amdgpu.v_lshrrev_b32.src0_inline>(%native_d_a5_e0_rounded) {imm32 = 16} : (reg<amdgpu.vgpr>) -> reg<amdgpu.vgpr>
+  low.op<amdgpu.global_store_b16_saddr>(%native_d_base_n2_e0, %native_d_a5_e0_f16, %d) {offset = 64} : (reg<amdgpu.vgpr>, reg<amdgpu.vgpr>, reg<amdgpu.sgpr x2>)
+  %native_d_base_n2_e1 = low.op<amdgpu.v_add_u32.lit>(%native_d_base) {imm32 = 135168} : (reg<amdgpu.vgpr>) -> reg<amdgpu.vgpr>
+  %native_d_a2_e1 = low.slice %final_out2[1] : reg<amdgpu.vgpr x8> -> reg<amdgpu.vgpr>
+  %native_d_a2_e1_lsb = low.op<amdgpu.v_bfe_u32.offset_width_inline>(%native_d_a2_e1) {offset = 16, width = 1} : (reg<amdgpu.vgpr>) -> reg<amdgpu.vgpr>
+  %native_d_a2_e1_bias = low.op<amdgpu.v_add_u32.lit>(%native_d_a2_e1_lsb) {imm32 = 32767} : (reg<amdgpu.vgpr>) -> reg<amdgpu.vgpr>
+  %native_d_a2_e1_rounded = low.op<amdgpu.v_add_u32>(%native_d_a2_e1, %native_d_a2_e1_bias) : (reg<amdgpu.vgpr>, reg<amdgpu.vgpr>) -> reg<amdgpu.vgpr>
+  %native_d_a2_e1_f16 = low.op<amdgpu.v_lshrrev_b32.src0_inline>(%native_d_a2_e1_rounded) {imm32 = 16} : (reg<amdgpu.vgpr>) -> reg<amdgpu.vgpr>
+  low.op<amdgpu.global_store_b16_saddr>(%native_d_base_n2_e1, %native_d_a2_e1_f16, %d) {offset = 0} : (reg<amdgpu.vgpr>, reg<amdgpu.vgpr>, reg<amdgpu.sgpr x2>)
+  %native_d_a5_e1 = low.slice %final_out5[1] : reg<amdgpu.vgpr x8> -> reg<amdgpu.vgpr>
+  %native_d_a5_e1_lsb = low.op<amdgpu.v_bfe_u32.offset_width_inline>(%native_d_a5_e1) {offset = 16, width = 1} : (reg<amdgpu.vgpr>) -> reg<amdgpu.vgpr>
+  %native_d_a5_e1_bias = low.op<amdgpu.v_add_u32.lit>(%native_d_a5_e1_lsb) {imm32 = 32767} : (reg<amdgpu.vgpr>) -> reg<amdgpu.vgpr>
+  %native_d_a5_e1_rounded = low.op<amdgpu.v_add_u32>(%native_d_a5_e1, %native_d_a5_e1_bias) : (reg<amdgpu.vgpr>, reg<amdgpu.vgpr>) -> reg<amdgpu.vgpr>
+  %native_d_a5_e1_f16 = low.op<amdgpu.v_lshrrev_b32.src0_inline>(%native_d_a5_e1_rounded) {imm32 = 16} : (reg<amdgpu.vgpr>) -> reg<amdgpu.vgpr>
+  low.op<amdgpu.global_store_b16_saddr>(%native_d_base_n2_e1, %native_d_a5_e1_f16, %d) {offset = 64} : (reg<amdgpu.vgpr>, reg<amdgpu.vgpr>, reg<amdgpu.sgpr x2>)
+  %native_d_base_n2_e2 = low.op<amdgpu.v_add_u32.lit>(%native_d_base) {imm32 = 139264} : (reg<amdgpu.vgpr>) -> reg<amdgpu.vgpr>
+  %native_d_a2_e2 = low.slice %final_out2[2] : reg<amdgpu.vgpr x8> -> reg<amdgpu.vgpr>
+  %native_d_a2_e2_lsb = low.op<amdgpu.v_bfe_u32.offset_width_inline>(%native_d_a2_e2) {offset = 16, width = 1} : (reg<amdgpu.vgpr>) -> reg<amdgpu.vgpr>
+  %native_d_a2_e2_bias = low.op<amdgpu.v_add_u32.lit>(%native_d_a2_e2_lsb) {imm32 = 32767} : (reg<amdgpu.vgpr>) -> reg<amdgpu.vgpr>
+  %native_d_a2_e2_rounded = low.op<amdgpu.v_add_u32>(%native_d_a2_e2, %native_d_a2_e2_bias) : (reg<amdgpu.vgpr>, reg<amdgpu.vgpr>) -> reg<amdgpu.vgpr>
+  %native_d_a2_e2_f16 = low.op<amdgpu.v_lshrrev_b32.src0_inline>(%native_d_a2_e2_rounded) {imm32 = 16} : (reg<amdgpu.vgpr>) -> reg<amdgpu.vgpr>
+  low.op<amdgpu.global_store_b16_saddr>(%native_d_base_n2_e2, %native_d_a2_e2_f16, %d) {offset = 0} : (reg<amdgpu.vgpr>, reg<amdgpu.vgpr>, reg<amdgpu.sgpr x2>)
+  %native_d_a5_e2 = low.slice %final_out5[2] : reg<amdgpu.vgpr x8> -> reg<amdgpu.vgpr>
+  %native_d_a5_e2_lsb = low.op<amdgpu.v_bfe_u32.offset_width_inline>(%native_d_a5_e2) {offset = 16, width = 1} : (reg<amdgpu.vgpr>) -> reg<amdgpu.vgpr>
+  %native_d_a5_e2_bias = low.op<amdgpu.v_add_u32.lit>(%native_d_a5_e2_lsb) {imm32 = 32767} : (reg<amdgpu.vgpr>) -> reg<amdgpu.vgpr>
+  %native_d_a5_e2_rounded = low.op<amdgpu.v_add_u32>(%native_d_a5_e2, %native_d_a5_e2_bias) : (reg<amdgpu.vgpr>, reg<amdgpu.vgpr>) -> reg<amdgpu.vgpr>
+  %native_d_a5_e2_f16 = low.op<amdgpu.v_lshrrev_b32.src0_inline>(%native_d_a5_e2_rounded) {imm32 = 16} : (reg<amdgpu.vgpr>) -> reg<amdgpu.vgpr>
+  low.op<amdgpu.global_store_b16_saddr>(%native_d_base_n2_e2, %native_d_a5_e2_f16, %d) {offset = 64} : (reg<amdgpu.vgpr>, reg<amdgpu.vgpr>, reg<amdgpu.sgpr x2>)
+  %native_d_base_n2_e3 = low.op<amdgpu.v_add_u32.lit>(%native_d_base) {imm32 = 143360} : (reg<amdgpu.vgpr>) -> reg<amdgpu.vgpr>
+  %native_d_a2_e3 = low.slice %final_out2[3] : reg<amdgpu.vgpr x8> -> reg<amdgpu.vgpr>
+  %native_d_a2_e3_lsb = low.op<amdgpu.v_bfe_u32.offset_width_inline>(%native_d_a2_e3) {offset = 16, width = 1} : (reg<amdgpu.vgpr>) -> reg<amdgpu.vgpr>
+  %native_d_a2_e3_bias = low.op<amdgpu.v_add_u32.lit>(%native_d_a2_e3_lsb) {imm32 = 32767} : (reg<amdgpu.vgpr>) -> reg<amdgpu.vgpr>
+  %native_d_a2_e3_rounded = low.op<amdgpu.v_add_u32>(%native_d_a2_e3, %native_d_a2_e3_bias) : (reg<amdgpu.vgpr>, reg<amdgpu.vgpr>) -> reg<amdgpu.vgpr>
+  %native_d_a2_e3_f16 = low.op<amdgpu.v_lshrrev_b32.src0_inline>(%native_d_a2_e3_rounded) {imm32 = 16} : (reg<amdgpu.vgpr>) -> reg<amdgpu.vgpr>
+  low.op<amdgpu.global_store_b16_saddr>(%native_d_base_n2_e3, %native_d_a2_e3_f16, %d) {offset = 0} : (reg<amdgpu.vgpr>, reg<amdgpu.vgpr>, reg<amdgpu.sgpr x2>)
+  %native_d_a5_e3 = low.slice %final_out5[3] : reg<amdgpu.vgpr x8> -> reg<amdgpu.vgpr>
+  %native_d_a5_e3_lsb = low.op<amdgpu.v_bfe_u32.offset_width_inline>(%native_d_a5_e3) {offset = 16, width = 1} : (reg<amdgpu.vgpr>) -> reg<amdgpu.vgpr>
+  %native_d_a5_e3_bias = low.op<amdgpu.v_add_u32.lit>(%native_d_a5_e3_lsb) {imm32 = 32767} : (reg<amdgpu.vgpr>) -> reg<amdgpu.vgpr>
+  %native_d_a5_e3_rounded = low.op<amdgpu.v_add_u32>(%native_d_a5_e3, %native_d_a5_e3_bias) : (reg<amdgpu.vgpr>, reg<amdgpu.vgpr>) -> reg<amdgpu.vgpr>
+  %native_d_a5_e3_f16 = low.op<amdgpu.v_lshrrev_b32.src0_inline>(%native_d_a5_e3_rounded) {imm32 = 16} : (reg<amdgpu.vgpr>) -> reg<amdgpu.vgpr>
+  low.op<amdgpu.global_store_b16_saddr>(%native_d_base_n2_e3, %native_d_a5_e3_f16, %d) {offset = 64} : (reg<amdgpu.vgpr>, reg<amdgpu.vgpr>, reg<amdgpu.sgpr x2>)
+  %native_d_base_n2_e4 = low.op<amdgpu.v_add_u32.lit>(%native_d_base) {imm32 = 147456} : (reg<amdgpu.vgpr>) -> reg<amdgpu.vgpr>
+  %native_d_a2_e4 = low.slice %final_out2[4] : reg<amdgpu.vgpr x8> -> reg<amdgpu.vgpr>
+  %native_d_a2_e4_lsb = low.op<amdgpu.v_bfe_u32.offset_width_inline>(%native_d_a2_e4) {offset = 16, width = 1} : (reg<amdgpu.vgpr>) -> reg<amdgpu.vgpr>
+  %native_d_a2_e4_bias = low.op<amdgpu.v_add_u32.lit>(%native_d_a2_e4_lsb) {imm32 = 32767} : (reg<amdgpu.vgpr>) -> reg<amdgpu.vgpr>
+  %native_d_a2_e4_rounded = low.op<amdgpu.v_add_u32>(%native_d_a2_e4, %native_d_a2_e4_bias) : (reg<amdgpu.vgpr>, reg<amdgpu.vgpr>) -> reg<amdgpu.vgpr>
+  %native_d_a2_e4_f16 = low.op<amdgpu.v_lshrrev_b32.src0_inline>(%native_d_a2_e4_rounded) {imm32 = 16} : (reg<amdgpu.vgpr>) -> reg<amdgpu.vgpr>
+  low.op<amdgpu.global_store_b16_saddr>(%native_d_base_n2_e4, %native_d_a2_e4_f16, %d) {offset = 0} : (reg<amdgpu.vgpr>, reg<amdgpu.vgpr>, reg<amdgpu.sgpr x2>)
+  %native_d_a5_e4 = low.slice %final_out5[4] : reg<amdgpu.vgpr x8> -> reg<amdgpu.vgpr>
+  %native_d_a5_e4_lsb = low.op<amdgpu.v_bfe_u32.offset_width_inline>(%native_d_a5_e4) {offset = 16, width = 1} : (reg<amdgpu.vgpr>) -> reg<amdgpu.vgpr>
+  %native_d_a5_e4_bias = low.op<amdgpu.v_add_u32.lit>(%native_d_a5_e4_lsb) {imm32 = 32767} : (reg<amdgpu.vgpr>) -> reg<amdgpu.vgpr>
+  %native_d_a5_e4_rounded = low.op<amdgpu.v_add_u32>(%native_d_a5_e4, %native_d_a5_e4_bias) : (reg<amdgpu.vgpr>, reg<amdgpu.vgpr>) -> reg<amdgpu.vgpr>
+  %native_d_a5_e4_f16 = low.op<amdgpu.v_lshrrev_b32.src0_inline>(%native_d_a5_e4_rounded) {imm32 = 16} : (reg<amdgpu.vgpr>) -> reg<amdgpu.vgpr>
+  low.op<amdgpu.global_store_b16_saddr>(%native_d_base_n2_e4, %native_d_a5_e4_f16, %d) {offset = 64} : (reg<amdgpu.vgpr>, reg<amdgpu.vgpr>, reg<amdgpu.sgpr x2>)
+  %native_d_base_n2_e5 = low.op<amdgpu.v_add_u32.lit>(%native_d_base) {imm32 = 151552} : (reg<amdgpu.vgpr>) -> reg<amdgpu.vgpr>
+  %native_d_a2_e5 = low.slice %final_out2[5] : reg<amdgpu.vgpr x8> -> reg<amdgpu.vgpr>
+  %native_d_a2_e5_lsb = low.op<amdgpu.v_bfe_u32.offset_width_inline>(%native_d_a2_e5) {offset = 16, width = 1} : (reg<amdgpu.vgpr>) -> reg<amdgpu.vgpr>
+  %native_d_a2_e5_bias = low.op<amdgpu.v_add_u32.lit>(%native_d_a2_e5_lsb) {imm32 = 32767} : (reg<amdgpu.vgpr>) -> reg<amdgpu.vgpr>
+  %native_d_a2_e5_rounded = low.op<amdgpu.v_add_u32>(%native_d_a2_e5, %native_d_a2_e5_bias) : (reg<amdgpu.vgpr>, reg<amdgpu.vgpr>) -> reg<amdgpu.vgpr>
+  %native_d_a2_e5_f16 = low.op<amdgpu.v_lshrrev_b32.src0_inline>(%native_d_a2_e5_rounded) {imm32 = 16} : (reg<amdgpu.vgpr>) -> reg<amdgpu.vgpr>
+  low.op<amdgpu.global_store_b16_saddr>(%native_d_base_n2_e5, %native_d_a2_e5_f16, %d) {offset = 0} : (reg<amdgpu.vgpr>, reg<amdgpu.vgpr>, reg<amdgpu.sgpr x2>)
+  %native_d_a5_e5 = low.slice %final_out5[5] : reg<amdgpu.vgpr x8> -> reg<amdgpu.vgpr>
+  %native_d_a5_e5_lsb = low.op<amdgpu.v_bfe_u32.offset_width_inline>(%native_d_a5_e5) {offset = 16, width = 1} : (reg<amdgpu.vgpr>) -> reg<amdgpu.vgpr>
+  %native_d_a5_e5_bias = low.op<amdgpu.v_add_u32.lit>(%native_d_a5_e5_lsb) {imm32 = 32767} : (reg<amdgpu.vgpr>) -> reg<amdgpu.vgpr>
+  %native_d_a5_e5_rounded = low.op<amdgpu.v_add_u32>(%native_d_a5_e5, %native_d_a5_e5_bias) : (reg<amdgpu.vgpr>, reg<amdgpu.vgpr>) -> reg<amdgpu.vgpr>
+  %native_d_a5_e5_f16 = low.op<amdgpu.v_lshrrev_b32.src0_inline>(%native_d_a5_e5_rounded) {imm32 = 16} : (reg<amdgpu.vgpr>) -> reg<amdgpu.vgpr>
+  low.op<amdgpu.global_store_b16_saddr>(%native_d_base_n2_e5, %native_d_a5_e5_f16, %d) {offset = 64} : (reg<amdgpu.vgpr>, reg<amdgpu.vgpr>, reg<amdgpu.sgpr x2>)
+  %native_d_base_n2_e6 = low.op<amdgpu.v_add_u32.lit>(%native_d_base) {imm32 = 155648} : (reg<amdgpu.vgpr>) -> reg<amdgpu.vgpr>
+  %native_d_a2_e6 = low.slice %final_out2[6] : reg<amdgpu.vgpr x8> -> reg<amdgpu.vgpr>
+  %native_d_a2_e6_lsb = low.op<amdgpu.v_bfe_u32.offset_width_inline>(%native_d_a2_e6) {offset = 16, width = 1} : (reg<amdgpu.vgpr>) -> reg<amdgpu.vgpr>
+  %native_d_a2_e6_bias = low.op<amdgpu.v_add_u32.lit>(%native_d_a2_e6_lsb) {imm32 = 32767} : (reg<amdgpu.vgpr>) -> reg<amdgpu.vgpr>
+  %native_d_a2_e6_rounded = low.op<amdgpu.v_add_u32>(%native_d_a2_e6, %native_d_a2_e6_bias) : (reg<amdgpu.vgpr>, reg<amdgpu.vgpr>) -> reg<amdgpu.vgpr>
+  %native_d_a2_e6_f16 = low.op<amdgpu.v_lshrrev_b32.src0_inline>(%native_d_a2_e6_rounded) {imm32 = 16} : (reg<amdgpu.vgpr>) -> reg<amdgpu.vgpr>
+  low.op<amdgpu.global_store_b16_saddr>(%native_d_base_n2_e6, %native_d_a2_e6_f16, %d) {offset = 0} : (reg<amdgpu.vgpr>, reg<amdgpu.vgpr>, reg<amdgpu.sgpr x2>)
+  %native_d_a5_e6 = low.slice %final_out5[6] : reg<amdgpu.vgpr x8> -> reg<amdgpu.vgpr>
+  %native_d_a5_e6_lsb = low.op<amdgpu.v_bfe_u32.offset_width_inline>(%native_d_a5_e6) {offset = 16, width = 1} : (reg<amdgpu.vgpr>) -> reg<amdgpu.vgpr>
+  %native_d_a5_e6_bias = low.op<amdgpu.v_add_u32.lit>(%native_d_a5_e6_lsb) {imm32 = 32767} : (reg<amdgpu.vgpr>) -> reg<amdgpu.vgpr>
+  %native_d_a5_e6_rounded = low.op<amdgpu.v_add_u32>(%native_d_a5_e6, %native_d_a5_e6_bias) : (reg<amdgpu.vgpr>, reg<amdgpu.vgpr>) -> reg<amdgpu.vgpr>
+  %native_d_a5_e6_f16 = low.op<amdgpu.v_lshrrev_b32.src0_inline>(%native_d_a5_e6_rounded) {imm32 = 16} : (reg<amdgpu.vgpr>) -> reg<amdgpu.vgpr>
+  low.op<amdgpu.global_store_b16_saddr>(%native_d_base_n2_e6, %native_d_a5_e6_f16, %d) {offset = 64} : (reg<amdgpu.vgpr>, reg<amdgpu.vgpr>, reg<amdgpu.sgpr x2>)
+  %native_d_base_n2_e7 = low.op<amdgpu.v_add_u32.lit>(%native_d_base) {imm32 = 159744} : (reg<amdgpu.vgpr>) -> reg<amdgpu.vgpr>
+  %native_d_a2_e7 = low.slice %final_out2[7] : reg<amdgpu.vgpr x8> -> reg<amdgpu.vgpr>
+  %native_d_a2_e7_lsb = low.op<amdgpu.v_bfe_u32.offset_width_inline>(%native_d_a2_e7) {offset = 16, width = 1} : (reg<amdgpu.vgpr>) -> reg<amdgpu.vgpr>
+  %native_d_a2_e7_bias = low.op<amdgpu.v_add_u32.lit>(%native_d_a2_e7_lsb) {imm32 = 32767} : (reg<amdgpu.vgpr>) -> reg<amdgpu.vgpr>
+  %native_d_a2_e7_rounded = low.op<amdgpu.v_add_u32>(%native_d_a2_e7, %native_d_a2_e7_bias) : (reg<amdgpu.vgpr>, reg<amdgpu.vgpr>) -> reg<amdgpu.vgpr>
+  %native_d_a2_e7_f16 = low.op<amdgpu.v_lshrrev_b32.src0_inline>(%native_d_a2_e7_rounded) {imm32 = 16} : (reg<amdgpu.vgpr>) -> reg<amdgpu.vgpr>
+  low.op<amdgpu.global_store_b16_saddr>(%native_d_base_n2_e7, %native_d_a2_e7_f16, %d) {offset = 0} : (reg<amdgpu.vgpr>, reg<amdgpu.vgpr>, reg<amdgpu.sgpr x2>)
+  %native_d_a5_e7 = low.slice %final_out5[7] : reg<amdgpu.vgpr x8> -> reg<amdgpu.vgpr>
+  %native_d_a5_e7_lsb = low.op<amdgpu.v_bfe_u32.offset_width_inline>(%native_d_a5_e7) {offset = 16, width = 1} : (reg<amdgpu.vgpr>) -> reg<amdgpu.vgpr>
+  %native_d_a5_e7_bias = low.op<amdgpu.v_add_u32.lit>(%native_d_a5_e7_lsb) {imm32 = 32767} : (reg<amdgpu.vgpr>) -> reg<amdgpu.vgpr>
+  %native_d_a5_e7_rounded = low.op<amdgpu.v_add_u32>(%native_d_a5_e7, %native_d_a5_e7_bias) : (reg<amdgpu.vgpr>, reg<amdgpu.vgpr>) -> reg<amdgpu.vgpr>
+  %native_d_a5_e7_f16 = low.op<amdgpu.v_lshrrev_b32.src0_inline>(%native_d_a5_e7_rounded) {imm32 = 16} : (reg<amdgpu.vgpr>) -> reg<amdgpu.vgpr>
+  low.op<amdgpu.global_store_b16_saddr>(%native_d_base_n2_e7, %native_d_a5_e7_f16, %d) {offset = 64} : (reg<amdgpu.vgpr>, reg<amdgpu.vgpr>, reg<amdgpu.sgpr x2>)
+  low.return
+}
+
+amdgpu.target<gfx1100> @__loom_target_context_0_0 {subgroup_size = 32}

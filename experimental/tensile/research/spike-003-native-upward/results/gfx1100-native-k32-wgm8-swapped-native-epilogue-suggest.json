@@ -1,0 +1,1 @@
+{"finding_count":0,"findings":[],"kind":"loom.compile_report.suggest","provider":"amdgpu","schema_version":0,"source":"research/spike-003-native-upward/artifacts/gfx11-native-k32-wgm8-swapped-native-epilogue/report.json","status":"available","target":{"family":"AMDGPU","key":"gfx1100"}}

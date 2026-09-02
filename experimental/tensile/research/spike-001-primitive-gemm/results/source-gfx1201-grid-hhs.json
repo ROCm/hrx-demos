@@ -1,0 +1,440 @@
+{
+  "architecture": "gfx1201",
+  "devices": [
+    "Device 73f0"
+  ],
+  "encoded_size": 3861967,
+  "library_type": "GridBased",
+  "logic_row_count": 6696,
+  "minimum_required_version": {
+    "MinimumRequiredVersion": "5.0.0"
+  },
+  "problem_type": {
+    "Activation": true,
+    "ActivationComputeDataType": 0,
+    "ActivationNoGuard": false,
+    "ActivationType": "hipblaslt_all",
+    "AllowNoFreeDims": false,
+    "AssignedDerivedParameters": true,
+    "Batched": true,
+    "BetaOnlyUseBias": false,
+    "BiasDataTypeList": [
+      0,
+      4
+    ],
+    "BiasSrc": "D",
+    "ComplexConjugateA": false,
+    "ComplexConjugateB": false,
+    "ComputeDataType": 0,
+    "DataType": 4,
+    "DataTypeA": 4,
+    "DataTypeAmaxD": 0,
+    "DataTypeB": 4,
+    "DataTypeE": 4,
+    "DestDataType": 4,
+    "F32XdlMathOp": 0,
+    "Gradient": false,
+    "GroupedGemm": false,
+    "HighPrecisionAccumulate": true,
+    "Index0": 0,
+    "Index01A": 0,
+    "Index01B": 1,
+    "Index1": 1,
+    "IndexAssignmentsA": [
+      0,
+      3,
+      2
+    ],
+    "IndexAssignmentsB": [
+      3,
+      1,
+      2
+    ],
+    "IndexAssignmentsLD": [
+      4,
+      5,
+      6,
+      7
+    ],
+    "IndexAssignmentsMetadata": [
+      3,
+      0,
+      2
+    ],
+    "IndexUnroll": 3,
+    "IndexUnrollA": 1,
+    "IndexUnrollB": 0,
+    "IndexUnrollM": 0,
+    "IndicesBatch": [
+      2
+    ],
+    "IndicesFree": [
+      0,
+      1
+    ],
+    "IndicesSummation": [
+      3
+    ],
+    "MirrorDimsA": [],
+    "MirrorDimsB": [],
+    "MirrorDimsMetadata": [],
+    "NumIndicesBatch": 1,
+    "NumIndicesC": 3,
+    "NumIndicesFree": 2,
+    "NumIndicesLD": 4,
+    "NumIndicesSummation": 1,
+    "OperationType": "GEMM",
+    "OutputAmaxD": false,
+    "SetConstStrideA": [],
+    "SetConstStrideB": [],
+    "SetConstStrideBias": [],
+    "SilentHighPrecisionAccumulate": false,
+    "Sparse": 0,
+    "StochasticRounding": false,
+    "StridedBatched": true,
+    "SupportUserArgs": true,
+    "SwizzleTensorA": false,
+    "SwizzleTensorB": false,
+    "TLUA": true,
+    "TLUB": false,
+    "Tensor0": 0,
+    "Tensor1": 1,
+    "TileA": 0,
+    "TileAwareSelection": false,
+    "TileB": 1,
+    "TotalIndices": 4,
+    "TransposeA": false,
+    "TransposeB": false,
+    "UseBeta": true,
+    "UseBias": 1,
+    "UseE": false,
+    "UseInitialStridesAB": false,
+    "UseInitialStridesCD": false,
+    "UseScaleAB": "",
+    "UseScaleAlphaVec": 1,
+    "UseScaleCD": false
+  },
+  "runtime_reference": {
+    "nearest_source_solutions": [
+      {
+        "compared_field_count": 20,
+        "different_fields": [],
+        "mismatch_count": 0,
+        "source_schedule": {
+          "depth_u": 32,
+          "direct_to_vgpr_a": false,
+          "direct_to_vgpr_b": false,
+          "expert_scheduling_mode": 0,
+          "global_read_vector_width_a": 8,
+          "global_read_vector_width_b": 8,
+          "global_split_u": 1,
+          "global_write_vector_width_d": 4,
+          "local_split_u": 1,
+          "macro_tile": [
+            128,
+            128,
+            1
+          ],
+          "matrix_instruction": [
+            16,
+            16,
+            16,
+            1
+          ],
+          "prefetch_global_read": 2,
+          "source_kernel": false,
+          "vector_width_a": 4,
+          "vector_width_b": 4,
+          "wave_group": [
+            2,
+            2
+          ],
+          "wave_separate_global_read_a": 0,
+          "wave_separate_global_read_b": 0,
+          "wavefront_size": 32,
+          "work_group": [
+            32,
+            4,
+            1
+          ],
+          "work_group_mapping": 8
+        },
+        "source_solution_index": 4,
+        "source_solution_name": "Cijk_Ailk_Bljk_HHS_BH_Bias_S_HA_S_SAV_UserArgs_MT128x128x32_MI16x16x1_SN_LDSB0_AFC1_AFEM1_AFEM1_ASEM1_CLR0_CADS0_DTVA0_DTVB0_EPS0_FDSI0_GRPM1_GRVWA8_GRVWB8_GSU1_GSUAMB_GSUC0_GSUWGMRR0_GLS0_ISA1201_IU1_K1_LBSPPA2048_LBSPPB256_LBSPPM0_LPA0_LPB16_LPM0_LRVW8_LWPMn1_MIAV1_MIWT4_4_MO40_NTn1_NTA0_NTB0_NTC0_NTD0_NTM0_NEPBS0_NLCA1_NLCB1_ONLL1_PGR2_PLR0_PKA0_SIA1_SS1_SU32_SUM1_SUS256_SPO0_SRVW0_SSO0_SVW4_SK0_SKXCCM0_TLDS1_ULSGRO0_USL1_UIOFGRO0_USFGROn1_VSn1_VWA4_VWB4_WSGRA0_WSGRB0_WS32_WG32_4_1_WGM8_WGMXCC1_WGMXCCGn1"
+      },
+      {
+        "compared_field_count": 20,
+        "different_fields": [],
+        "mismatch_count": 0,
+        "source_schedule": {
+          "depth_u": 32,
+          "direct_to_vgpr_a": false,
+          "direct_to_vgpr_b": false,
+          "expert_scheduling_mode": 0,
+          "global_read_vector_width_a": 8,
+          "global_read_vector_width_b": 8,
+          "global_split_u": 1,
+          "global_write_vector_width_d": 4,
+          "local_split_u": 1,
+          "macro_tile": [
+            128,
+            128,
+            1
+          ],
+          "matrix_instruction": [
+            16,
+            16,
+            16,
+            1
+          ],
+          "prefetch_global_read": 2,
+          "source_kernel": false,
+          "vector_width_a": 4,
+          "vector_width_b": 4,
+          "wave_group": [
+            2,
+            2
+          ],
+          "wave_separate_global_read_a": 0,
+          "wave_separate_global_read_b": 0,
+          "wavefront_size": 32,
+          "work_group": [
+            32,
+            4,
+            1
+          ],
+          "work_group_mapping": 8
+        },
+        "source_solution_index": 92,
+        "source_solution_name": "Cijk_Ailk_Bljk_HHS_BH_Bias_S_HA_S_SAV_UserArgs_MT128x128x32_MI16x16x1_SN_LDSB0_AFC1_AFEM1_AFEM1_ASEM1_CLR1_CADS0_DTVA0_DTVB0_EPS0_FDSI0_GRPM1_GRVWA8_GRVWB8_GSU1_GSUAMB_GSUC0_GSUWGMRR0_GLS0_ISA1201_IU1_K1_LBSPPA2048_LBSPPB256_LBSPPM0_LPA0_LPB16_LPM0_LRVW8_LWPMn1_MIAV1_MIWT4_4_MO40_NTn1_NTA0_NTB0_NTC0_NTD0_NTM0_NEPBS0_NLCA1_NLCB1_ONLL1_PGR2_PLR0_PKA0_SIA1_SS1_SU32_SUM1_SUS256_SPO0_SRVW0_SSO0_SVW4_SK0_SKXCCM0_TLDS1_ULSGRO0_USL1_UIOFGRO0_USFGROn1_VSn1_VWA4_VWB4_WSGRA0_WSGRB0_WS32_WG32_4_1_WGM8_WGMXCC1_WGMXCCGn1"
+      },
+      {
+        "compared_field_count": 20,
+        "different_fields": [
+          "global_read_vector_width_b"
+        ],
+        "mismatch_count": 1,
+        "source_schedule": {
+          "depth_u": 32,
+          "direct_to_vgpr_a": false,
+          "direct_to_vgpr_b": false,
+          "expert_scheduling_mode": 0,
+          "global_read_vector_width_a": 8,
+          "global_read_vector_width_b": 4,
+          "global_split_u": 1,
+          "global_write_vector_width_d": 4,
+          "local_split_u": 1,
+          "macro_tile": [
+            128,
+            128,
+            1
+          ],
+          "matrix_instruction": [
+            16,
+            16,
+            16,
+            1
+          ],
+          "prefetch_global_read": 2,
+          "source_kernel": false,
+          "vector_width_a": 4,
+          "vector_width_b": 4,
+          "wave_group": [
+            2,
+            2
+          ],
+          "wave_separate_global_read_a": 0,
+          "wave_separate_global_read_b": 0,
+          "wavefront_size": 32,
+          "work_group": [
+            32,
+            4,
+            1
+          ],
+          "work_group_mapping": 8
+        },
+        "source_solution_index": 2,
+        "source_solution_name": "Cijk_Ailk_Bljk_HHS_BH_Bias_S_HA_S_SAV_UserArgs_MT128x128x32_MI16x16x1_SN_LDSB0_AFC1_AFEM1_AFEM1_ASEM1_CLR0_CADS0_DTVA0_DTVB0_EPS0_FDSI0_GRPM1_GRVWA8_GRVWB4_GSU1_GSUAMB_GSUC0_GSUWGMRR0_GLS0_ISA1201_IU1_K1_LBSPPA2048_LBSPPB256_LBSPPM0_LPA0_LPB16_LPM0_LRVW8_LWPMn1_MIAV1_MIWT4_4_MO40_NTn1_NTA0_NTB0_NTC0_NTD0_NTM0_NEPBS0_NLCA1_NLCB1_ONLL1_PGR2_PLR0_PKA0_SIA1_SS1_SU32_SUM1_SUS256_SPO0_SRVW0_SSO0_SVW4_SK0_SKXCCM0_TLDS1_ULSGRO0_USL1_UIOFGRO0_USFGROn1_VSn1_VWA4_VWB4_WSGRA0_WSGRB0_WS32_WG32_4_1_WGM8_WGMXCC1_WGMXCCGn1"
+      },
+      {
+        "compared_field_count": 20,
+        "different_fields": [
+          "expert_scheduling_mode"
+        ],
+        "mismatch_count": 1,
+        "source_schedule": {
+          "depth_u": 32,
+          "direct_to_vgpr_a": false,
+          "direct_to_vgpr_b": false,
+          "expert_scheduling_mode": 2,
+          "global_read_vector_width_a": 8,
+          "global_read_vector_width_b": 8,
+          "global_split_u": 1,
+          "global_write_vector_width_d": 4,
+          "local_split_u": 1,
+          "macro_tile": [
+            128,
+            128,
+            1
+          ],
+          "matrix_instruction": [
+            16,
+            16,
+            16,
+            1
+          ],
+          "prefetch_global_read": 2,
+          "source_kernel": false,
+          "vector_width_a": 4,
+          "vector_width_b": 4,
+          "wave_group": [
+            2,
+            2
+          ],
+          "wave_separate_global_read_a": 0,
+          "wave_separate_global_read_b": 0,
+          "wavefront_size": 32,
+          "work_group": [
+            32,
+            4,
+            1
+          ],
+          "work_group_mapping": 8
+        },
+        "source_solution_index": 63,
+        "source_solution_name": "Cijk_Ailk_Bljk_HHS_BH_Bias_S_HA_S_SAV_UserArgs_MT128x128x32_MI16x16x1_SN_LDSB1_AFC1_AFEM1_AFEM1_ASEM1_CLR1_CADS0_DTVA0_DTVB0_EPS0_FDSI0_GRPM1_GRVWA8_GRVWB8_GSU1_GSUAMB_GSUC0_GSUWGMRR0_GLS0_ISA1201_IU1_K1_LBSPPA2048_LBSPPB256_LBSPPM0_LPA0_LPB16_LPM0_LRVW8_LWPMn1_MIAV1_MIWT4_4_MO40_NTn1_NTA0_NTB0_NTC0_NTD0_NTM0_NEPBS0_NLCA1_NLCB1_ONLL1_PGR2_PLR1_PKA0_SIA3_SS1_SU32_SUM1_SUS256_SPO0_SRVW0_SSO0_SVW4_SK0_SKXCCM0_TLDS1_ULSGRO0_USL1_UIOFGRO0_USFGROn1_VSn1_VWA4_VWB4_WSGRA0_WSGRB0_WS32_WG32_4_1_WGM8_WGMXCC1_WGMXCCGn1"
+      },
+      {
+        "compared_field_count": 20,
+        "different_fields": [
+          "expert_scheduling_mode"
+        ],
+        "mismatch_count": 1,
+        "source_schedule": {
+          "depth_u": 32,
+          "direct_to_vgpr_a": false,
+          "direct_to_vgpr_b": false,
+          "expert_scheduling_mode": 2,
+          "global_read_vector_width_a": 8,
+          "global_read_vector_width_b": 8,
+          "global_split_u": 1,
+          "global_write_vector_width_d": 4,
+          "local_split_u": 1,
+          "macro_tile": [
+            128,
+            128,
+            1
+          ],
+          "matrix_instruction": [
+            16,
+            16,
+            16,
+            1
+          ],
+          "prefetch_global_read": 2,
+          "source_kernel": false,
+          "vector_width_a": 4,
+          "vector_width_b": 4,
+          "wave_group": [
+            2,
+            2
+          ],
+          "wave_separate_global_read_a": 0,
+          "wave_separate_global_read_b": 0,
+          "wavefront_size": 32,
+          "work_group": [
+            32,
+            4,
+            1
+          ],
+          "work_group_mapping": 8
+        },
+        "source_solution_index": 74,
+        "source_solution_name": "Cijk_Ailk_Bljk_HHS_BH_Bias_S_HA_S_SAV_UserArgs_MT128x128x32_MI16x16x1_SN_LDSB1_AFC1_AFEM1_AFEM1_ASEM1_CLR0_CADS0_DTVA0_DTVB0_EPS0_FDSI0_GRPM1_GRVWA8_GRVWB8_GSU1_GSUAMB_GSUC0_GSUWGMRR0_GLS0_ISA1201_IU1_K1_LBSPPA2048_LBSPPB256_LBSPPM0_LPA0_LPB16_LPM0_LRVW8_LWPMn1_MIAV1_MIWT4_4_MO40_NTn1_NTA0_NTB0_NTC0_NTD0_NTM0_NEPBS0_NLCA1_NLCB1_ONLL1_PGR2_PLR1_PKA0_SIA3_SS1_SU32_SUM1_SUS256_SPO0_SRVW0_SSO0_SVW4_SK0_SKXCCM0_TLDS1_ULSGRO0_USL1_UIOFGRO0_USFGROn1_VSn1_VWA4_VWB4_WSGRA0_WSGRB0_WS32_WG32_4_1_WGM8_WGMXCC1_WGMXCCGn1"
+      }
+    ],
+    "schedule": {
+      "depth_u": 32,
+      "direct_to_vgpr_a": false,
+      "direct_to_vgpr_b": false,
+      "expert_scheduling_mode": 0,
+      "global_read_vector_width_a": 8,
+      "global_read_vector_width_b": 8,
+      "global_split_u": 1,
+      "global_write_vector_width_d": 4,
+      "local_split_u": 1,
+      "macro_tile": [
+        128,
+        128,
+        1
+      ],
+      "matrix_instruction": [
+        16,
+        16,
+        16,
+        1
+      ],
+      "prefetch_global_read": 2,
+      "source_kernel": false,
+      "vector_width_a": 4,
+      "vector_width_b": 4,
+      "wave_group": [
+        2,
+        2
+      ],
+      "wave_separate_global_read_a": 0,
+      "wave_separate_global_read_b": 0,
+      "work_group": [
+        32,
+        4,
+        1
+      ],
+      "work_group_mapping": 8
+    },
+    "solution_index": 133222,
+    "source": "<tensile-root>/research/spike-001-primitive-gemm/results/gfx1201-bias-solutions.json"
+  },
+  "schedule_name": "gfx1201",
+  "schema": "loom-blas.tensile-yaml.v1",
+  "selected_solutions": {},
+  "sha256": "fa2fc522fc09115c4be782d9b0911959533087c3e924b1a90e11d907a83eb6ca",
+  "solution_characteristics": {
+    "depth_u": {
+      "128": 14,
+      "16": 33,
+      "32": 445,
+      "64": 25
+    },
+    "expert_scheduling_mode": {
+      "0": 218,
+      "2": 299
+    },
+    "kernel_language": {
+      "\"Assembly\"": 517
+    },
+    "macro_tile_0": {
+      "128": 104,
+      "16": 246,
+      "256": 2,
+      "32": 16,
+      "512": 1,
+      "64": 148
+    },
+    "macro_tile_1": {
+      "128": 115,
+      "16": 208,
+      "256": 2,
+      "32": 31,
+      "512": 2,
+      "64": 159
+    },
+    "matrix_instruction": {
+      "[16, 16, 16, 1]": 517
+    },
+    "wavefront_size": {
+      "32": 517
+    }
+  },
+  "solution_count": 517,
+  "source": "<workspace>/sources/TheRock/rocm-libraries/projects/hipblaslt/library/src/amd_detail/rocblaslt/src/Tensile/Logic/asm_full/gfx1201/GridBased/gfx1201_Cijk_Ailk_Bljk_HHS_BH_Bias_SHB_HA_S_SAB_SCD_SAV_UserArgs.yaml"
+}

@@ -1,0 +1,28 @@
+{
+  "schema": "loom-blas.schedule-experiment.v1",
+  "request": {"target": "gfx1100", "type": "f16", "m": 1024, "n": 1024, "k": 1024},
+  "incumbent": {
+    "library": "hipBLASLt",
+    "runtime_index": 1675,
+    "source_recipe": "hipblaslt/.../Logic/asm_full/navi33/GridBased/navi33_Cijk_Ailk_Bljk_HHS_BH_Bias_HAS_SAV_UserArgs.yaml#Solution42",
+    "schedule": {"macro_tile": [64, 96], "depth_u": 32, "workgroup": [32, 4, 1], "wave_tile": [2, 3], "pgr": 2, "plr": 1, "tlds": 1, "global_read_vector_width": [8, 8], "lds_bytes": 28288},
+    "median_us": 46.7805
+  },
+  "loom": {
+    "source": "loom/gemm-f16-f32-mt64x96x32-gfx11.loom",
+    "experiment": "carry one DepthU-ahead set of global-read vectors through the K loop; no second LDS buffer",
+    "correctness": {"mismatches": 0, "max_absolute": 0.002},
+    "resources": {"vgpr": 128, "sgpr": 26, "private_bytes_per_thread": 0, "spill_stores": 0, "reloads": 0, "modeled_wave_occupancy_percent": 62},
+    "static_mix": {"wmma": 12, "global_load": 10, "global_store": 48, "lds_operations": 129, "barriers": 2},
+    "wait_plan": {"actions": 47, "full_drains": 37, "partial_waits": 10},
+    "median_us": 82.661
+  },
+  "measurement": {
+    "samples_each": 30,
+    "launch_order": "AB/BA alternating in one process",
+    "median_ratio": 1.7669969325,
+    "bootstrap_ratio_ci95": [1.7466415269, 1.7800004288]
+  },
+  "status": "compiler_blocker",
+  "blocker": "The carried reads are legal and spill-free, but native inspection shows the steady-state global loads immediately followed by vmcnt(0). Loom's current dependency and wait planning drains for address/value reuse instead of preserving independent VMEM live ranges and issuing next-tile loads across the current WMMA/LDS work. This candidate regresses from the non-prefetched 1.65x baseline, so it is not evidence for PGR2 congruence."
+}

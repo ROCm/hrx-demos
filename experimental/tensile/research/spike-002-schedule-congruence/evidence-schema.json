@@ -1,0 +1,19 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "loom-blas.schedule-evidence.v1",
+  "type": "object",
+  "required": ["schema", "request", "environment", "incumbent", "loom", "comparison", "conclusion"],
+  "properties": {
+    "schema": {"const": "loom-blas.schedule-evidence.v1"},
+    "request": {"type": "object", "required": ["target", "type", "m", "n", "k"]},
+    "environment": {"type": "object", "required": ["device", "software", "measurement"]},
+    "incumbent": {"type": "object", "required": ["api", "solution", "routing", "native_schedule", "samples_us"]},
+    "loom": {"type": "object", "required": ["source", "config", "hsaco_sha256", "compile_report", "native_schedule", "samples_us", "correctness"]},
+    "comparison": {"type": "object", "required": ["median_ratio", "bootstrap_ci", "schedule_graph"]},
+    "conclusion": {
+      "type": "object",
+      "required": ["status", "reason"],
+      "properties": {"status": {"enum": ["congruent", "explained_delta", "compiler_blocker"]}}
+    }
+  }
+}

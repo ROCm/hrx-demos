@@ -1,0 +1,85 @@
+{
+  "schema_version": 1,
+  "target": "gfx1100",
+  "shape": [1024, 960, 1024],
+  "kernel": "gemm_f16_f32_mt64x96x32_gfx11_pgr2",
+  "source": "low/gfx11-cross-iteration-plr-split-zero-prepared.loom",
+  "baseline": {
+    "materialized_spill_storage_count": 4,
+    "private_bytes": 16,
+    "static_register_moves": 87,
+    "dynamic_register_moves": 687,
+    "branch_edge_units": 71,
+    "final_vgprs": 160
+  },
+  "scf_for_unroll_controls": [
+    {
+      "kind": "factor_2",
+      "materialized_spill_storage_count": 4,
+      "materialized_spill_storage_bytes": 16,
+      "materialized_reload_bytes": 24,
+      "private_bytes": 16,
+      "final_vgprs": 160
+    },
+    {
+      "kind": "factor_4",
+      "materialized_spill_storage_count": 49,
+      "materialized_spill_storage_bytes": 448,
+      "materialized_reload_bytes": 1304,
+      "private_bytes": 512,
+      "final_vgprs": 168
+    },
+    {
+      "kind": "factor_8",
+      "materialized_spill_storage_count": 73,
+      "materialized_spill_storage_bytes": 964,
+      "materialized_reload_bytes": 2276,
+      "private_bytes": 1076,
+      "final_vgprs": 168
+    },
+    {
+      "kind": "full",
+      "materialized_spill_storage_count": 154,
+      "materialized_spill_storage_bytes": 1008,
+      "materialized_reload_bytes": 2724,
+      "private_bytes": 1024,
+      "final_vgprs": 152
+    }
+  ],
+  "experimental_structural_recolor": {
+    "hrx_branch": "loom-blas/gfx11-structural-loop-recolor",
+    "hrx_commit": "0b70e4379",
+    "environment": {
+      "LOOM_LOW_EXPERIMENTAL_WIDE_LOOP_EDGE_RELOCATION": "1"
+    },
+    "structural_assignment_count": 43,
+    "eviction_count": 2,
+    "materialized_spill_storage_count": 4,
+    "private_bytes": 16,
+    "static_register_moves": 63,
+    "dynamic_register_moves": 303,
+    "branch_edge_units": 47,
+    "final_vgprs": 164,
+    "backedge_fragment_move_instructions": 0,
+    "runtime_validation": {
+      "status": "correct_but_not_parity",
+      "loom_median_us": 72.24,
+      "incumbent_median_us": 44.361,
+      "median_ratio": 1.6284574288226144,
+      "ratio_ci_95": [1.6187402124807064, 1.6432545045045044],
+      "sample_count": 40
+    }
+  },
+  "failed_joint_recolor": {
+    "status": "device_fault",
+    "cause": "The first implementation validated evictions independently. It relocated the active next_bv1 global-load lease to VGPRs 112-115 and then relocated the later LDS address value to VGPR 113. Their ordinary SSA intervals did not overlap, but the explicit asynchronous storage lease did.",
+    "fix": "Validate each projected relocated lease interval against structural assignments, fixed assignments, other leases, and every other proposed eviction. The corrected static artifact places next_bv1 at VGPRs 160-163 and the address at VGPR 113."
+  },
+  "validation": {
+    "compiler_build": "pass",
+    "allocation_test_targets": 20,
+    "allocation_tests_passed": 20,
+    "corrected_runtime": "pass_repeated_correctness_and_paired_timing",
+    "corrected_access_sanitizer": "blocked_prepared_low_pipeline_does_not_instrument"
+  }
+}

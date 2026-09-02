@@ -1,0 +1,172 @@
+// gfx12-family FP16 GEMM motif reconstructed from hipBLASLt solution 133222.
+//
+// This first form establishes the incumbent's macro-tile, four-wave ownership,
+// DepthU, cooperative GRVW8 global-to-LDS staging, and 4x4 WMMA accumulator
+// bank per wave. It intentionally begins with one LDS stage. PGR2 overlap and
+// the incumbent's padded/transposed B staging are follow-on schedule deltas,
+// not silently approximated here.
+amdgpu.target<gfx12-generic> @gfx12 {subgroup_size = 32}
+
+config.decl @gemm.m : %value: index where [range(%value, 128, 65536), mul(%value, 128)]
+config.decl @gemm.n : %value: index where [range(%value, 128, 65536), mul(%value, 128)]
+config.decl @gemm.k : %value: index where [range(%value, 32, 65536), mul(%value, 32)]
+
+kernel.def target(@gfx12) @gemm_f16_f32_mt128x128x32_gfx12() {
+  %m = config.get @gemm.m : index
+  %n = config.get @gemm.n : index
+  %macro_m = index.constant 128 : index
+  %macro_n = index.constant 128 : index
+  %workgroups_m = index.div %m, %macro_m : index
+  %workgroups_n = index.div %n, %macro_n : index
+  %wave_size = index.constant 32 : index
+  %wave_count = index.constant 4 : index
+  %unit = index.constant 1 : index
+  kernel.launch.config workgroups(%workgroups_n, %workgroups_m, %unit) workgroup_size(%wave_size, %wave_count, %unit) : index
+} launch(%a_buffer: buffer, %b_buffer: buffer, %c_buffer: buffer, %d_buffer: buffer) {
+  %m = config.get @gemm.m : index
+  %n = config.get @gemm.n : index
+  %k = config.get @gemm.k : index
+  %base = index.constant 0 : offset
+  %zero = index.constant 0 : index
+  %one = index.constant 1 : index
+  %two = index.constant 2 : index
+  %four = index.constant 4 : index
+  %eight = index.constant 8 : index
+  %tile = index.constant 16 : index
+  %depth_u = index.constant 32 : index
+  %wave_size = index.constant 32 : index
+  %wave_tile = index.constant 64 : index
+  %macro_tile = index.constant 128 : index
+  %load_vector_stride = index.constant 128 : index
+  %lds_bytes = index.constant 16384 : offset
+
+  %workgroup_n = kernel.workgroup.id<x> : index
+  %workgroup_m = kernel.workgroup.id<y> : index
+  %lane = kernel.workitem.id<x> : index
+  %wave = kernel.workitem.id<y> : index
+  %thread_wave_base = index.mul %wave, %wave_size : index
+  %thread = index.add %thread_wave_base, %lane : index
+  %thread_vector_base = index.mul %thread, %eight : index
+
+  // Four waves form a 2x2 grid. Each wave owns a 64x64 result region and a
+  // 4x4 bank of logical 16x16 WMMA results.
+  %wave_m_id = index.rem %wave, %two : index
+  %wave_n_id = index.div %wave, %two : index
+  %workgroup_m_base = index.mul %workgroup_m, %macro_tile : index
+  %workgroup_n_base = index.mul %workgroup_n, %macro_tile : index
+  %wave_m_delta = index.mul %wave_m_id, %wave_tile : index
+  %wave_n_delta = index.mul %wave_n_id, %wave_tile : index
+  %wave_m_base = index.add %workgroup_m_base, %wave_m_delta : index
+  %wave_n_base = index.add %workgroup_n_base, %wave_n_delta : index
+
+  %a_global = buffer.assume.memory_space<global> %a_buffer : buffer
+  %b_global = buffer.assume.memory_space<global> %b_buffer : buffer
+  %d_global = buffer.assume.memory_space<global> %d_buffer : buffer
+  %a_aligned = buffer.assume.alignment %a_global {minimum_alignment = 16} : buffer
+  %b_aligned = buffer.assume.alignment %b_global {minimum_alignment = 16} : buffer
+  %d_aligned = buffer.assume.alignment %d_global {minimum_alignment = 16} : buffer
+  %a_column_major = encoding.layout.strided [1, %m] : encoding<layout>
+  %b_column_major = encoding.layout.strided [1, %k] : encoding<layout>
+  %d_column_major = encoding.layout.strided [1, %m] : encoding<layout>
+  %a = buffer.view %a_aligned[%base] : buffer -> view<[%m]x[%k]xf16, %a_column_major>
+  %b = buffer.view %b_aligned[%base] : buffer -> view<[%k]x[%n]xf16, %b_column_major>
+  %d = buffer.view %d_aligned[%base] : buffer -> view<[%m]x[%n]xf16, %d_column_major>
+  // Vector memory operations advance their final logical axis. Transposed
+  // aliases expose the physically contiguous M and K dimensions as that axis.
+  %a_load = buffer.view %a_aligned[%base] : buffer -> view<[%k]x[%m]xf16>
+  %b_load = buffer.view %b_aligned[%base] : buffer -> view<[%n]x[%k]xf16>
+
+  // A is [M,K] column-major and B is [K,N] column-major. These LDS views keep
+  // the same logical ordering for the first correctness/schedule witness.
+  %a_lds_layout = encoding.layout.strided [1, 128] : encoding<layout>
+  %b_lds_layout = encoding.layout.strided [1, 32] : encoding<layout>
+  %lds = buffer.alloca<workgroup> align(16) %lds_bytes : buffer
+  %a_lds = buffer.view %lds[%base] : buffer -> view<128x32xf16, %a_lds_layout>
+  %a_lds_store = buffer.view %lds[%base] : buffer -> view<32x128xf16>
+  %b_lds_offset = index.constant 8192 : offset
+  %b_lds = buffer.view %lds[%b_lds_offset] : buffer -> view<32x128xf16, %b_lds_layout>
+  %b_lds_store = buffer.view %lds[%b_lds_offset] : buffer -> view<128x32xf16>
+
+  %zero_accumulator_payload = vector.constant 0.0 : vector<8xf32>
+  %zero_accumulator = vector.fragment<init> %zero_accumulator_payload shape [%tile, %tile] : vector<8xf32>
+  %empty_accumulator_bank = vector.broadcast %zero_accumulator : vector<8xf32> -> vector<4x4x8xf32>
+  %empty_operand_payload = vector.constant 0.0 : vector<8xf16>
+  %empty_operand_bank = vector.broadcast %empty_operand_payload : vector<8xf16> -> vector<4x8xf16>
+
+  %result_bank = scf.for %k_base = [%zero to %k step %depth_u](%outer_bank = %empty_accumulator_bank : vector<4x4x8xf32>) -> (vector<4x4x8xf32>) {
+    // 128 threads issue four 16-byte vectors for each 4096-element tile.
+    scf.for %load_iteration = [%zero to %four step %one] unroll {
+      %load_iteration_delta = index.mul %load_iteration, %load_vector_stride : index
+      %linear_vector = index.add %thread, %load_iteration_delta : index
+
+      %a_row_vector = index.rem %linear_vector, %tile : index
+      %a_row_in_tile0 = index.mul %a_row_vector, %eight : index
+      %a_row_in_tile = index.assume %a_row_in_tile0 [range(%a_row_in_tile0, 0, 120)] : index
+      %a_k_in_tile0 = index.div %linear_vector, %tile : index
+      %a_k_in_tile = index.assume %a_k_in_tile0 [range(%a_k_in_tile0, 0, 31)] : index
+      %a_row = index.add %workgroup_m_base, %a_row_in_tile : index
+      %a_k = index.add %k_base, %a_k_in_tile : index
+      %a_values = vector.load %a_load[%a_k, %a_row] : view<[%k]x[%m]xf16> -> vector<8xf16>
+      vector.store %a_values, %a_lds_store[%a_k_in_tile, %a_row_in_tile] : vector<8xf16>, view<32x128xf16>
+
+      %b_k_vector = index.rem %linear_vector, %four : index
+      %b_k_in_tile0 = index.mul %b_k_vector, %eight : index
+      %b_k_in_tile = index.assume %b_k_in_tile0 [range(%b_k_in_tile0, 0, 24)] : index
+      %b_n_in_tile0 = index.div %linear_vector, %four : index
+      %b_n_in_tile = index.assume %b_n_in_tile0 [range(%b_n_in_tile0, 0, 127)] : index
+      %b_k = index.add %k_base, %b_k_in_tile : index
+      %b_n = index.add %workgroup_n_base, %b_n_in_tile : index
+      %b_values = vector.load %b_load[%b_n, %b_k] : view<[%n]x[%k]xf16> -> vector<8xf16>
+      vector.store %b_values, %b_lds_store[%b_n_in_tile, %b_k_in_tile] : vector<8xf16>, view<128x32xf16>
+    }
+    kernel.barrier<workgroup> scope(workgroup) ordering(acq_rel)
+
+    %depth_bank = scf.for %k_inner = [%zero to %depth_u step %tile](%inner_bank = %outer_bank : vector<4x4x8xf32>) -> (vector<4x4x8xf32>) unroll {
+      %lhs_bank = scf.for %m_fragment = [%zero to %four step %one](%lhs_values = %empty_operand_bank : vector<4x8xf16>) -> (vector<4x8xf16>) unroll {
+        %m_delta = index.mul %m_fragment, %tile : index
+        %m_origin = index.add %wave_m_delta, %m_delta : index
+        %lhs = vector.fragment.load<lhs> %a_lds[%m_origin, %k_inner] shape [%tile, %tile] : view<128x32xf16, %a_lds_layout> -> vector<8xf16>
+        %next_lhs = vector.insert %lhs into %lhs_values[%m_fragment] : vector<8xf16>, vector<4x8xf16>
+        scf.yield %next_lhs : vector<4x8xf16>
+      }
+      %rhs_bank = scf.for %n_fragment = [%zero to %four step %one](%rhs_values = %empty_operand_bank : vector<4x8xf16>) -> (vector<4x8xf16>) unroll {
+        %n_delta = index.mul %n_fragment, %tile : index
+        %n_origin = index.add %wave_n_delta, %n_delta : index
+        %rhs = vector.fragment.load<rhs> %b_lds[%k_inner, %n_origin] shape [%tile, %tile] : view<32x128xf16, %b_lds_layout> -> vector<8xf16>
+        %next_rhs = vector.insert %rhs into %rhs_values[%n_fragment] : vector<8xf16>, vector<4x8xf16>
+        scf.yield %next_rhs : vector<4x8xf16>
+      }
+      %after_m = scf.for %m_fragment = [%zero to %four step %one](%m_bank = %inner_bank : vector<4x4x8xf32>) -> (vector<4x4x8xf32>) unroll {
+        %lhs_payload = vector.extract %lhs_bank[%m_fragment] : vector<4x8xf16> -> vector<8xf16>
+        %lhs_fragment = vector.fragment<lhs> %lhs_payload shape [%tile, %tile] : vector<8xf16>
+        %after_n = scf.for %n_fragment = [%zero to %four step %one](%n_bank = %m_bank : vector<4x4x8xf32>) -> (vector<4x4x8xf32>) unroll {
+          %rhs_payload = vector.extract %rhs_bank[%n_fragment] : vector<4x8xf16> -> vector<8xf16>
+          %rhs_fragment = vector.fragment<rhs> %rhs_payload shape [%tile, %tile] : vector<8xf16>
+          %accumulator_payload = vector.extract %n_bank[%m_fragment, %n_fragment] : vector<4x4x8xf32> -> vector<8xf32>
+          %accumulator = vector.fragment<init> %accumulator_payload shape [%tile, %tile] : vector<8xf32>
+          %next_accumulator = vector.mma %lhs_fragment, %rhs_fragment, %accumulator : vector<8xf16>, vector<8xf16>, vector<8xf32>
+          %next_bank = vector.insert %next_accumulator into %n_bank[%m_fragment, %n_fragment] : vector<8xf32>, vector<4x4x8xf32>
+          scf.yield %next_bank : vector<4x4x8xf32>
+        }
+        scf.yield %after_n : vector<4x4x8xf32>
+      }
+      scf.yield %after_m : vector<4x4x8xf32>
+    }
+    // Protect the single LDS stage before the next cooperative overwrite.
+    kernel.barrier<workgroup> scope(workgroup) ordering(acq_rel)
+    scf.yield %depth_bank : vector<4x4x8xf32>
+  }
+
+  scf.for %store_m = [%zero to %four step %one] unroll {
+    %store_m_delta = index.mul %store_m, %tile : index
+    %store_m_origin = index.add %wave_m_base, %store_m_delta : index
+    scf.for %store_n = [%zero to %four step %one] unroll {
+      %store_n_delta = index.mul %store_n, %tile : index
+      %store_n_origin = index.add %wave_n_base, %store_n_delta : index
+      %result_payload = vector.extract %result_bank[%store_m, %store_n] : vector<4x4x8xf32> -> vector<8xf32>
+      %result = vector.fragment<result> %result_payload shape [%tile, %tile] : vector<8xf32>
+      vector.fragment.store<result> %result, %d[%store_m_origin, %store_n_origin] shape [%tile, %tile] : vector<8xf32>, view<[%m]x[%n]xf16, %d_column_major>
+    }
+  }
+  kernel.return
+}

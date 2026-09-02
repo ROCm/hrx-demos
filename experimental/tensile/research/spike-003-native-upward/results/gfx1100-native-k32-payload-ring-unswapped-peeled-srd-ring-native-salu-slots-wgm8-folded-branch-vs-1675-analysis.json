@@ -1,0 +1,18 @@
+{
+  "schema": "loom-blas.timing-summary.v1",
+  "source": "research/spike-003-native-upward/results/gfx1100-native-k32-payload-ring-unswapped-peeled-srd-ring-native-salu-slots-wgm8-folded-branch-vs-1675-paired.json",
+  "sample_count": 100,
+  "loom_median_us": 48.34,
+  "incumbent_median_us": 44.6605,
+  "median_ratio": 1.0823882401674858,
+  "bootstrap": {
+    "method": "independent resampling of alternating same-process samples",
+    "resamples": 20000,
+    "seed": 2,
+    "confidence": 0.95,
+    "ratio_ci": [
+      1.0783460161145928,
+      1.0896057347670252
+    ]
+  }
+}

@@ -1,0 +1,8 @@
+{
+  "schema":"loom-blas.paired-probe.v1",
+  "backend":"compare",
+  "device":{"ordinal":0,"name":"AMD Radeon Pro W7900","arch":"gfx1100"},
+  "request":{"m":1024,"n":960,"k":1024,"type":"f16"},
+  "loom":{"hsaco":"research/spike-003-native-upward/artifacts/gfx11-buffer-native-layout-epilogue-remat/kernel.hsaco","kernel":"gemm_f16_f32_mt64x96x32_gfx11_pgr2","time_us":[60.480,59.721,57.800,57.320,59.440,58.600,58.881,58.640,58.441,57.760],"correctness":{"mismatches":0,"max_absolute":0.002}},
+  "incumbent":{"solution_index":1675,"time_us":[46.441,45.440,45.641,45.480,45.880,45.400,45.840,45.601,45.800,45.880],"correctness":{"mismatches":0,"max_absolute":0.004}}
+}

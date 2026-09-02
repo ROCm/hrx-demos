@@ -1,0 +1,174 @@
+{
+  "kind": "loom.compile_report",
+  "schema_version": 0,
+  "mode": "details",
+  "artifact_kind": "hal-executable",
+  "status": {
+    "code": 0,
+    "name": "OK"
+  },
+  "function": "gemm_f16_f32_mt128x128x32_gfx12_scalar_acc",
+  "backend": "amdgpu-hal",
+  "target_family": "AMDGPU",
+  "target_key": "gfx1201",
+  "artifact_format": "elf",
+  "artifact_size": 13328,
+  "config_bindings": null,
+  "entry": {
+    "function": "gemm_f16_f32_mt128x128x32_gfx12_scalar_acc",
+    "source_function": "gemm_f16_f32_mt128x128x32_gfx12_scalar_acc",
+    "planning": {
+      "frame_build_count": 1,
+      "allocation_run_count": 1,
+      "repair": {
+        "iteration_count": 0,
+        "diagnostic_replay_count": 0,
+        "spill_traffic_lowering_count": 1,
+        "rematerialized_operand_count": 0,
+        "live_range_split_operand_count": 0,
+        "pair_replication_attempt_count": 1,
+        "pair_replication_edit_count": 0,
+        "pair_replication_rejection_count": 0,
+        "spill_materialization_batch_count": 0
+      },
+      "memory": {
+        "frame_arena": {
+          "used_bytes_high_water": 2311008,
+          "owned_bytes_high_water": 2709984
+        },
+        "repair_arena": {
+          "used_bytes_high_water": 0,
+          "owned_bytes_high_water": 0
+        },
+        "scratch_arena": {
+          "used_bytes_high_water": 0,
+          "owned_bytes_high_water": 0
+        },
+        "system_allocations": {
+          "block_count": 13,
+          "block_bytes": 1703936,
+          "oversized_count": 1,
+          "oversized_bytes": 219616
+        }
+      }
+    },
+    "workload": {
+      "workgroup_size": {
+        "x": 32,
+        "y": 4,
+        "z": 1,
+        "flat": 128
+      },
+      "workgroup_count": {
+        "x": 8,
+        "y": 8,
+        "z": 1,
+        "flat": 64
+      },
+      "dispatch_workitem_count": 8192
+    },
+    "target_resources": {
+      "scalar": {
+        "register_class": "amdgpu.sgpr",
+        "final": {
+          "register_count": 25,
+          "overhead_units": 0
+        },
+        "scheduled_pressure": {
+          "peak_live_units": 27
+        }
+      },
+      "vector": {
+        "register_class": "amdgpu.vgpr",
+        "final": {
+          "register_count": 224,
+          "overhead_units": 9
+        },
+        "scheduled_pressure": {
+          "peak_live_units": 215
+        }
+      },
+      "subgroup_size": 32,
+      "max_subgroups_per_simd": 16,
+      "resident_subgroups_per_simd": 2,
+      "occupancy_percent": 12,
+      "limiting_resource": "amdgpu.lds"
+    },
+    "static_instruction_mix": {
+      "descriptor_count": 806,
+      "unknown_count": 0,
+      "scalar_alu_count": 42,
+      "vector_alu_count": 410,
+      "matrix_count": 128,
+      "mfma_count": 0,
+      "smfmac_count": 0,
+      "wmma_count": 128,
+      "swmmac_count": 0,
+      "dot_count": 0,
+      "global_memory_count": 64,
+      "global_load_count": 32,
+      "global_store_count": 32,
+      "buffer_load_count": 0,
+      "buffer_store_count": 0,
+      "flat_memory_count": 0,
+      "local_memory_count": 128,
+      "scalar_memory_count": 2,
+      "private_memory_count": 0,
+      "generic_memory_count": 66,
+      "memory_read_unknown_width_count": 0,
+      "memory_write_unknown_width_count": 0,
+      "memory_read_byte_count": 1560,
+      "memory_write_byte_count": 768,
+      "global_load_byte_count": 512,
+      "global_store_byte_count": 256,
+      "buffer_load_byte_count": 0,
+      "buffer_store_byte_count": 0,
+      "flat_read_byte_count": 0,
+      "flat_write_byte_count": 0,
+      "local_read_byte_count": 1024,
+      "local_write_byte_count": 512,
+      "scalar_read_byte_count": 24,
+      "scalar_write_byte_count": 0,
+      "private_read_byte_count": 0,
+      "private_write_byte_count": 0,
+      "unclassified_read_byte_count": 0,
+      "unclassified_write_byte_count": 0,
+      "atomic_count": 0,
+      "branch_count": 3,
+      "barrier_count": 8,
+      "control_count": 35,
+      "conversion_count": 128,
+      "cache_count": 0,
+      "register_move_count": 161
+    },
+    "allocation": null,
+    "move_causes": {
+      "kind_count": 2,
+      "packet_count": 13,
+      "unit_count": 173,
+      "causes": [
+        {
+          "cause": "constant_materialization",
+          "packet_count": 12,
+          "unit_count": 12
+        },
+        {
+          "cause": "branch_edge",
+          "packet_count": 1,
+          "unit_count": 161
+        }
+      ]
+    },
+    "wait_plan": {
+      "action_count": 46,
+      "explicit_action_count": 24,
+      "planned_action_count": 22,
+      "full_drain_count": 35,
+      "partial_wait_count": 11,
+      "drained_count": 193,
+      "max_drained_count": 32,
+      "max_outstanding_before": 32,
+      "max_full_drain_outstanding_before": 32
+    }
+  }
+}

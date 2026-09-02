@@ -1,0 +1,413 @@
+{
+  "architecture": "gfx1100",
+  "devices": [
+    "Device 73bf"
+  ],
+  "encoded_size": 1030411,
+  "library_type": "Equality",
+  "logic_row_count": 512,
+  "minimum_required_version": {
+    "MinimumRequiredVersion": "4.35.0"
+  },
+  "problem_type": {
+    "AllowNoFreeDims": false,
+    "AssignedDerivedParameters": true,
+    "Batched": true,
+    "ComplexConjugateA": false,
+    "ComplexConjugateB": false,
+    "ComputeDataType": 0,
+    "ConvolutionConfig": [],
+    "DataType": 4,
+    "DestDataType": 4,
+    "Fp16AltImpl": false,
+    "HighPrecisionAccumulate": true,
+    "Index0": 0,
+    "Index01A": 0,
+    "Index01B": 1,
+    "Index1": 1,
+    "IndexAssignmentsA": [
+      0,
+      3,
+      2
+    ],
+    "IndexAssignmentsB": [
+      3,
+      1,
+      2
+    ],
+    "IndexAssignmentsLD": [
+      4,
+      5,
+      6,
+      7
+    ],
+    "IndexUnroll": 3,
+    "IndexUnrollA": 1,
+    "IndexUnrollB": 0,
+    "IndicesBatch": [
+      2
+    ],
+    "IndicesFree": [
+      0,
+      1
+    ],
+    "IndicesSummation": [
+      3
+    ],
+    "MirrorDimsA": [],
+    "MirrorDimsB": [],
+    "NumIndicesBatch": 1,
+    "NumIndicesC": 3,
+    "NumIndicesFree": 2,
+    "NumIndicesLD": 4,
+    "NumIndicesSummation": 1,
+    "OperationType": "GEMM",
+    "SetConstStrideA": [],
+    "SetConstStrideB": [],
+    "SilentHighPrecisionAccumulate": false,
+    "StridedBatched": true,
+    "TLUA": true,
+    "TLUB": false,
+    "Tensor0": 0,
+    "Tensor1": 1,
+    "TileA": 0,
+    "TileAwareSelection": false,
+    "TileB": 1,
+    "TotalIndices": 4,
+    "TransposeA": false,
+    "TransposeB": false,
+    "UseBeta": true,
+    "UseInitialStridesAB": false,
+    "UseInitialStridesCD": false,
+    "ZeroPadA": [],
+    "ZeroPadB": []
+  },
+  "runtime_reference": {
+    "nearest_source_solutions": [
+      {
+        "compared_field_count": 19,
+        "different_fields": [
+          "macro_tile",
+          "prefetch_global_read",
+          "wave_separate_global_read_a",
+          "wave_separate_global_read_b"
+        ],
+        "mismatch_count": 4,
+        "source_schedule": {
+          "depth_u": 32,
+          "direct_to_vgpr_a": false,
+          "direct_to_vgpr_b": false,
+          "global_read_vector_width_a": 8,
+          "global_read_vector_width_b": 8,
+          "global_split_u": 1,
+          "global_write_vector_width_d": 1,
+          "local_split_u": 1,
+          "macro_tile": [
+            32,
+            32,
+            1
+          ],
+          "matrix_instruction": [
+            16,
+            16,
+            16,
+            1
+          ],
+          "prefetch_global_read": 1,
+          "source_kernel": false,
+          "vector_width_a": 1,
+          "vector_width_b": 1,
+          "wave_group": [
+            2,
+            2
+          ],
+          "wave_separate_global_read_a": 1,
+          "wave_separate_global_read_b": 1,
+          "wavefront_size": 32,
+          "work_group": [
+            32,
+            4,
+            1
+          ],
+          "work_group_mapping": 8
+        },
+        "source_solution_index": 100,
+        "source_solution_name": "Cijk_Ailk_Bljk_HHS_BH_MT32x32x32_MI16x16x16x1_SN_1LDSB0_AMAS0_GRVW8_IU1_NLCA1_SIA1_SU0_SUS0_SVW1_TT1_16_VW1_WGM8"
+      },
+      {
+        "compared_field_count": 19,
+        "different_fields": [
+          "macro_tile",
+          "prefetch_global_read",
+          "wave_separate_global_read_a",
+          "wave_separate_global_read_b"
+        ],
+        "mismatch_count": 4,
+        "source_schedule": {
+          "depth_u": 32,
+          "direct_to_vgpr_a": false,
+          "direct_to_vgpr_b": false,
+          "global_read_vector_width_a": 8,
+          "global_read_vector_width_b": 8,
+          "global_split_u": 1,
+          "global_write_vector_width_d": 1,
+          "local_split_u": 1,
+          "macro_tile": [
+            32,
+            32,
+            1
+          ],
+          "matrix_instruction": [
+            16,
+            16,
+            16,
+            1
+          ],
+          "prefetch_global_read": 1,
+          "source_kernel": false,
+          "vector_width_a": 1,
+          "vector_width_b": 1,
+          "wave_group": [
+            2,
+            2
+          ],
+          "wave_separate_global_read_a": 1,
+          "wave_separate_global_read_b": 1,
+          "wavefront_size": 32,
+          "work_group": [
+            32,
+            4,
+            1
+          ],
+          "work_group_mapping": 8
+        },
+        "source_solution_index": 102,
+        "source_solution_name": "Cijk_Ailk_Bljk_HHS_BH_MT32x32x32_MI16x16x16x1_SN_1LDSB1_AMAS0_GRVW8_IU2_NLCA1_SIA2_SU0_SUS0_SVW1_TT1_16_VW1_WGM8"
+      },
+      {
+        "compared_field_count": 19,
+        "different_fields": [
+          "macro_tile",
+          "prefetch_global_read",
+          "wave_separate_global_read_a",
+          "wave_separate_global_read_b"
+        ],
+        "mismatch_count": 4,
+        "source_schedule": {
+          "depth_u": 32,
+          "direct_to_vgpr_a": false,
+          "direct_to_vgpr_b": false,
+          "global_read_vector_width_a": 8,
+          "global_read_vector_width_b": 8,
+          "global_split_u": 1,
+          "global_write_vector_width_d": 1,
+          "local_split_u": 1,
+          "macro_tile": [
+            32,
+            32,
+            1
+          ],
+          "matrix_instruction": [
+            16,
+            16,
+            16,
+            1
+          ],
+          "prefetch_global_read": 1,
+          "source_kernel": false,
+          "vector_width_a": 1,
+          "vector_width_b": 1,
+          "wave_group": [
+            2,
+            2
+          ],
+          "wave_separate_global_read_a": 1,
+          "wave_separate_global_read_b": 1,
+          "wavefront_size": 32,
+          "work_group": [
+            32,
+            4,
+            1
+          ],
+          "work_group_mapping": 8
+        },
+        "source_solution_index": 104,
+        "source_solution_name": "Cijk_Ailk_Bljk_HHS_BH_MT32x32x32_MI16x16x16x1_SN_1LDSB0_AMAS0_GRVW8_IU1_NLCA1_SIA1_SU32_SUS128_SVW1_TT1_16_VW1_WGM8"
+      },
+      {
+        "compared_field_count": 19,
+        "different_fields": [
+          "macro_tile",
+          "prefetch_global_read",
+          "wave_separate_global_read_a",
+          "wave_separate_global_read_b"
+        ],
+        "mismatch_count": 4,
+        "source_schedule": {
+          "depth_u": 32,
+          "direct_to_vgpr_a": false,
+          "direct_to_vgpr_b": false,
+          "global_read_vector_width_a": 8,
+          "global_read_vector_width_b": 8,
+          "global_split_u": 1,
+          "global_write_vector_width_d": 1,
+          "local_split_u": 1,
+          "macro_tile": [
+            32,
+            32,
+            1
+          ],
+          "matrix_instruction": [
+            16,
+            16,
+            16,
+            1
+          ],
+          "prefetch_global_read": 1,
+          "source_kernel": false,
+          "vector_width_a": 1,
+          "vector_width_b": 1,
+          "wave_group": [
+            2,
+            2
+          ],
+          "wave_separate_global_read_a": 1,
+          "wave_separate_global_read_b": 1,
+          "wavefront_size": 32,
+          "work_group": [
+            32,
+            4,
+            1
+          ],
+          "work_group_mapping": 8
+        },
+        "source_solution_index": 106,
+        "source_solution_name": "Cijk_Ailk_Bljk_HHS_BH_MT32x32x32_MI16x16x16x1_SN_1LDSB1_AMAS0_GRVW8_IU2_NLCA1_SIA2_SU32_SUS128_SVW1_TT1_16_VW1_WGM8"
+      },
+      {
+        "compared_field_count": 19,
+        "different_fields": [
+          "macro_tile",
+          "prefetch_global_read",
+          "wave_separate_global_read_a",
+          "wave_separate_global_read_b"
+        ],
+        "mismatch_count": 4,
+        "source_schedule": {
+          "depth_u": 32,
+          "direct_to_vgpr_a": false,
+          "direct_to_vgpr_b": false,
+          "global_read_vector_width_a": 8,
+          "global_read_vector_width_b": 8,
+          "global_split_u": 1,
+          "global_write_vector_width_d": 1,
+          "local_split_u": 1,
+          "macro_tile": [
+            32,
+            32,
+            1
+          ],
+          "matrix_instruction": [
+            16,
+            16,
+            16,
+            1
+          ],
+          "prefetch_global_read": 1,
+          "source_kernel": false,
+          "vector_width_a": 1,
+          "vector_width_b": 1,
+          "wave_group": [
+            2,
+            2
+          ],
+          "wave_separate_global_read_a": 1,
+          "wave_separate_global_read_b": 1,
+          "wavefront_size": 32,
+          "work_group": [
+            32,
+            4,
+            1
+          ],
+          "work_group_mapping": 8
+        },
+        "source_solution_index": 107,
+        "source_solution_name": "Cijk_Ailk_Bljk_HHS_BH_MT32x32x32_MI16x16x16x1_SN_1LDSB0_AMAS0_GRVW8_IU1_NLCA1_SIA1_SU32_SUS256_SVW1_TT1_16_VW1_WGM8"
+      }
+    ],
+    "schedule": {
+      "depth_u": 32,
+      "direct_to_vgpr_a": false,
+      "direct_to_vgpr_b": false,
+      "expert_scheduling_mode": 0,
+      "global_read_vector_width_a": 8,
+      "global_read_vector_width_b": 8,
+      "global_split_u": 1,
+      "global_write_vector_width_d": 1,
+      "local_split_u": 1,
+      "macro_tile": [
+        64,
+        96,
+        1
+      ],
+      "matrix_instruction": [
+        16,
+        16,
+        16,
+        1
+      ],
+      "prefetch_global_read": 2,
+      "source_kernel": false,
+      "vector_width_a": 1,
+      "vector_width_b": 1,
+      "wave_group": [
+        2,
+        2
+      ],
+      "wave_separate_global_read_a": 0,
+      "wave_separate_global_read_b": 0,
+      "work_group": [
+        32,
+        4,
+        1
+      ],
+      "work_group_mapping": 8
+    },
+    "solution_index": 1675,
+    "source": "<tensile-root>/research/spike-001-primitive-gemm/results/gfx1100-selected-solutions.json"
+  },
+  "schedule_name": "navi31",
+  "schema": "loom-blas.tensile-yaml.v1",
+  "selected_solutions": {},
+  "sha256": "36915d4a38a083318651ce0544c28b544efc26009587f0b3cabe54a1d0bcf46c",
+  "solution_characteristics": {
+    "depth_u": {
+      "16": 82,
+      "32": 63
+    },
+    "expert_scheduling_mode": {
+      "null": 145
+    },
+    "kernel_language": {
+      "\"Assembly\"": 145
+    },
+    "macro_tile_0": {
+      "128": 61,
+      "32": 33,
+      "64": 51
+    },
+    "macro_tile_1": {
+      "128": 61,
+      "32": 33,
+      "64": 51
+    },
+    "matrix_instruction": {
+      "[16, 16, 16, 1]": 145
+    },
+    "wavefront_size": {
+      "32": 145
+    }
+  },
+  "solution_count": 145,
+  "source": "<workspace>/sources/TheRock/rocm-libraries/projects/rocblas/library/src/blas3/Tensile/Logic/asm_full/navi31/navi31_Cijk_Ailk_Bljk_HHS_BH.yaml"
+}

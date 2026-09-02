@@ -1,0 +1,18 @@
+{
+  "schema": "loom-blas.timing-summary.v1",
+  "source": "research/spike-003-native-upward/results/gfx1100-structural-recolor-vs-1675-paired.json",
+  "sample_count": 40,
+  "loom_median_us": 72.24,
+  "incumbent_median_us": 44.361,
+  "median_ratio": 1.6284574288226144,
+  "bootstrap": {
+    "method": "independent resampling of alternating same-process samples",
+    "resamples": 20000,
+    "seed": 2,
+    "confidence": 0.95,
+    "ratio_ci": [
+      1.6187402124807064,
+      1.6432545045045044
+    ]
+  }
+}

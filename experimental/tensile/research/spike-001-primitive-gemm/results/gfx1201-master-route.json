@@ -1,0 +1,3301 @@
+{
+  "encoded_size": 2847,
+  "schema": "loom-blas.tensile-library.v1",
+  "sha256": "1372026b071764fa461329ad682d5c1fcee4fb4e1733b9a76a58897f134e39b4",
+  "source": "<selected-rocm>/lib/hipblaslt/library/gfx1201/TensileLibrary_lazy_gfx1201.dat.zlib",
+  "summary": {
+    "kind": "lazy_master",
+    "route": {
+      "rows": [
+        {
+          "operation_count": 4,
+          "operations": {
+            "Contraction_l_Ailk_Bljk_Cijk_Dijk": {
+              "rows": [
+                {
+                  "library_type": "Problem",
+                  "ordinal": 0,
+                  "predicate": {
+                    "type": "TruePred"
+                  },
+                  "problem": {
+                    "rows": [
+                      {
+                        "library_type": "Placeholder",
+                        "ordinal": 0,
+                        "placeholder": "TensileLibrary_DD_DD_UA_Type_DD_Contraction_l_Ailk_Bljk_Cijk_Dijk_gfx1201",
+                        "predicate": {
+                          "type": "And",
+                          "value": [
+                            {
+                              "type": "TypesEqual",
+                              "value": [
+                                "Double",
+                                "Double",
+                                "Double",
+                                "Double",
+                                "Double",
+                                "Double"
+                              ]
+                            },
+                            {
+                              "type": "HighPrecisionAccumulate",
+                              "value": false
+                            },
+                            {
+                              "type": "Activation",
+                              "value": "None"
+                            },
+                            {
+                              "type": "ActivationComputeType",
+                              "value": "Double"
+                            },
+                            {
+                              "type": "ActivationNoGuard",
+                              "value": false
+                            },
+                            {
+                              "type": "UseGradient",
+                              "value": false
+                            },
+                            {
+                              "type": "UseBias",
+                              "value": 0
+                            },
+                            {
+                              "type": "UseE",
+                              "value": false
+                            },
+                            {
+                              "type": "UseGateResidual",
+                              "value": false
+                            },
+                            {
+                              "type": "DataTypeE",
+                              "value": "Double"
+                            },
+                            {
+                              "type": "StridedBatched",
+                              "value": true
+                            },
+                            {
+                              "type": "GroupedGemm",
+                              "value": false
+                            },
+                            {
+                              "type": "UseScaleAB",
+                              "value": ""
+                            },
+                            {
+                              "type": "UseScaleCD",
+                              "value": false
+                            },
+                            {
+                              "type": "UseScaleAlphaVec",
+                              "value": 0
+                            },
+                            {
+                              "type": "Sparse",
+                              "value": 0
+                            },
+                            {
+                              "type": "F32XdlMathOp",
+                              "value": "Float"
+                            },
+                            {
+                              "type": "SupportDeviceUserArguments",
+                              "value": true
+                            },
+                            {
+                              "type": "SwizzleTensorA",
+                              "value": false
+                            },
+                            {
+                              "type": "SwizzleTensorB",
+                              "value": false
+                            },
+                            {
+                              "type": "MXBlockA",
+                              "value": 0
+                            },
+                            {
+                              "type": "MXBlockB",
+                              "value": 0
+                            }
+                          ]
+                        }
+                      },
+                      {
+                        "library_type": "Placeholder",
+                        "ordinal": 1,
+                        "placeholder": "TensileLibrary_HH_HH_HA_UA_Type_HH_HPA_Contraction_l_Ailk_Bljk_Cijk_Dijk_gfx1201",
+                        "predicate": {
+                          "type": "And",
+                          "value": [
+                            {
+                              "type": "TypesEqual",
+                              "value": [
+                                "Half",
+                                "Half",
+                                "Half",
+                                "Half",
+                                "Half",
+                                "Half"
+                              ]
+                            },
+                            {
+                              "type": "HighPrecisionAccumulate",
+                              "value": true
+                            },
+                            {
+                              "type": "Activation",
+                              "value": "Hipblaslt_all"
+                            },
+                            {
+                              "type": "ActivationComputeType",
+                              "value": "Float"
+                            },
+                            {
+                              "type": "ActivationNoGuard",
+                              "value": false
+                            },
+                            {
+                              "type": "UseGradient",
+                              "value": false
+                            },
+                            {
+                              "type": "UseBias",
+                              "value": 0
+                            },
+                            {
+                              "type": "UseE",
+                              "value": false
+                            },
+                            {
+                              "type": "UseGateResidual",
+                              "value": false
+                            },
+                            {
+                              "type": "DataTypeE",
+                              "value": "Half"
+                            },
+                            {
+                              "type": "StridedBatched",
+                              "value": true
+                            },
+                            {
+                              "type": "GroupedGemm",
+                              "value": false
+                            },
+                            {
+                              "type": "UseScaleAB",
+                              "value": ""
+                            },
+                            {
+                              "type": "UseScaleCD",
+                              "value": false
+                            },
+                            {
+                              "type": "UseScaleAlphaVec",
+                              "value": 0
+                            },
+                            {
+                              "type": "Sparse",
+                              "value": 0
+                            },
+                            {
+                              "type": "F32XdlMathOp",
+                              "value": "Float"
+                            },
+                            {
+                              "type": "SupportDeviceUserArguments",
+                              "value": true
+                            },
+                            {
+                              "type": "SwizzleTensorA",
+                              "value": false
+                            },
+                            {
+                              "type": "SwizzleTensorB",
+                              "value": false
+                            },
+                            {
+                              "type": "MXBlockA",
+                              "value": 0
+                            },
+                            {
+                              "type": "MXBlockB",
+                              "value": 0
+                            }
+                          ]
+                        }
+                      },
+                      {
+                        "library_type": "Placeholder",
+                        "ordinal": 2,
+                        "placeholder": "TensileLibrary_HH_SH_HA_UA_Type_HS_HPA_Contraction_l_Ailk_Bljk_Cijk_Dijk_gfx1201",
+                        "predicate": {
+                          "type": "And",
+                          "value": [
+                            {
+                              "type": "TypesEqual",
+                              "value": [
+                                "Half",
+                                "Half",
+                                "Float",
+                                "Float",
+                                "Half",
+                                "Half"
+                              ]
+                            },
+                            {
+                              "type": "HighPrecisionAccumulate",
+                              "value": true
+                            },
+                            {
+                              "type": "Activation",
+                              "value": "Hipblaslt_all"
+                            },
+                            {
+                              "type": "ActivationComputeType",
+                              "value": "Float"
+                            },
+                            {
+                              "type": "ActivationNoGuard",
+                              "value": false
+                            },
+                            {
+                              "type": "UseGradient",
+                              "value": false
+                            },
+                            {
+                              "type": "UseBias",
+                              "value": 0
+                            },
+                            {
+                              "type": "UseE",
+                              "value": false
+                            },
+                            {
+                              "type": "UseGateResidual",
+                              "value": false
+                            },
+                            {
+                              "type": "DataTypeE",
+                              "value": "Float"
+                            },
+                            {
+                              "type": "StridedBatched",
+                              "value": true
+                            },
+                            {
+                              "type": "GroupedGemm",
+                              "value": false
+                            },
+                            {
+                              "type": "UseScaleAB",
+                              "value": ""
+                            },
+                            {
+                              "type": "UseScaleCD",
+                              "value": false
+                            },
+                            {
+                              "type": "UseScaleAlphaVec",
+                              "value": 0
+                            },
+                            {
+                              "type": "Sparse",
+                              "value": 0
+                            },
+                            {
+                              "type": "F32XdlMathOp",
+                              "value": "Float"
+                            },
+                            {
+                              "type": "SupportDeviceUserArguments",
+                              "value": true
+                            },
+                            {
+                              "type": "SwizzleTensorA",
+                              "value": false
+                            },
+                            {
+                              "type": "SwizzleTensorB",
+                              "value": false
+                            },
+                            {
+                              "type": "MXBlockA",
+                              "value": 0
+                            },
+                            {
+                              "type": "MXBlockB",
+                              "value": 0
+                            }
+                          ]
+                        }
+                      },
+                      {
+                        "library_type": "Placeholder",
+                        "ordinal": 3,
+                        "placeholder": "TensileLibrary_SS_SS_HA_Bias_SAV_UA_Type_SS_Contraction_l_Ailk_Bljk_Cijk_Dijk_gfx1201",
+                        "predicate": {
+                          "type": "And",
+                          "value": [
+                            {
+                              "type": "TypesEqual",
+                              "value": [
+                                "Float",
+                                "Float",
+                                "Float",
+                                "Float",
+                                "Float",
+                                "Float"
+                              ]
+                            },
+                            {
+                              "type": "HighPrecisionAccumulate",
+                              "value": false
+                            },
+                            {
+                              "type": "Activation",
+                              "value": "Hipblaslt_all"
+                            },
+                            {
+                              "type": "ActivationComputeType",
+                              "value": "Float"
+                            },
+                            {
+                              "type": "ActivationNoGuard",
+                              "value": false
+                            },
+                            {
+                              "type": "UseGradient",
+                              "value": false
+                            },
+                            {
+                              "type": "UseBias",
+                              "value": 1
+                            },
+                            {
+                              "type": "UseE",
+                              "value": false
+                            },
+                            {
+                              "type": "UseGateResidual",
+                              "value": false
+                            },
+                            {
+                              "type": "DataTypeE",
+                              "value": "Float"
+                            },
+                            {
+                              "type": "StridedBatched",
+                              "value": true
+                            },
+                            {
+                              "type": "GroupedGemm",
+                              "value": false
+                            },
+                            {
+                              "type": "UseScaleAB",
+                              "value": ""
+                            },
+                            {
+                              "type": "UseScaleCD",
+                              "value": false
+                            },
+                            {
+                              "type": "UseScaleAlphaVec",
+                              "value": 1
+                            },
+                            {
+                              "type": "Sparse",
+                              "value": 0
+                            },
+                            {
+                              "type": "F32XdlMathOp",
+                              "value": "Float"
+                            },
+                            {
+                              "type": "SupportDeviceUserArguments",
+                              "value": true
+                            },
+                            {
+                              "type": "SwizzleTensorA",
+                              "value": false
+                            },
+                            {
+                              "type": "SwizzleTensorB",
+                              "value": false
+                            },
+                            {
+                              "type": "MXBlockA",
+                              "value": 0
+                            },
+                            {
+                              "type": "MXBlockB",
+                              "value": 0
+                            }
+                          ]
+                        }
+                      },
+                      {
+                        "library_type": "Placeholder",
+                        "ordinal": 4,
+                        "placeholder": "TensileLibrary_I8I8_II8_HA_SAV_UA_Type_I8I_HPA_Contraction_l_Ailk_Bljk_Cijk_Dijk_gfx1201",
+                        "predicate": {
+                          "type": "And",
+                          "value": [
+                            {
+                              "type": "TypesEqual",
+                              "value": [
+                                "Int8",
+                                "Int8",
+                                "Int32",
+                                "Int32",
+                                "Int8",
+                                "Int8"
+                              ]
+                            },
+                            {
+                              "type": "HighPrecisionAccumulate",
+                              "value": true
+                            },
+                            {
+                              "type": "Activation",
+                              "value": "Hipblaslt_all"
+                            },
+                            {
+                              "type": "ActivationComputeType",
+                              "value": "Int32"
+                            },
+                            {
+                              "type": "ActivationNoGuard",
+                              "value": false
+                            },
+                            {
+                              "type": "UseGradient",
+                              "value": false
+                            },
+                            {
+                              "type": "UseBias",
+                              "value": 0
+                            },
+                            {
+                              "type": "UseE",
+                              "value": false
+                            },
+                            {
+                              "type": "UseGateResidual",
+                              "value": false
+                            },
+                            {
+                              "type": "DataTypeE",
+                              "value": "Int32"
+                            },
+                            {
+                              "type": "StridedBatched",
+                              "value": true
+                            },
+                            {
+                              "type": "GroupedGemm",
+                              "value": false
+                            },
+                            {
+                              "type": "UseScaleAB",
+                              "value": ""
+                            },
+                            {
+                              "type": "UseScaleCD",
+                              "value": false
+                            },
+                            {
+                              "type": "UseScaleAlphaVec",
+                              "value": 1
+                            },
+                            {
+                              "type": "Sparse",
+                              "value": 0
+                            },
+                            {
+                              "type": "F32XdlMathOp",
+                              "value": "Float"
+                            },
+                            {
+                              "type": "SupportDeviceUserArguments",
+                              "value": true
+                            },
+                            {
+                              "type": "SwizzleTensorA",
+                              "value": false
+                            },
+                            {
+                              "type": "SwizzleTensorB",
+                              "value": false
+                            },
+                            {
+                              "type": "MXBlockA",
+                              "value": 0
+                            },
+                            {
+                              "type": "MXBlockB",
+                              "value": 0
+                            }
+                          ]
+                        }
+                      },
+                      {
+                        "library_type": "Placeholder",
+                        "ordinal": 5,
+                        "placeholder": "TensileLibrary_BB_SB_HA_Bias_SAV_UA_Type_BS_HPA_Contraction_l_Ailk_Bljk_Cijk_Dijk_gfx1201",
+                        "predicate": {
+                          "type": "And",
+                          "value": [
+                            {
+                              "type": "TypesEqual",
+                              "value": [
+                                "BFloat16",
+                                "BFloat16",
+                                "Float",
+                                "Float",
+                                "BFloat16",
+                                "BFloat16"
+                              ]
+                            },
+                            {
+                              "type": "HighPrecisionAccumulate",
+                              "value": true
+                            },
+                            {
+                              "type": "Activation",
+                              "value": "Hipblaslt_all"
+                            },
+                            {
+                              "type": "ActivationComputeType",
+                              "value": "Float"
+                            },
+                            {
+                              "type": "ActivationNoGuard",
+                              "value": false
+                            },
+                            {
+                              "type": "UseGradient",
+                              "value": false
+                            },
+                            {
+                              "type": "UseBias",
+                              "value": 1
+                            },
+                            {
+                              "type": "UseE",
+                              "value": false
+                            },
+                            {
+                              "type": "UseGateResidual",
+                              "value": false
+                            },
+                            {
+                              "type": "DataTypeE",
+                              "value": "Float"
+                            },
+                            {
+                              "type": "StridedBatched",
+                              "value": true
+                            },
+                            {
+                              "type": "GroupedGemm",
+                              "value": false
+                            },
+                            {
+                              "type": "UseScaleAB",
+                              "value": ""
+                            },
+                            {
+                              "type": "UseScaleCD",
+                              "value": false
+                            },
+                            {
+                              "type": "UseScaleAlphaVec",
+                              "value": 1
+                            },
+                            {
+                              "type": "Sparse",
+                              "value": 0
+                            },
+                            {
+                              "type": "F32XdlMathOp",
+                              "value": "Float"
+                            },
+                            {
+                              "type": "SupportDeviceUserArguments",
+                              "value": true
+                            },
+                            {
+                              "type": "SwizzleTensorA",
+                              "value": false
+                            },
+                            {
+                              "type": "SwizzleTensorB",
+                              "value": false
+                            },
+                            {
+                              "type": "MXBlockA",
+                              "value": 0
+                            },
+                            {
+                              "type": "MXBlockB",
+                              "value": 0
+                            }
+                          ]
+                        }
+                      },
+                      {
+                        "library_type": "Placeholder",
+                        "ordinal": 6,
+                        "placeholder": "TensileLibrary_HH_SH_HA_Bias_SAV_UA_Type_HS_HPA_Contraction_l_Ailk_Bljk_Cijk_Dijk_gfx1201",
+                        "predicate": {
+                          "type": "And",
+                          "value": [
+                            {
+                              "type": "TypesEqual",
+                              "value": [
+                                "Half",
+                                "Half",
+                                "Float",
+                                "Float",
+                                "Half",
+                                "Half"
+                              ]
+                            },
+                            {
+                              "type": "HighPrecisionAccumulate",
+                              "value": true
+                            },
+                            {
+                              "type": "Activation",
+                              "value": "Hipblaslt_all"
+                            },
+                            {
+                              "type": "ActivationComputeType",
+                              "value": "Float"
+                            },
+                            {
+                              "type": "ActivationNoGuard",
+                              "value": false
+                            },
+                            {
+                              "type": "UseGradient",
+                              "value": false
+                            },
+                            {
+                              "type": "UseBias",
+                              "value": 1
+                            },
+                            {
+                              "type": "UseE",
+                              "value": false
+                            },
+                            {
+                              "type": "UseGateResidual",
+                              "value": false
+                            },
+                            {
+                              "type": "DataTypeE",
+                              "value": "Float"
+                            },
+                            {
+                              "type": "StridedBatched",
+                              "value": true
+                            },
+                            {
+                              "type": "GroupedGemm",
+                              "value": false
+                            },
+                            {
+                              "type": "UseScaleAB",
+                              "value": ""
+                            },
+                            {
+                              "type": "UseScaleCD",
+                              "value": false
+                            },
+                            {
+                              "type": "UseScaleAlphaVec",
+                              "value": 1
+                            },
+                            {
+                              "type": "Sparse",
+                              "value": 0
+                            },
+                            {
+                              "type": "F32XdlMathOp",
+                              "value": "Float"
+                            },
+                            {
+                              "type": "SupportDeviceUserArguments",
+                              "value": true
+                            },
+                            {
+                              "type": "SwizzleTensorA",
+                              "value": false
+                            },
+                            {
+                              "type": "SwizzleTensorB",
+                              "value": false
+                            },
+                            {
+                              "type": "MXBlockA",
+                              "value": 0
+                            },
+                            {
+                              "type": "MXBlockB",
+                              "value": 0
+                            }
+                          ]
+                        }
+                      },
+                      {
+                        "library_type": "Placeholder",
+                        "ordinal": 7,
+                        "placeholder": "TensileLibrary_HH_HH_HA_Bias_SAV_UA_Type_HH_HPA_Contraction_l_Ailk_Bljk_Cijk_Dijk_gfx1201",
+                        "predicate": {
+                          "type": "And",
+                          "value": [
+                            {
+                              "type": "TypesEqual",
+                              "value": [
+                                "Half",
+                                "Half",
+                                "Half",
+                                "Half",
+                                "Half",
+                                "Half"
+                              ]
+                            },
+                            {
+                              "type": "HighPrecisionAccumulate",
+                              "value": true
+                            },
+                            {
+                              "type": "Activation",
+                              "value": "Hipblaslt_all"
+                            },
+                            {
+                              "type": "ActivationComputeType",
+                              "value": "Float"
+                            },
+                            {
+                              "type": "ActivationNoGuard",
+                              "value": false
+                            },
+                            {
+                              "type": "UseGradient",
+                              "value": false
+                            },
+                            {
+                              "type": "UseBias",
+                              "value": 1
+                            },
+                            {
+                              "type": "UseE",
+                              "value": false
+                            },
+                            {
+                              "type": "UseGateResidual",
+                              "value": false
+                            },
+                            {
+                              "type": "DataTypeE",
+                              "value": "Half"
+                            },
+                            {
+                              "type": "StridedBatched",
+                              "value": true
+                            },
+                            {
+                              "type": "GroupedGemm",
+                              "value": false
+                            },
+                            {
+                              "type": "UseScaleAB",
+                              "value": ""
+                            },
+                            {
+                              "type": "UseScaleCD",
+                              "value": false
+                            },
+                            {
+                              "type": "UseScaleAlphaVec",
+                              "value": 1
+                            },
+                            {
+                              "type": "Sparse",
+                              "value": 0
+                            },
+                            {
+                              "type": "F32XdlMathOp",
+                              "value": "Float"
+                            },
+                            {
+                              "type": "SupportDeviceUserArguments",
+                              "value": true
+                            },
+                            {
+                              "type": "SwizzleTensorA",
+                              "value": false
+                            },
+                            {
+                              "type": "SwizzleTensorB",
+                              "value": false
+                            },
+                            {
+                              "type": "MXBlockA",
+                              "value": 0
+                            },
+                            {
+                              "type": "MXBlockB",
+                              "value": 0
+                            }
+                          ]
+                        }
+                      },
+                      {
+                        "library_type": "Placeholder",
+                        "ordinal": 8,
+                        "placeholder": "TensileLibrary_BB_BB_HA_Bias_SAV_UA_Type_BB_HPA_Contraction_l_Ailk_Bljk_Cijk_Dijk_gfx1201",
+                        "predicate": {
+                          "type": "And",
+                          "value": [
+                            {
+                              "type": "TypesEqual",
+                              "value": [
+                                "BFloat16",
+                                "BFloat16",
+                                "BFloat16",
+                                "BFloat16",
+                                "BFloat16",
+                                "BFloat16"
+                              ]
+                            },
+                            {
+                              "type": "HighPrecisionAccumulate",
+                              "value": true
+                            },
+                            {
+                              "type": "Activation",
+                              "value": "Hipblaslt_all"
+                            },
+                            {
+                              "type": "ActivationComputeType",
+                              "value": "Float"
+                            },
+                            {
+                              "type": "ActivationNoGuard",
+                              "value": false
+                            },
+                            {
+                              "type": "UseGradient",
+                              "value": false
+                            },
+                            {
+                              "type": "UseBias",
+                              "value": 1
+                            },
+                            {
+                              "type": "UseE",
+                              "value": false
+                            },
+                            {
+                              "type": "UseGateResidual",
+                              "value": false
+                            },
+                            {
+                              "type": "DataTypeE",
+                              "value": "BFloat16"
+                            },
+                            {
+                              "type": "StridedBatched",
+                              "value": true
+                            },
+                            {
+                              "type": "GroupedGemm",
+                              "value": false
+                            },
+                            {
+                              "type": "UseScaleAB",
+                              "value": ""
+                            },
+                            {
+                              "type": "UseScaleCD",
+                              "value": false
+                            },
+                            {
+                              "type": "UseScaleAlphaVec",
+                              "value": 1
+                            },
+                            {
+                              "type": "Sparse",
+                              "value": 0
+                            },
+                            {
+                              "type": "F32XdlMathOp",
+                              "value": "Float"
+                            },
+                            {
+                              "type": "SupportDeviceUserArguments",
+                              "value": true
+                            },
+                            {
+                              "type": "SwizzleTensorA",
+                              "value": false
+                            },
+                            {
+                              "type": "SwizzleTensorB",
+                              "value": false
+                            },
+                            {
+                              "type": "MXBlockA",
+                              "value": 0
+                            },
+                            {
+                              "type": "MXBlockB",
+                              "value": 0
+                            }
+                          ]
+                        }
+                      },
+                      {
+                        "library_type": "Placeholder",
+                        "ordinal": 9,
+                        "placeholder": "TensileLibrary_I8I8_I8I8_HA_SAV_UA_Type_I8I8_HPA_Contraction_l_Ailk_Bljk_Cijk_Dijk_gfx1201",
+                        "predicate": {
+                          "type": "And",
+                          "value": [
+                            {
+                              "type": "TypesEqual",
+                              "value": [
+                                "Int8",
+                                "Int8",
+                                "Int8",
+                                "Int8",
+                                "Int8",
+                                "Int8"
+                              ]
+                            },
+                            {
+                              "type": "HighPrecisionAccumulate",
+                              "value": true
+                            },
+                            {
+                              "type": "Activation",
+                              "value": "Hipblaslt_all"
+                            },
+                            {
+                              "type": "ActivationComputeType",
+                              "value": "Int32"
+                            },
+                            {
+                              "type": "ActivationNoGuard",
+                              "value": false
+                            },
+                            {
+                              "type": "UseGradient",
+                              "value": false
+                            },
+                            {
+                              "type": "UseBias",
+                              "value": 0
+                            },
+                            {
+                              "type": "UseE",
+                              "value": false
+                            },
+                            {
+                              "type": "UseGateResidual",
+                              "value": false
+                            },
+                            {
+                              "type": "DataTypeE",
+                              "value": "Int8"
+                            },
+                            {
+                              "type": "StridedBatched",
+                              "value": true
+                            },
+                            {
+                              "type": "GroupedGemm",
+                              "value": false
+                            },
+                            {
+                              "type": "UseScaleAB",
+                              "value": ""
+                            },
+                            {
+                              "type": "UseScaleCD",
+                              "value": false
+                            },
+                            {
+                              "type": "UseScaleAlphaVec",
+                              "value": 1
+                            },
+                            {
+                              "type": "Sparse",
+                              "value": 0
+                            },
+                            {
+                              "type": "F32XdlMathOp",
+                              "value": "Float"
+                            },
+                            {
+                              "type": "SupportDeviceUserArguments",
+                              "value": true
+                            },
+                            {
+                              "type": "SwizzleTensorA",
+                              "value": false
+                            },
+                            {
+                              "type": "SwizzleTensorB",
+                              "value": false
+                            },
+                            {
+                              "type": "MXBlockA",
+                              "value": 0
+                            },
+                            {
+                              "type": "MXBlockB",
+                              "value": 0
+                            }
+                          ]
+                        }
+                      },
+                      {
+                        "library_type": "Placeholder",
+                        "ordinal": 10,
+                        "placeholder": "TensileLibrary_HH_HH_HA_Bias_Aux_SAV_UA_Type_HH_HPA_Contraction_l_Ailk_Bljk_Cijk_Dijk_gfx1201",
+                        "predicate": {
+                          "type": "And",
+                          "value": [
+                            {
+                              "type": "TypesEqual",
+                              "value": [
+                                "Half",
+                                "Half",
+                                "Half",
+                                "Half",
+                                "Half",
+                                "Half"
+                              ]
+                            },
+                            {
+                              "type": "HighPrecisionAccumulate",
+                              "value": true
+                            },
+                            {
+                              "type": "Activation",
+                              "value": "Hipblaslt_all"
+                            },
+                            {
+                              "type": "ActivationComputeType",
+                              "value": "Float"
+                            },
+                            {
+                              "type": "ActivationNoGuard",
+                              "value": false
+                            },
+                            {
+                              "type": "UseGradient",
+                              "value": false
+                            },
+                            {
+                              "type": "UseBias",
+                              "value": 1
+                            },
+                            {
+                              "type": "UseE",
+                              "value": true
+                            },
+                            {
+                              "type": "UseGateResidual",
+                              "value": false
+                            },
+                            {
+                              "type": "DataTypeE",
+                              "value": "Half"
+                            },
+                            {
+                              "type": "StridedBatched",
+                              "value": true
+                            },
+                            {
+                              "type": "GroupedGemm",
+                              "value": false
+                            },
+                            {
+                              "type": "UseScaleAB",
+                              "value": ""
+                            },
+                            {
+                              "type": "UseScaleCD",
+                              "value": false
+                            },
+                            {
+                              "type": "UseScaleAlphaVec",
+                              "value": 1
+                            },
+                            {
+                              "type": "Sparse",
+                              "value": 0
+                            },
+                            {
+                              "type": "F32XdlMathOp",
+                              "value": "Float"
+                            },
+                            {
+                              "type": "SupportDeviceUserArguments",
+                              "value": true
+                            },
+                            {
+                              "type": "SwizzleTensorA",
+                              "value": false
+                            },
+                            {
+                              "type": "SwizzleTensorB",
+                              "value": false
+                            },
+                            {
+                              "type": "MXBlockA",
+                              "value": 0
+                            },
+                            {
+                              "type": "MXBlockB",
+                              "value": 0
+                            }
+                          ]
+                        }
+                      },
+                      {
+                        "library_type": "Placeholder",
+                        "ordinal": 11,
+                        "placeholder": "TensileLibrary_B8B8_HB8_HA_Bias_SAB_SCD_SAV_UA_Type_B8H_HPA_Contraction_l_Ailk_Bljk_Cijk_Dijk_gfx1201",
+                        "predicate": {
+                          "type": "And",
+                          "value": [
+                            {
+                              "type": "TypesEqual",
+                              "value": [
+                                "BFloat8",
+                                "BFloat8",
+                                "Half",
+                                "Half",
+                                "BFloat8",
+                                "BFloat8"
+                              ]
+                            },
+                            {
+                              "type": "HighPrecisionAccumulate",
+                              "value": true
+                            },
+                            {
+                              "type": "Activation",
+                              "value": "Hipblaslt_all"
+                            },
+                            {
+                              "type": "ActivationComputeType",
+                              "value": "Float"
+                            },
+                            {
+                              "type": "ActivationNoGuard",
+                              "value": false
+                            },
+                            {
+                              "type": "UseGradient",
+                              "value": false
+                            },
+                            {
+                              "type": "UseBias",
+                              "value": 1
+                            },
+                            {
+                              "type": "UseE",
+                              "value": false
+                            },
+                            {
+                              "type": "UseGateResidual",
+                              "value": false
+                            },
+                            {
+                              "type": "DataTypeE",
+                              "value": "Half"
+                            },
+                            {
+                              "type": "StridedBatched",
+                              "value": true
+                            },
+                            {
+                              "type": "GroupedGemm",
+                              "value": false
+                            },
+                            {
+                              "type": "UseScaleAB",
+                              "value": "Scalar"
+                            },
+                            {
+                              "type": "UseScaleCD",
+                              "value": true
+                            },
+                            {
+                              "type": "UseScaleAlphaVec",
+                              "value": 1
+                            },
+                            {
+                              "type": "Sparse",
+                              "value": 0
+                            },
+                            {
+                              "type": "F32XdlMathOp",
+                              "value": "Float"
+                            },
+                            {
+                              "type": "SupportDeviceUserArguments",
+                              "value": true
+                            },
+                            {
+                              "type": "SwizzleTensorA",
+                              "value": false
+                            },
+                            {
+                              "type": "SwizzleTensorB",
+                              "value": false
+                            },
+                            {
+                              "type": "MXBlockA",
+                              "value": 0
+                            },
+                            {
+                              "type": "MXBlockB",
+                              "value": 0
+                            }
+                          ]
+                        }
+                      },
+                      {
+                        "library_type": "Placeholder",
+                        "ordinal": 12,
+                        "placeholder": "TensileLibrary_F8F8_SF8_HA_Bias_SAB_SCD_SAV_UA_Type_F8S_HPA_Contraction_l_Ailk_Bljk_Cijk_Dijk_gfx1201",
+                        "predicate": {
+                          "type": "And",
+                          "value": [
+                            {
+                              "type": "TypesEqual",
+                              "value": [
+                                "Float8",
+                                "Float8",
+                                "Float",
+                                "Float",
+                                "Float8",
+                                "Float8"
+                              ]
+                            },
+                            {
+                              "type": "HighPrecisionAccumulate",
+                              "value": true
+                            },
+                            {
+                              "type": "Activation",
+                              "value": "Hipblaslt_all"
+                            },
+                            {
+                              "type": "ActivationComputeType",
+                              "value": "Float"
+                            },
+                            {
+                              "type": "ActivationNoGuard",
+                              "value": false
+                            },
+                            {
+                              "type": "UseGradient",
+                              "value": false
+                            },
+                            {
+                              "type": "UseBias",
+                              "value": 1
+                            },
+                            {
+                              "type": "UseE",
+                              "value": false
+                            },
+                            {
+                              "type": "UseGateResidual",
+                              "value": false
+                            },
+                            {
+                              "type": "DataTypeE",
+                              "value": "Float"
+                            },
+                            {
+                              "type": "StridedBatched",
+                              "value": true
+                            },
+                            {
+                              "type": "GroupedGemm",
+                              "value": false
+                            },
+                            {
+                              "type": "UseScaleAB",
+                              "value": "Scalar"
+                            },
+                            {
+                              "type": "UseScaleCD",
+                              "value": true
+                            },
+                            {
+                              "type": "UseScaleAlphaVec",
+                              "value": 1
+                            },
+                            {
+                              "type": "Sparse",
+                              "value": 0
+                            },
+                            {
+                              "type": "F32XdlMathOp",
+                              "value": "Float"
+                            },
+                            {
+                              "type": "SupportDeviceUserArguments",
+                              "value": true
+                            },
+                            {
+                              "type": "SwizzleTensorA",
+                              "value": false
+                            },
+                            {
+                              "type": "SwizzleTensorB",
+                              "value": false
+                            },
+                            {
+                              "type": "MXBlockA",
+                              "value": 0
+                            },
+                            {
+                              "type": "MXBlockB",
+                              "value": 0
+                            }
+                          ]
+                        }
+                      },
+                      {
+                        "library_type": "Placeholder",
+                        "ordinal": 13,
+                        "placeholder": "TensileLibrary_F8F8_HF8_HA_Bias_SAB_SCD_SAV_UA_Type_F8H_HPA_Contraction_l_Ailk_Bljk_Cijk_Dijk_gfx1201",
+                        "predicate": {
+                          "type": "And",
+                          "value": [
+                            {
+                              "type": "TypesEqual",
+                              "value": [
+                                "Float8",
+                                "Float8",
+                                "Half",
+                                "Half",
+                                "Float8",
+                                "Float8"
+                              ]
+                            },
+                            {
+                              "type": "HighPrecisionAccumulate",
+                              "value": true
+                            },
+                            {
+                              "type": "Activation",
+                              "value": "Hipblaslt_all"
+                            },
+                            {
+                              "type": "ActivationComputeType",
+                              "value": "Float"
+                            },
+                            {
+                              "type": "ActivationNoGuard",
+                              "value": false
+                            },
+                            {
+                              "type": "UseGradient",
+                              "value": false
+                            },
+                            {
+                              "type": "UseBias",
+                              "value": 1
+                            },
+                            {
+                              "type": "UseE",
+                              "value": false
+                            },
+                            {
+                              "type": "UseGateResidual",
+                              "value": false
+                            },
+                            {
+                              "type": "DataTypeE",
+                              "value": "Half"
+                            },
+                            {
+                              "type": "StridedBatched",
+                              "value": true
+                            },
+                            {
+                              "type": "GroupedGemm",
+                              "value": false
+                            },
+                            {
+                              "type": "UseScaleAB",
+                              "value": "Scalar"
+                            },
+                            {
+                              "type": "UseScaleCD",
+                              "value": true
+                            },
+                            {
+                              "type": "UseScaleAlphaVec",
+                              "value": 1
+                            },
+                            {
+                              "type": "Sparse",
+                              "value": 0
+                            },
+                            {
+                              "type": "F32XdlMathOp",
+                              "value": "Float"
+                            },
+                            {
+                              "type": "SupportDeviceUserArguments",
+                              "value": true
+                            },
+                            {
+                              "type": "SwizzleTensorA",
+                              "value": false
+                            },
+                            {
+                              "type": "SwizzleTensorB",
+                              "value": false
+                            },
+                            {
+                              "type": "MXBlockA",
+                              "value": 0
+                            },
+                            {
+                              "type": "MXBlockB",
+                              "value": 0
+                            }
+                          ]
+                        }
+                      },
+                      {
+                        "library_type": "Placeholder",
+                        "ordinal": 14,
+                        "placeholder": "TensileLibrary_F8F8_BF8_HA_Bias_SAB_SCD_SAV_UA_Type_F8B_HPA_Contraction_l_Ailk_Bljk_Cijk_Dijk_gfx1201",
+                        "predicate": {
+                          "type": "And",
+                          "value": [
+                            {
+                              "type": "TypesEqual",
+                              "value": [
+                                "Float8",
+                                "Float8",
+                                "BFloat16",
+                                "BFloat16",
+                                "Float8",
+                                "Float8"
+                              ]
+                            },
+                            {
+                              "type": "HighPrecisionAccumulate",
+                              "value": true
+                            },
+                            {
+                              "type": "Activation",
+                              "value": "Hipblaslt_all"
+                            },
+                            {
+                              "type": "ActivationComputeType",
+                              "value": "Float"
+                            },
+                            {
+                              "type": "ActivationNoGuard",
+                              "value": false
+                            },
+                            {
+                              "type": "UseGradient",
+                              "value": false
+                            },
+                            {
+                              "type": "UseBias",
+                              "value": 1
+                            },
+                            {
+                              "type": "UseE",
+                              "value": false
+                            },
+                            {
+                              "type": "UseGateResidual",
+                              "value": false
+                            },
+                            {
+                              "type": "DataTypeE",
+                              "value": "BFloat16"
+                            },
+                            {
+                              "type": "StridedBatched",
+                              "value": true
+                            },
+                            {
+                              "type": "GroupedGemm",
+                              "value": false
+                            },
+                            {
+                              "type": "UseScaleAB",
+                              "value": "Scalar"
+                            },
+                            {
+                              "type": "UseScaleCD",
+                              "value": true
+                            },
+                            {
+                              "type": "UseScaleAlphaVec",
+                              "value": 1
+                            },
+                            {
+                              "type": "Sparse",
+                              "value": 0
+                            },
+                            {
+                              "type": "F32XdlMathOp",
+                              "value": "Float"
+                            },
+                            {
+                              "type": "SupportDeviceUserArguments",
+                              "value": true
+                            },
+                            {
+                              "type": "SwizzleTensorA",
+                              "value": false
+                            },
+                            {
+                              "type": "SwizzleTensorB",
+                              "value": false
+                            },
+                            {
+                              "type": "MXBlockA",
+                              "value": 0
+                            },
+                            {
+                              "type": "MXBlockB",
+                              "value": 0
+                            }
+                          ]
+                        }
+                      },
+                      {
+                        "library_type": "Placeholder",
+                        "ordinal": 15,
+                        "placeholder": "TensileLibrary_B8B8_BB8_HA_Bias_SAB_SCD_SAV_UA_Type_B8B_HPA_Contraction_l_Ailk_Bljk_Cijk_Dijk_gfx1201",
+                        "predicate": {
+                          "type": "And",
+                          "value": [
+                            {
+                              "type": "TypesEqual",
+                              "value": [
+                                "BFloat8",
+                                "BFloat8",
+                                "BFloat16",
+                                "BFloat16",
+                                "BFloat8",
+                                "BFloat8"
+                              ]
+                            },
+                            {
+                              "type": "HighPrecisionAccumulate",
+                              "value": true
+                            },
+                            {
+                              "type": "Activation",
+                              "value": "Hipblaslt_all"
+                            },
+                            {
+                              "type": "ActivationComputeType",
+                              "value": "Float"
+                            },
+                            {
+                              "type": "ActivationNoGuard",
+                              "value": false
+                            },
+                            {
+                              "type": "UseGradient",
+                              "value": false
+                            },
+                            {
+                              "type": "UseBias",
+                              "value": 1
+                            },
+                            {
+                              "type": "UseE",
+                              "value": false
+                            },
+                            {
+                              "type": "UseGateResidual",
+                              "value": false
+                            },
+                            {
+                              "type": "DataTypeE",
+                              "value": "BFloat16"
+                            },
+                            {
+                              "type": "StridedBatched",
+                              "value": true
+                            },
+                            {
+                              "type": "GroupedGemm",
+                              "value": false
+                            },
+                            {
+                              "type": "UseScaleAB",
+                              "value": "Scalar"
+                            },
+                            {
+                              "type": "UseScaleCD",
+                              "value": true
+                            },
+                            {
+                              "type": "UseScaleAlphaVec",
+                              "value": 1
+                            },
+                            {
+                              "type": "Sparse",
+                              "value": 0
+                            },
+                            {
+                              "type": "F32XdlMathOp",
+                              "value": "Float"
+                            },
+                            {
+                              "type": "SupportDeviceUserArguments",
+                              "value": true
+                            },
+                            {
+                              "type": "SwizzleTensorA",
+                              "value": false
+                            },
+                            {
+                              "type": "SwizzleTensorB",
+                              "value": false
+                            },
+                            {
+                              "type": "MXBlockA",
+                              "value": 0
+                            },
+                            {
+                              "type": "MXBlockB",
+                              "value": 0
+                            }
+                          ]
+                        }
+                      },
+                      {
+                        "library_type": "Placeholder",
+                        "ordinal": 16,
+                        "placeholder": "TensileLibrary_B8B8_SB8_HA_Bias_SAB_SCD_SAV_UA_Type_B8S_HPA_Contraction_l_Ailk_Bljk_Cijk_Dijk_gfx1201",
+                        "predicate": {
+                          "type": "And",
+                          "value": [
+                            {
+                              "type": "TypesEqual",
+                              "value": [
+                                "BFloat8",
+                                "BFloat8",
+                                "Float",
+                                "Float",
+                                "BFloat8",
+                                "BFloat8"
+                              ]
+                            },
+                            {
+                              "type": "HighPrecisionAccumulate",
+                              "value": true
+                            },
+                            {
+                              "type": "Activation",
+                              "value": "Hipblaslt_all"
+                            },
+                            {
+                              "type": "ActivationComputeType",
+                              "value": "Float"
+                            },
+                            {
+                              "type": "ActivationNoGuard",
+                              "value": false
+                            },
+                            {
+                              "type": "UseGradient",
+                              "value": false
+                            },
+                            {
+                              "type": "UseBias",
+                              "value": 1
+                            },
+                            {
+                              "type": "UseE",
+                              "value": false
+                            },
+                            {
+                              "type": "UseGateResidual",
+                              "value": false
+                            },
+                            {
+                              "type": "DataTypeE",
+                              "value": "Float"
+                            },
+                            {
+                              "type": "StridedBatched",
+                              "value": true
+                            },
+                            {
+                              "type": "GroupedGemm",
+                              "value": false
+                            },
+                            {
+                              "type": "UseScaleAB",
+                              "value": "Scalar"
+                            },
+                            {
+                              "type": "UseScaleCD",
+                              "value": true
+                            },
+                            {
+                              "type": "UseScaleAlphaVec",
+                              "value": 1
+                            },
+                            {
+                              "type": "Sparse",
+                              "value": 0
+                            },
+                            {
+                              "type": "F32XdlMathOp",
+                              "value": "Float"
+                            },
+                            {
+                              "type": "SupportDeviceUserArguments",
+                              "value": true
+                            },
+                            {
+                              "type": "SwizzleTensorA",
+                              "value": false
+                            },
+                            {
+                              "type": "SwizzleTensorB",
+                              "value": false
+                            },
+                            {
+                              "type": "MXBlockA",
+                              "value": 0
+                            },
+                            {
+                              "type": "MXBlockB",
+                              "value": 0
+                            }
+                          ]
+                        }
+                      },
+                      {
+                        "library_type": "Placeholder",
+                        "ordinal": 17,
+                        "placeholder": "TensileLibrary_B8F8_HB8F8_HA_Bias_SAB_SCD_SAV_UA_Type_B8H_HPA_Contraction_l_Ailk_Bljk_Cijk_Dijk_gfx1201",
+                        "predicate": {
+                          "type": "And",
+                          "value": [
+                            {
+                              "type": "TypesEqual",
+                              "value": [
+                                "BFloat8",
+                                "Float8",
+                                "Half",
+                                "Half",
+                                "BFloat8",
+                                "Float8"
+                              ]
+                            },
+                            {
+                              "type": "HighPrecisionAccumulate",
+                              "value": true
+                            },
+                            {
+                              "type": "Activation",
+                              "value": "Hipblaslt_all"
+                            },
+                            {
+                              "type": "ActivationComputeType",
+                              "value": "Float"
+                            },
+                            {
+                              "type": "ActivationNoGuard",
+                              "value": false
+                            },
+                            {
+                              "type": "UseGradient",
+                              "value": false
+                            },
+                            {
+                              "type": "UseBias",
+                              "value": 1
+                            },
+                            {
+                              "type": "UseE",
+                              "value": false
+                            },
+                            {
+                              "type": "UseGateResidual",
+                              "value": false
+                            },
+                            {
+                              "type": "DataTypeE",
+                              "value": "Half"
+                            },
+                            {
+                              "type": "StridedBatched",
+                              "value": true
+                            },
+                            {
+                              "type": "GroupedGemm",
+                              "value": false
+                            },
+                            {
+                              "type": "UseScaleAB",
+                              "value": "Scalar"
+                            },
+                            {
+                              "type": "UseScaleCD",
+                              "value": true
+                            },
+                            {
+                              "type": "UseScaleAlphaVec",
+                              "value": 1
+                            },
+                            {
+                              "type": "Sparse",
+                              "value": 0
+                            },
+                            {
+                              "type": "F32XdlMathOp",
+                              "value": "Float"
+                            },
+                            {
+                              "type": "SupportDeviceUserArguments",
+                              "value": true
+                            },
+                            {
+                              "type": "SwizzleTensorA",
+                              "value": false
+                            },
+                            {
+                              "type": "SwizzleTensorB",
+                              "value": false
+                            },
+                            {
+                              "type": "MXBlockA",
+                              "value": 0
+                            },
+                            {
+                              "type": "MXBlockB",
+                              "value": 0
+                            }
+                          ]
+                        }
+                      },
+                      {
+                        "library_type": "Placeholder",
+                        "ordinal": 18,
+                        "placeholder": "TensileLibrary_B8B8_F8B8_HA_Bias_SAB_SCD_SAV_UA_Type_B8F8_HPA_Contraction_l_Ailk_Bljk_Cijk_Dijk_gfx1201",
+                        "predicate": {
+                          "type": "And",
+                          "value": [
+                            {
+                              "type": "TypesEqual",
+                              "value": [
+                                "BFloat8",
+                                "BFloat8",
+                                "Float8",
+                                "Float8",
+                                "BFloat8",
+                                "BFloat8"
+                              ]
+                            },
+                            {
+                              "type": "HighPrecisionAccumulate",
+                              "value": true
+                            },
+                            {
+                              "type": "Activation",
+                              "value": "Hipblaslt_all"
+                            },
+                            {
+                              "type": "ActivationComputeType",
+                              "value": "Float"
+                            },
+                            {
+                              "type": "ActivationNoGuard",
+                              "value": false
+                            },
+                            {
+                              "type": "UseGradient",
+                              "value": false
+                            },
+                            {
+                              "type": "UseBias",
+                              "value": 1
+                            },
+                            {
+                              "type": "UseE",
+                              "value": false
+                            },
+                            {
+                              "type": "UseGateResidual",
+                              "value": false
+                            },
+                            {
+                              "type": "DataTypeE",
+                              "value": "Float8"
+                            },
+                            {
+                              "type": "StridedBatched",
+                              "value": true
+                            },
+                            {
+                              "type": "GroupedGemm",
+                              "value": false
+                            },
+                            {
+                              "type": "UseScaleAB",
+                              "value": "Scalar"
+                            },
+                            {
+                              "type": "UseScaleCD",
+                              "value": true
+                            },
+                            {
+                              "type": "UseScaleAlphaVec",
+                              "value": 1
+                            },
+                            {
+                              "type": "Sparse",
+                              "value": 0
+                            },
+                            {
+                              "type": "F32XdlMathOp",
+                              "value": "Float"
+                            },
+                            {
+                              "type": "SupportDeviceUserArguments",
+                              "value": true
+                            },
+                            {
+                              "type": "SwizzleTensorA",
+                              "value": false
+                            },
+                            {
+                              "type": "SwizzleTensorB",
+                              "value": false
+                            },
+                            {
+                              "type": "MXBlockA",
+                              "value": 0
+                            },
+                            {
+                              "type": "MXBlockB",
+                              "value": 0
+                            }
+                          ]
+                        }
+                      },
+                      {
+                        "library_type": "Placeholder",
+                        "ordinal": 19,
+                        "placeholder": "TensileLibrary_F8B8_HF8B8_HA_Bias_SAB_SCD_SAV_UA_Type_F8H_HPA_Contraction_l_Ailk_Bljk_Cijk_Dijk_gfx1201",
+                        "predicate": {
+                          "type": "And",
+                          "value": [
+                            {
+                              "type": "TypesEqual",
+                              "value": [
+                                "Float8",
+                                "BFloat8",
+                                "Half",
+                                "Half",
+                                "Float8",
+                                "BFloat8"
+                              ]
+                            },
+                            {
+                              "type": "HighPrecisionAccumulate",
+                              "value": true
+                            },
+                            {
+                              "type": "Activation",
+                              "value": "Hipblaslt_all"
+                            },
+                            {
+                              "type": "ActivationComputeType",
+                              "value": "Float"
+                            },
+                            {
+                              "type": "ActivationNoGuard",
+                              "value": false
+                            },
+                            {
+                              "type": "UseGradient",
+                              "value": false
+                            },
+                            {
+                              "type": "UseBias",
+                              "value": 1
+                            },
+                            {
+                              "type": "UseE",
+                              "value": false
+                            },
+                            {
+                              "type": "UseGateResidual",
+                              "value": false
+                            },
+                            {
+                              "type": "DataTypeE",
+                              "value": "Half"
+                            },
+                            {
+                              "type": "StridedBatched",
+                              "value": true
+                            },
+                            {
+                              "type": "GroupedGemm",
+                              "value": false
+                            },
+                            {
+                              "type": "UseScaleAB",
+                              "value": "Scalar"
+                            },
+                            {
+                              "type": "UseScaleCD",
+                              "value": true
+                            },
+                            {
+                              "type": "UseScaleAlphaVec",
+                              "value": 1
+                            },
+                            {
+                              "type": "Sparse",
+                              "value": 0
+                            },
+                            {
+                              "type": "F32XdlMathOp",
+                              "value": "Float"
+                            },
+                            {
+                              "type": "SupportDeviceUserArguments",
+                              "value": true
+                            },
+                            {
+                              "type": "SwizzleTensorA",
+                              "value": false
+                            },
+                            {
+                              "type": "SwizzleTensorB",
+                              "value": false
+                            },
+                            {
+                              "type": "MXBlockA",
+                              "value": 0
+                            },
+                            {
+                              "type": "MXBlockB",
+                              "value": 0
+                            }
+                          ]
+                        }
+                      },
+                      {
+                        "library_type": "Placeholder",
+                        "ordinal": 20,
+                        "placeholder": "TensileLibrary_F8B8_SF8B8_HA_Bias_SAB_SCD_SAV_UA_Type_F8S_HPA_Contraction_l_Ailk_Bljk_Cijk_Dijk_gfx1201",
+                        "predicate": {
+                          "type": "And",
+                          "value": [
+                            {
+                              "type": "TypesEqual",
+                              "value": [
+                                "Float8",
+                                "BFloat8",
+                                "Float",
+                                "Float",
+                                "Float8",
+                                "BFloat8"
+                              ]
+                            },
+                            {
+                              "type": "HighPrecisionAccumulate",
+                              "value": true
+                            },
+                            {
+                              "type": "Activation",
+                              "value": "Hipblaslt_all"
+                            },
+                            {
+                              "type": "ActivationComputeType",
+                              "value": "Float"
+                            },
+                            {
+                              "type": "ActivationNoGuard",
+                              "value": false
+                            },
+                            {
+                              "type": "UseGradient",
+                              "value": false
+                            },
+                            {
+                              "type": "UseBias",
+                              "value": 1
+                            },
+                            {
+                              "type": "UseE",
+                              "value": false
+                            },
+                            {
+                              "type": "UseGateResidual",
+                              "value": false
+                            },
+                            {
+                              "type": "DataTypeE",
+                              "value": "Float"
+                            },
+                            {
+                              "type": "StridedBatched",
+                              "value": true
+                            },
+                            {
+                              "type": "GroupedGemm",
+                              "value": false
+                            },
+                            {
+                              "type": "UseScaleAB",
+                              "value": "Scalar"
+                            },
+                            {
+                              "type": "UseScaleCD",
+                              "value": true
+                            },
+                            {
+                              "type": "UseScaleAlphaVec",
+                              "value": 1
+                            },
+                            {
+                              "type": "Sparse",
+                              "value": 0
+                            },
+                            {
+                              "type": "F32XdlMathOp",
+                              "value": "Float"
+                            },
+                            {
+                              "type": "SupportDeviceUserArguments",
+                              "value": true
+                            },
+                            {
+                              "type": "SwizzleTensorA",
+                              "value": false
+                            },
+                            {
+                              "type": "SwizzleTensorB",
+                              "value": false
+                            },
+                            {
+                              "type": "MXBlockA",
+                              "value": 0
+                            },
+                            {
+                              "type": "MXBlockB",
+                              "value": 0
+                            }
+                          ]
+                        }
+                      },
+                      {
+                        "library_type": "Placeholder",
+                        "ordinal": 21,
+                        "placeholder": "TensileLibrary_F8B8_BF8B8_HA_Bias_SAB_SCD_SAV_UA_Type_F8B_HPA_Contraction_l_Ailk_Bljk_Cijk_Dijk_gfx1201",
+                        "predicate": {
+                          "type": "And",
+                          "value": [
+                            {
+                              "type": "TypesEqual",
+                              "value": [
+                                "Float8",
+                                "BFloat8",
+                                "BFloat16",
+                                "BFloat16",
+                                "Float8",
+                                "BFloat8"
+                              ]
+                            },
+                            {
+                              "type": "HighPrecisionAccumulate",
+                              "value": true
+                            },
+                            {
+                              "type": "Activation",
+                              "value": "Hipblaslt_all"
+                            },
+                            {
+                              "type": "ActivationComputeType",
+                              "value": "Float"
+                            },
+                            {
+                              "type": "ActivationNoGuard",
+                              "value": false
+                            },
+                            {
+                              "type": "UseGradient",
+                              "value": false
+                            },
+                            {
+                              "type": "UseBias",
+                              "value": 1
+                            },
+                            {
+                              "type": "UseE",
+                              "value": false
+                            },
+                            {
+                              "type": "UseGateResidual",
+                              "value": false
+                            },
+                            {
+                              "type": "DataTypeE",
+                              "value": "BFloat16"
+                            },
+                            {
+                              "type": "StridedBatched",
+                              "value": true
+                            },
+                            {
+                              "type": "GroupedGemm",
+                              "value": false
+                            },
+                            {
+                              "type": "UseScaleAB",
+                              "value": "Scalar"
+                            },
+                            {
+                              "type": "UseScaleCD",
+                              "value": true
+                            },
+                            {
+                              "type": "UseScaleAlphaVec",
+                              "value": 1
+                            },
+                            {
+                              "type": "Sparse",
+                              "value": 0
+                            },
+                            {
+                              "type": "F32XdlMathOp",
+                              "value": "Float"
+                            },
+                            {
+                              "type": "SupportDeviceUserArguments",
+                              "value": true
+                            },
+                            {
+                              "type": "SwizzleTensorA",
+                              "value": false
+                            },
+                            {
+                              "type": "SwizzleTensorB",
+                              "value": false
+                            },
+                            {
+                              "type": "MXBlockA",
+                              "value": 0
+                            },
+                            {
+                              "type": "MXBlockB",
+                              "value": 0
+                            }
+                          ]
+                        }
+                      },
+                      {
+                        "library_type": "Placeholder",
+                        "ordinal": 22,
+                        "placeholder": "TensileLibrary_B8B8_B8B8_HA_Bias_SAB_SCD_SAV_UA_Type_B8B8_HPA_Contraction_l_Ailk_Bljk_Cijk_Dijk_gfx1201",
+                        "predicate": {
+                          "type": "And",
+                          "value": [
+                            {
+                              "type": "TypesEqual",
+                              "value": [
+                                "BFloat8",
+                                "BFloat8",
+                                "BFloat8",
+                                "BFloat8",
+                                "BFloat8",
+                                "BFloat8"
+                              ]
+                            },
+                            {
+                              "type": "HighPrecisionAccumulate",
+                              "value": true
+                            },
+                            {
+                              "type": "Activation",
+                              "value": "Hipblaslt_all"
+                            },
+                            {
+                              "type": "ActivationComputeType",
+                              "value": "Float"
+                            },
+                            {
+                              "type": "ActivationNoGuard",
+                              "value": false
+                            },
+                            {
+                              "type": "UseGradient",
+                              "value": false
+                            },
+                            {
+                              "type": "UseBias",
+                              "value": 1
+                            },
+                            {
+                              "type": "UseE",
+                              "value": false
+                            },
+                            {
+                              "type": "UseGateResidual",
+                              "value": false
+                            },
+                            {
+                              "type": "DataTypeE",
+                              "value": "BFloat8"
+                            },
+                            {
+                              "type": "StridedBatched",
+                              "value": true
+                            },
+                            {
+                              "type": "GroupedGemm",
+                              "value": false
+                            },
+                            {
+                              "type": "UseScaleAB",
+                              "value": "Scalar"
+                            },
+                            {
+                              "type": "UseScaleCD",
+                              "value": true
+                            },
+                            {
+                              "type": "UseScaleAlphaVec",
+                              "value": 1
+                            },
+                            {
+                              "type": "Sparse",
+                              "value": 0
+                            },
+                            {
+                              "type": "F32XdlMathOp",
+                              "value": "Float"
+                            },
+                            {
+                              "type": "SupportDeviceUserArguments",
+                              "value": true
+                            },
+                            {
+                              "type": "SwizzleTensorA",
+                              "value": false
+                            },
+                            {
+                              "type": "SwizzleTensorB",
+                              "value": false
+                            },
+                            {
+                              "type": "MXBlockA",
+                              "value": 0
+                            },
+                            {
+                              "type": "MXBlockB",
+                              "value": 0
+                            }
+                          ]
+                        }
+                      },
+                      {
+                        "library_type": "Placeholder",
+                        "ordinal": 23,
+                        "placeholder": "TensileLibrary_F8F8_B8F8_HA_Bias_SAB_SCD_SAV_UA_Type_F8B8_HPA_Contraction_l_Ailk_Bljk_Cijk_Dijk_gfx1201",
+                        "predicate": {
+                          "type": "And",
+                          "value": [
+                            {
+                              "type": "TypesEqual",
+                              "value": [
+                                "Float8",
+                                "Float8",
+                                "BFloat8",
+                                "BFloat8",
+                                "Float8",
+                                "Float8"
+                              ]
+                            },
+                            {
+                              "type": "HighPrecisionAccumulate",
+                              "value": true
+                            },
+                            {
+                              "type": "Activation",
+                              "value": "Hipblaslt_all"
+                            },
+                            {
+                              "type": "ActivationComputeType",
+                              "value": "Float"
+                            },
+                            {
+                              "type": "ActivationNoGuard",
+                              "value": false
+                            },
+                            {
+                              "type": "UseGradient",
+                              "value": false
+                            },
+                            {
+                              "type": "UseBias",
+                              "value": 1
+                            },
+                            {
+                              "type": "UseE",
+                              "value": false
+                            },
+                            {
+                              "type": "UseGateResidual",
+                              "value": false
+                            },
+                            {
+                              "type": "DataTypeE",
+                              "value": "BFloat8"
+                            },
+                            {
+                              "type": "StridedBatched",
+                              "value": true
+                            },
+                            {
+                              "type": "GroupedGemm",
+                              "value": false
+                            },
+                            {
+                              "type": "UseScaleAB",
+                              "value": "Scalar"
+                            },
+                            {
+                              "type": "UseScaleCD",
+                              "value": true
+                            },
+                            {
+                              "type": "UseScaleAlphaVec",
+                              "value": 1
+                            },
+                            {
+                              "type": "Sparse",
+                              "value": 0
+                            },
+                            {
+                              "type": "F32XdlMathOp",
+                              "value": "Float"
+                            },
+                            {
+                              "type": "SupportDeviceUserArguments",
+                              "value": true
+                            },
+                            {
+                              "type": "SwizzleTensorA",
+                              "value": false
+                            },
+                            {
+                              "type": "SwizzleTensorB",
+                              "value": false
+                            },
+                            {
+                              "type": "MXBlockA",
+                              "value": 0
+                            },
+                            {
+                              "type": "MXBlockB",
+                              "value": 0
+                            }
+                          ]
+                        }
+                      },
+                      {
+                        "library_type": "Placeholder",
+                        "ordinal": 24,
+                        "placeholder": "TensileLibrary_F8F8_F8F8_HA_Bias_SAB_SCD_SAV_UA_Type_F8F8_HPA_Contraction_l_Ailk_Bljk_Cijk_Dijk_gfx1201",
+                        "predicate": {
+                          "type": "And",
+                          "value": [
+                            {
+                              "type": "TypesEqual",
+                              "value": [
+                                "Float8",
+                                "Float8",
+                                "Float8",
+                                "Float8",
+                                "Float8",
+                                "Float8"
+                              ]
+                            },
+                            {
+                              "type": "HighPrecisionAccumulate",
+                              "value": true
+                            },
+                            {
+                              "type": "Activation",
+                              "value": "Hipblaslt_all"
+                            },
+                            {
+                              "type": "ActivationComputeType",
+                              "value": "Float"
+                            },
+                            {
+                              "type": "ActivationNoGuard",
+                              "value": false
+                            },
+                            {
+                              "type": "UseGradient",
+                              "value": false
+                            },
+                            {
+                              "type": "UseBias",
+                              "value": 1
+                            },
+                            {
+                              "type": "UseE",
+                              "value": false
+                            },
+                            {
+                              "type": "UseGateResidual",
+                              "value": false
+                            },
+                            {
+                              "type": "DataTypeE",
+                              "value": "Float8"
+                            },
+                            {
+                              "type": "StridedBatched",
+                              "value": true
+                            },
+                            {
+                              "type": "GroupedGemm",
+                              "value": false
+                            },
+                            {
+                              "type": "UseScaleAB",
+                              "value": "Scalar"
+                            },
+                            {
+                              "type": "UseScaleCD",
+                              "value": true
+                            },
+                            {
+                              "type": "UseScaleAlphaVec",
+                              "value": 1
+                            },
+                            {
+                              "type": "Sparse",
+                              "value": 0
+                            },
+                            {
+                              "type": "F32XdlMathOp",
+                              "value": "Float"
+                            },
+                            {
+                              "type": "SupportDeviceUserArguments",
+                              "value": true
+                            },
+                            {
+                              "type": "SwizzleTensorA",
+                              "value": false
+                            },
+                            {
+                              "type": "SwizzleTensorB",
+                              "value": false
+                            },
+                            {
+                              "type": "MXBlockA",
+                              "value": 0
+                            },
+                            {
+                              "type": "MXBlockB",
+                              "value": 0
+                            }
+                          ]
+                        }
+                      },
+                      {
+                        "library_type": "Placeholder",
+                        "ordinal": 25,
+                        "placeholder": "TensileLibrary_B8F8_BB8F8_HA_Bias_SAB_SCD_SAV_UA_Type_B8B_HPA_Contraction_l_Ailk_Bljk_Cijk_Dijk_gfx1201",
+                        "predicate": {
+                          "type": "And",
+                          "value": [
+                            {
+                              "type": "TypesEqual",
+                              "value": [
+                                "BFloat8",
+                                "Float8",
+                                "BFloat16",
+                                "BFloat16",
+                                "BFloat8",
+                                "Float8"
+                              ]
+                            },
+                            {
+                              "type": "HighPrecisionAccumulate",
+                              "value": true
+                            },
+                            {
+                              "type": "Activation",
+                              "value": "Hipblaslt_all"
+                            },
+                            {
+                              "type": "ActivationComputeType",
+                              "value": "Float"
+                            },
+                            {
+                              "type": "ActivationNoGuard",
+                              "value": false
+                            },
+                            {
+                              "type": "UseGradient",
+                              "value": false
+                            },
+                            {
+                              "type": "UseBias",
+                              "value": 1
+                            },
+                            {
+                              "type": "UseE",
+                              "value": false
+                            },
+                            {
+                              "type": "UseGateResidual",
+                              "value": false
+                            },
+                            {
+                              "type": "DataTypeE",
+                              "value": "BFloat16"
+                            },
+                            {
+                              "type": "StridedBatched",
+                              "value": true
+                            },
+                            {
+                              "type": "GroupedGemm",
+                              "value": false
+                            },
+                            {
+                              "type": "UseScaleAB",
+                              "value": "Scalar"
+                            },
+                            {
+                              "type": "UseScaleCD",
+                              "value": true
+                            },
+                            {
+                              "type": "UseScaleAlphaVec",
+                              "value": 1
+                            },
+                            {
+                              "type": "Sparse",
+                              "value": 0
+                            },
+                            {
+                              "type": "F32XdlMathOp",
+                              "value": "Float"
+                            },
+                            {
+                              "type": "SupportDeviceUserArguments",
+                              "value": true
+                            },
+                            {
+                              "type": "SwizzleTensorA",
+                              "value": false
+                            },
+                            {
+                              "type": "SwizzleTensorB",
+                              "value": false
+                            },
+                            {
+                              "type": "MXBlockA",
+                              "value": 0
+                            },
+                            {
+                              "type": "MXBlockB",
+                              "value": 0
+                            }
+                          ]
+                        }
+                      },
+                      {
+                        "library_type": "Placeholder",
+                        "ordinal": 26,
+                        "placeholder": "TensileLibrary_B8F8_SB8F8_HA_Bias_SAB_SCD_SAV_UA_Type_B8S_HPA_Contraction_l_Ailk_Bljk_Cijk_Dijk_gfx1201",
+                        "predicate": {
+                          "type": "And",
+                          "value": [
+                            {
+                              "type": "TypesEqual",
+                              "value": [
+                                "BFloat8",
+                                "Float8",
+                                "Float",
+                                "Float",
+                                "BFloat8",
+                                "Float8"
+                              ]
+                            },
+                            {
+                              "type": "HighPrecisionAccumulate",
+                              "value": true
+                            },
+                            {
+                              "type": "Activation",
+                              "value": "Hipblaslt_all"
+                            },
+                            {
+                              "type": "ActivationComputeType",
+                              "value": "Float"
+                            },
+                            {
+                              "type": "ActivationNoGuard",
+                              "value": false
+                            },
+                            {
+                              "type": "UseGradient",
+                              "value": false
+                            },
+                            {
+                              "type": "UseBias",
+                              "value": 1
+                            },
+                            {
+                              "type": "UseE",
+                              "value": false
+                            },
+                            {
+                              "type": "UseGateResidual",
+                              "value": false
+                            },
+                            {
+                              "type": "DataTypeE",
+                              "value": "Float"
+                            },
+                            {
+                              "type": "StridedBatched",
+                              "value": true
+                            },
+                            {
+                              "type": "GroupedGemm",
+                              "value": false
+                            },
+                            {
+                              "type": "UseScaleAB",
+                              "value": "Scalar"
+                            },
+                            {
+                              "type": "UseScaleCD",
+                              "value": true
+                            },
+                            {
+                              "type": "UseScaleAlphaVec",
+                              "value": 1
+                            },
+                            {
+                              "type": "Sparse",
+                              "value": 0
+                            },
+                            {
+                              "type": "F32XdlMathOp",
+                              "value": "Float"
+                            },
+                            {
+                              "type": "SupportDeviceUserArguments",
+                              "value": true
+                            },
+                            {
+                              "type": "SwizzleTensorA",
+                              "value": false
+                            },
+                            {
+                              "type": "SwizzleTensorB",
+                              "value": false
+                            },
+                            {
+                              "type": "MXBlockA",
+                              "value": 0
+                            },
+                            {
+                              "type": "MXBlockB",
+                              "value": 0
+                            }
+                          ]
+                        }
+                      },
+                      {
+                        "library_type": "Placeholder",
+                        "ordinal": 27,
+                        "placeholder": "TensileLibrary_B8F8_B8B8F8_HA_Bias_SAB_SCD_SAV_UA_Type_B8B8_HPA_Contraction_l_Ailk_Bljk_Cijk_Dijk_gfx1201",
+                        "predicate": {
+                          "type": "And",
+                          "value": [
+                            {
+                              "type": "TypesEqual",
+                              "value": [
+                                "BFloat8",
+                                "Float8",
+                                "BFloat8",
+                                "BFloat8",
+                                "BFloat8",
+                                "Float8"
+                              ]
+                            },
+                            {
+                              "type": "HighPrecisionAccumulate",
+                              "value": true
+                            },
+                            {
+                              "type": "Activation",
+                              "value": "Hipblaslt_all"
+                            },
+                            {
+                              "type": "ActivationComputeType",
+                              "value": "Float"
+                            },
+                            {
+                              "type": "ActivationNoGuard",
+                              "value": false
+                            },
+                            {
+                              "type": "UseGradient",
+                              "value": false
+                            },
+                            {
+                              "type": "UseBias",
+                              "value": 1
+                            },
+                            {
+                              "type": "UseE",
+                              "value": false
+                            },
+                            {
+                              "type": "UseGateResidual",
+                              "value": false
+                            },
+                            {
+                              "type": "DataTypeE",
+                              "value": "BFloat8"
+                            },
+                            {
+                              "type": "StridedBatched",
+                              "value": true
+                            },
+                            {
+                              "type": "GroupedGemm",
+                              "value": false
+                            },
+                            {
+                              "type": "UseScaleAB",
+                              "value": "Scalar"
+                            },
+                            {
+                              "type": "UseScaleCD",
+                              "value": true
+                            },
+                            {
+                              "type": "UseScaleAlphaVec",
+                              "value": 1
+                            },
+                            {
+                              "type": "Sparse",
+                              "value": 0
+                            },
+                            {
+                              "type": "F32XdlMathOp",
+                              "value": "Float"
+                            },
+                            {
+                              "type": "SupportDeviceUserArguments",
+                              "value": true
+                            },
+                            {
+                              "type": "SwizzleTensorA",
+                              "value": false
+                            },
+                            {
+                              "type": "SwizzleTensorB",
+                              "value": false
+                            },
+                            {
+                              "type": "MXBlockA",
+                              "value": 0
+                            },
+                            {
+                              "type": "MXBlockB",
+                              "value": 0
+                            }
+                          ]
+                        }
+                      },
+                      {
+                        "library_type": "Placeholder",
+                        "ordinal": 28,
+                        "placeholder": "TensileLibrary_F8B8_B8F8B8_HA_Bias_SAB_SCD_SAV_UA_Type_F8B8_HPA_Contraction_l_Ailk_Bljk_Cijk_Dijk_gfx1201",
+                        "predicate": {
+                          "type": "And",
+                          "value": [
+                            {
+                              "type": "TypesEqual",
+                              "value": [
+                                "Float8",
+                                "BFloat8",
+                                "BFloat8",
+                                "BFloat8",
+                                "Float8",
+                                "BFloat8"
+                              ]
+                            },
+                            {
+                              "type": "HighPrecisionAccumulate",
+                              "value": true
+                            },
+                            {
+                              "type": "Activation",
+                              "value": "Hipblaslt_all"
+                            },
+                            {
+                              "type": "ActivationComputeType",
+                              "value": "Float"
+                            },
+                            {
+                              "type": "ActivationNoGuard",
+                              "value": false
+                            },
+                            {
+                              "type": "UseGradient",
+                              "value": false
+                            },
+                            {
+                              "type": "UseBias",
+                              "value": 1
+                            },
+                            {
+                              "type": "UseE",
+                              "value": false
+                            },
+                            {
+                              "type": "UseGateResidual",
+                              "value": false
+                            },
+                            {
+                              "type": "DataTypeE",
+                              "value": "BFloat8"
+                            },
+                            {
+                              "type": "StridedBatched",
+                              "value": true
+                            },
+                            {
+                              "type": "GroupedGemm",
+                              "value": false
+                            },
+                            {
+                              "type": "UseScaleAB",
+                              "value": "Scalar"
+                            },
+                            {
+                              "type": "UseScaleCD",
+                              "value": true
+                            },
+                            {
+                              "type": "UseScaleAlphaVec",
+                              "value": 1
+                            },
+                            {
+                              "type": "Sparse",
+                              "value": 0
+                            },
+                            {
+                              "type": "F32XdlMathOp",
+                              "value": "Float"
+                            },
+                            {
+                              "type": "SupportDeviceUserArguments",
+                              "value": true
+                            },
+                            {
+                              "type": "SwizzleTensorA",
+                              "value": false
+                            },
+                            {
+                              "type": "SwizzleTensorB",
+                              "value": false
+                            },
+                            {
+                              "type": "MXBlockA",
+                              "value": 0
+                            },
+                            {
+                              "type": "MXBlockB",
+                              "value": 0
+                            }
+                          ]
+                        }
+                      },
+                      {
+                        "library_type": "Placeholder",
+                        "ordinal": 29,
+                        "placeholder": "TensileLibrary_F8B8_F8F8B8_HA_Bias_SAB_SCD_SAV_UA_Type_F8F8_HPA_Contraction_l_Ailk_Bljk_Cijk_Dijk_gfx1201",
+                        "predicate": {
+                          "type": "And",
+                          "value": [
+                            {
+                              "type": "TypesEqual",
+                              "value": [
+                                "Float8",
+                                "BFloat8",
+                                "Float8",
+                                "Float8",
+                                "Float8",
+                                "BFloat8"
+                              ]
+                            },
+                            {
+                              "type": "HighPrecisionAccumulate",
+                              "value": true
+                            },
+                            {
+                              "type": "Activation",
+                              "value": "Hipblaslt_all"
+                            },
+                            {
+                              "type": "ActivationComputeType",
+                              "value": "Float"
+                            },
+                            {
+                              "type": "ActivationNoGuard",
+                              "value": false
+                            },
+                            {
+                              "type": "UseGradient",
+                              "value": false
+                            },
+                            {
+                              "type": "UseBias",
+                              "value": 1
+                            },
+                            {
+                              "type": "UseE",
+                              "value": false
+                            },
+                            {
+                              "type": "UseGateResidual",
+                              "value": false
+                            },
+                            {
+                              "type": "DataTypeE",
+                              "value": "Float8"
+                            },
+                            {
+                              "type": "StridedBatched",
+                              "value": true
+                            },
+                            {
+                              "type": "GroupedGemm",
+                              "value": false
+                            },
+                            {
+                              "type": "UseScaleAB",
+                              "value": "Scalar"
+                            },
+                            {
+                              "type": "UseScaleCD",
+                              "value": true
+                            },
+                            {
+                              "type": "UseScaleAlphaVec",
+                              "value": 1
+                            },
+                            {
+                              "type": "Sparse",
+                              "value": 0
+                            },
+                            {
+                              "type": "F32XdlMathOp",
+                              "value": "Float"
+                            },
+                            {
+                              "type": "SupportDeviceUserArguments",
+                              "value": true
+                            },
+                            {
+                              "type": "SwizzleTensorA",
+                              "value": false
+                            },
+                            {
+                              "type": "SwizzleTensorB",
+                              "value": false
+                            },
+                            {
+                              "type": "MXBlockA",
+                              "value": 0
+                            },
+                            {
+                              "type": "MXBlockB",
+                              "value": 0
+                            }
+                          ]
+                        }
+                      },
+                      {
+                        "library_type": "Placeholder",
+                        "ordinal": 30,
+                        "placeholder": "TensileLibrary_B8F8_F8B8F8_HA_Bias_SAB_SCD_SAV_UA_Type_B8F8_HPA_Contraction_l_Ailk_Bljk_Cijk_Dijk_gfx1201",
+                        "predicate": {
+                          "type": "And",
+                          "value": [
+                            {
+                              "type": "TypesEqual",
+                              "value": [
+                                "BFloat8",
+                                "Float8",
+                                "Float8",
+                                "Float8",
+                                "BFloat8",
+                                "Float8"
+                              ]
+                            },
+                            {
+                              "type": "HighPrecisionAccumulate",
+                              "value": true
+                            },
+                            {
+                              "type": "Activation",
+                              "value": "Hipblaslt_all"
+                            },
+                            {
+                              "type": "ActivationComputeType",
+                              "value": "Float"
+                            },
+                            {
+                              "type": "ActivationNoGuard",
+                              "value": false
+                            },
+                            {
+                              "type": "UseGradient",
+                              "value": false
+                            },
+                            {
+                              "type": "UseBias",
+                              "value": 1
+                            },
+                            {
+                              "type": "UseE",
+                              "value": false
+                            },
+                            {
+                              "type": "UseGateResidual",
+                              "value": false
+                            },
+                            {
+                              "type": "DataTypeE",
+                              "value": "Float8"
+                            },
+                            {
+                              "type": "StridedBatched",
+                              "value": true
+                            },
+                            {
+                              "type": "GroupedGemm",
+                              "value": false
+                            },
+                            {
+                              "type": "UseScaleAB",
+                              "value": "Scalar"
+                            },
+                            {
+                              "type": "UseScaleCD",
+                              "value": true
+                            },
+                            {
+                              "type": "UseScaleAlphaVec",
+                              "value": 1
+                            },
+                            {
+                              "type": "Sparse",
+                              "value": 0
+                            },
+                            {
+                              "type": "F32XdlMathOp",
+                              "value": "Float"
+                            },
+                            {
+                              "type": "SupportDeviceUserArguments",
+                              "value": true
+                            },
+                            {
+                              "type": "SwizzleTensorA",
+                              "value": false
+                            },
+                            {
+                              "type": "SwizzleTensorB",
+                              "value": false
+                            },
+                            {
+                              "type": "MXBlockA",
+                              "value": 0
+                            },
+                            {
+                              "type": "MXBlockB",
+                              "value": 0
+                            }
+                          ]
+                        }
+                      }
+                    ],
+                    "type": "Problem"
+                  }
+                }
+              ],
+              "type": "Problem"
+            }
+          },
+          "ordinal": 0,
+          "predicate": {
+            "type": "AMDGPU",
+            "value": {
+              "type": "Processor",
+              "value": "gfx1201"
+            }
+          }
+        }
+      ],
+      "type": "Hardware"
+    },
+    "selected_solutions": {},
+    "solution_count": 0
+  }
+}

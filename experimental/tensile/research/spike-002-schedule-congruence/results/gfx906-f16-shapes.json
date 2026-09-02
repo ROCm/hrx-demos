@@ -1,0 +1,17 @@
+{
+  "schema": "loom-blas.shape-sweep-summary.v1",
+  "device": {"ordinal": 0, "name": "AMD Radeon VII", "arch": "gfx906:sramecc+:xnack-"},
+  "request_boundary": "column-major NN, f16 inputs/output, f32 accumulation, alpha=1, beta=0",
+  "selection_method": "all rocBLAS solutions, two-sample pilot; 1024 leading candidates remeasured for 30 samples and dispatches traced",
+  "rows": [
+    {"shape": [1024, 1024, 1024], "forced_index": -605555978, "forced_median_us": 148.799, "native": {"macro_tile": [64, 128], "depth_u": 16, "thread_tile": [4, 8], "workgroup": [16, 16, 1], "lds_bytes": 14464, "prefetch_global": 1, "prefetch_local": 1}},
+    {"shape": [256, 256, 256], "forced_index": -605555939, "pilot_mean_us": 17.52, "native": {"macro_tile": [64, 8], "depth_u": 32, "thread_tile": [2, 2], "workgroup": [32, 4, 1], "lds_bytes": 12800, "prefetch_global": 1, "prefetch_local": 1}},
+    {"shape": [1024, 1024, 64], "forced_index": -605555981, "pilot_mean_us": 22.0},
+    {"shape": [128, 2048, 2048], "forced_index": -605555959, "pilot_mean_us": 150.2395},
+    {"shape": [2048, 128, 2048], "forced_index": -605555954, "pilot_mean_us": 113.0395}
+  ],
+  "structural_anchor": [256, 256, 256],
+  "loom_repro": "loom/repro-gfx906-dot2-f16.loom",
+  "status": "compiler_blocker",
+  "conclusion": "The incumbent material is ordinary packed v_dot2_f32_f16 VALU GEMM with explicit LDS staging, but Loom has no authored pre-CDNA gfx90-family target kind/descriptor bundle. The minimal dot2 source fails at target-kind parsing before instruction selection."
+}

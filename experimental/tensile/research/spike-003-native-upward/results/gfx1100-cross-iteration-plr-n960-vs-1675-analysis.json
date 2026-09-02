@@ -1,0 +1,18 @@
+{
+  "schema": "loom-blas.timing-summary.v1",
+  "source": "research/spike-003-native-upward/results/gfx1100-cross-iteration-plr-n960-vs-1675-paired.json",
+  "sample_count": 60,
+  "loom_median_us": 72.3205,
+  "incumbent_median_us": 44.361,
+  "median_ratio": 1.6302720858411668,
+  "bootstrap": {
+    "method": "independent resampling of alternating same-process samples",
+    "resamples": 20000,
+    "seed": 2,
+    "confidence": 0.95,
+    "ratio_ci": [
+      1.622168120646514,
+      1.6404979646147426
+    ]
+  }
+}

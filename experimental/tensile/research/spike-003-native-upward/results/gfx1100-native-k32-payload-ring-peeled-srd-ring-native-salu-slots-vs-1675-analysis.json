@@ -1,0 +1,18 @@
+{
+  "schema": "loom-blas.timing-summary.v1",
+  "source": "research/spike-003-native-upward/results/gfx1100-native-k32-payload-ring-peeled-srd-ring-native-salu-slots-vs-1675-paired.json",
+  "sample_count": 100,
+  "loom_median_us": 49.021,
+  "incumbent_median_us": 44.58,
+  "median_ratio": 1.0996186630776132,
+  "bootstrap": {
+    "method": "independent resampling of alternating same-process samples",
+    "resamples": 20000,
+    "seed": 2,
+    "confidence": 0.95,
+    "ratio_ci": [
+      1.0958893369175629,
+      1.1049662162162162
+    ]
+  }
+}

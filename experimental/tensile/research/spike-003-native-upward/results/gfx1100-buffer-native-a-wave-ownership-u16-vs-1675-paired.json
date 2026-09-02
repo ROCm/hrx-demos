@@ -1,0 +1,8 @@
+{
+  "schema":"loom-blas.paired-probe.v1",
+  "backend":"compare",
+  "device":{"ordinal":0,"name":"AMD Radeon Pro W7900","arch":"gfx1100"},
+  "request":{"m":1024,"n":960,"k":1024,"type":"f16"},
+  "loom":{"hsaco":"research/spike-003-native-upward/artifacts/gfx11-buffer-native-a-wave-ownership-u16/kernel.hsaco","kernel":"gemm_f16_f32_mt64x96x32_gfx11_pgr2","time_us":[55.320,53.281,53.320,53.920,53.600,53.280,54.401,53.760,53.960,54.441,54.640,53.040,53.681,54.280,52.921,54.601,52.840,53.521,53.200,53.440,52.881,53.240,52.960,52.081,52.400,52.320,53.481,53.440,52.960,54.121],"correctness":{"mismatches":0,"max_absolute":0.002}},
+  "incumbent":{"solution_index":1675,"time_us":[45.720,45.480,45.001,45.320,45.000,45.481,44.920,45.480,45.601,45.360,45.040,45.520,45.160,45.361,44.960,45.400,45.601,45.240,44.920,45.241,45.000,45.680,45.561,45.280,45.120,45.560,45.000,45.361,45.080,45.520],"correctness":{"mismatches":0,"max_absolute":0.004}}
+}

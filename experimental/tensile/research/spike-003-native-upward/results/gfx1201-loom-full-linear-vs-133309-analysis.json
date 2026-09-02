@@ -1,0 +1,15 @@
+{
+  "schema": "loom-blas.timing-summary.v1",
+  "source": "research/spike-003-native-upward/results/gfx1201-loom-full-linear-vs-133309-paired.json",
+  "sample_count": 50,
+  "loom_median_us": 52.7405,
+  "incumbent_median_us": 31.26,
+  "median_ratio": 1.6871561100447856,
+  "bootstrap": {
+    "method": "independent resampling of alternating same-process samples",
+    "resamples": 20000,
+    "seed": 2,
+    "confidence": 0.95,
+    "ratio_ci": [1.6129881661334027, 1.811750970090313]
+  }
+}

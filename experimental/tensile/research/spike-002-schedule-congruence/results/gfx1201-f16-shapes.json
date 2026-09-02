@@ -1,0 +1,20 @@
+{
+  "schema": "loom-blas.shape-sweep-summary.v1",
+  "device": {"ordinal": 2, "name": "AMD Radeon RX 9070 XT", "arch": "gfx1201"},
+  "request_boundary": "column-major NN, f16 inputs/output, f32 accumulation, alpha=1, beta=0",
+  "selection_method": "all eligible hipBLASLt algorithms, two timed pilot samples; selected winner then 30 alternating same-process samples against Loom",
+  "loom_candidate": {
+    "source": "loom/gemm-f16-f32-mt128x128x32-gfx12.loom",
+    "schedule": {"macro_tile": [128, 128], "depth_u": 32, "workgroup": [32, 4, 1], "wave_tile": [4, 4]},
+    "resources_all_shapes": {"vgpr": 152, "private_bytes_per_thread": 400, "materialized_spill_objects": 19, "spill_stores": 23, "reloads": 57},
+    "blocker_repro": "loom/repro-gfx12-wmma-4x4-bank-spill.loom"
+  },
+  "rows": [
+    {"shape": [256, 256, 256], "incumbent": {"index": 133680, "median_us": 14.64, "macro_tile": [32, 16], "depth_u": 128, "workgroup": [32, 2, 1], "wave_tile": [1, 1], "pgr": 2, "plr": 1, "tlds": 1, "direct_to_vgpr_a": true}, "loom_median_us": 75.3005, "ratio": 5.14348, "ratio_ci95": [5.09293, 5.20219], "status": "compiler_blocker"},
+    {"shape": [1024, 1024, 1024], "incumbent": {"index": 133309, "median_us": 28.92, "macro_tile": [128, 128], "depth_u": 32, "workgroup": [32, 4, 1], "wave_tile": [4, 4], "pgr": 2, "plr": 0, "tlds": 1}, "loom_median_us": 183.2805, "ratio": 6.3375, "ratio_ci95": [6.3230, 6.35625], "status": "compiler_blocker"},
+    {"shape": [128, 2048, 2048], "incumbent": {"index": 133699, "median_us": 24.0, "macro_tile": [128, 32], "depth_u": 64, "workgroup": [32, 4, 1], "wave_tile": [4, 1], "pgr": 1, "plr": 1, "tlds": 1, "direct_to_vgpr_a": true}, "loom_median_us": 321.701, "ratio": 13.4042, "ratio_ci95": [13.1791, 13.6407], "status": "compiler_blocker"},
+    {"shape": [2048, 128, 2048], "incumbent": {"index": 133643, "median_us": 22.16, "macro_tile": [64, 64], "depth_u": 64, "workgroup": [32, 4, 1], "wave_tile": [2, 2], "pgr": 1, "plr": 1, "tlds": 1, "direct_to_vgpr_a": true}, "loom_median_us": 333.422, "ratio": 15.0461, "ratio_ci95": [14.8635, 15.2364], "status": "compiler_blocker"},
+    {"shape": [1024, 1024, 64], "incumbent": {"index": 133309, "median_us": 13.76, "macro_tile": [128, 128], "depth_u": 32, "workgroup": [32, 4, 1], "wave_tile": [4, 4], "pgr": 2, "plr": 0, "tlds": 1}, "loom_median_us": 25.08, "ratio": 1.82267, "ratio_ci95": [1.81014, 1.83612], "status": "compiler_blocker"}
+  ],
+  "conclusion": "The representative basket uses four physical macro/depth families. Exact shape specialization removes routing buckets, but it does not collapse these ownership choices to one machine schedule. The authored source can still be one configured motif. The current full 4x4 candidate spills despite the legal 256-VGPR target envelope, and the compiler lacks a demonstrated Tensile-equivalent overlapped global/LDS pipeline; those block a schedule-congruent comparison."
+}

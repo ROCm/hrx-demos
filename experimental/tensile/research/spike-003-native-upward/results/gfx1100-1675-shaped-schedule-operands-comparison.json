@@ -1,0 +1,40 @@
+{
+  "candidate": "gfx1100-loom-1675-shaped-unswapped",
+  "category_count_delta": {
+    "branch": 1,
+    "other": 1
+  },
+  "first_difference": {
+    "candidate": {
+      "byte_offset": 4,
+      "category": "matrix",
+      "mnemonic": "v_wmma_f32_16x16x16_f16",
+      "operands": "v[0:7], v[56:63], v[121:128], v[0:7]",
+      "ordinal": 1
+    },
+    "reference": {
+      "byte_offset": 4,
+      "category": "matrix",
+      "mnemonic": "v_wmma_f32_16x16x16_f16",
+      "operands": "v[0:7], v[121:128], v[56:63], v[0:7]",
+      "ordinal": 1
+    }
+  },
+  "include_operands": true,
+  "instruction_count": {
+    "candidate": 136,
+    "delta": 2,
+    "reference": 134
+  },
+  "reference": "gfx1100-incumbent-1675-steady-state",
+  "schema": "loom-blas.amdgpu-schedule-comparison.v1",
+  "significant_count": {
+    "candidate": 111,
+    "exact_prefix": 1,
+    "reference": 110
+  },
+  "unmatched_multiset_count": {
+    "candidate": 34,
+    "reference": 33
+  }
+}

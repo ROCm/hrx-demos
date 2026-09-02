@@ -1,0 +1,10 @@
+{
+  "schema":"loom-blas.probe.v1",
+  "backend":"loom",
+  "device":{"ordinal":2,"name":"AMD Radeon RX 9070 XT","arch":"gfx1201"},
+  "request":{"m":1024,"n":1024,"k":1024,"trans_a":"N","trans_b":"N","a_type":"f16","b_type":"f16","c_type":"f16","d_type":"f16","compute_type":"f32","alpha":1.0,"beta":0.0},
+  "artifact":{"hsaco":"research/spike-003-native-upward/artifacts/gfx12-compact-low-b64-permute-no-output/gemm.hsaco","kernel":"gemm_f16_f32_mt128x128x32_gfx12_scalar_acc"},
+  "launch":{"grid":[8,8,1],"workgroup":[32,4,1]},
+  "time_us":[37.560,37.360,37.361,37.200,37.480,37.600,37.081,37.880,37.000,37.641,36.920,37.280,38.120,37.120,37.400,37.280,37.560,37.921,37.240,37.160,37.161,37.120,37.120,37.201,37.280,37.480,37.041,36.960,37.000,36.841,36.760,36.880,36.600,36.880,36.800,37.360,36.880,36.960,37.800,36.880,36.841,36.880,37.080,36.961,36.960,36.880,36.721,36.920,36.720,36.761],
+  "correctness":{"mismatches":1048576,"max_absolute":22.125,"max_relative":1.000}
+}

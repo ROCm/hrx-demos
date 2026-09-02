@@ -1,0 +1,90 @@
+{
+  "schema": "loom-blas.accelerated-type-census.v1",
+  "request_boundary": "column-major NN, 1024x1024x1024, alpha=1, beta=0, no epilogue",
+  "selection_method": "enumerate every hipBLASLt algorithm, retain eligible algorithms, take the median of two timed pilot runs",
+  "loom_witnesses": {
+    "gfx12": {
+      "source": "loom/gfx12-accelerated-type-witness.loom",
+      "target": "gfx12-generic specialized to gfx1201",
+      "native_instructions": [
+        "v_wmma_f32_16x16x16_bf16",
+        "v_wmma_i32_16x16x16_iu8",
+        "v_wmma_i32_16x16x16_iu4",
+        "v_wmma_f32_16x16x16_fp8_fp8",
+        "v_wmma_f32_16x16x16_fp8_bf8"
+      ]
+    },
+    "gfx11_i4": {
+      "source": "loom/gfx11-i4-type-witness.loom",
+      "target": "gfx11-generic specialized to gfx1100",
+      "native_instruction": "v_wmma_i32_16x16x16_iu4"
+    }
+  },
+  "rows": [
+    {
+      "target": "gfx1201",
+      "type": "bf16",
+      "enumerated": 517,
+      "eligible": 517,
+      "winner": {"index": 108501, "median_us": 26.361, "macro_tile": [128, 128], "depth_u": 16, "workgroup": [32, 4, 1], "wave_tile": [4, 4], "global_read_vector_width": [8, 8], "pgr": 1, "plr": 1, "tlds": 1, "store_vector_width": 4, "workgroup_mapping": 8},
+      "source_recipe": "hipblaslt/.../Logic/asm_full/gfx1201/GridBased/gfx1201_Cijk_Ailk_Bljk_BBS_BH_Bias_SHB_HA_S_SAB_SCD_SAV_UserArgs.yaml#Solution440",
+      "status": "compiler_blocker"
+    },
+    {
+      "target": "gfx1201",
+      "type": "i8",
+      "enumerated": 585,
+      "eligible": 585,
+      "winner": {"index": 138971, "median_us": 21.320, "macro_tile": [128, 128], "depth_u": 32, "workgroup": [32, 4, 1], "wave_tile": [4, 4], "global_read_vector_width": [16, 16], "pgr": 1, "plr": 1, "tlds": 1, "store_vector_width": 4},
+      "source_recipe": "hipblaslt/.../Logic/asm_full/gfx1201/GridBased/gfx1201_Cijk_Ailk_Bljk_I8II_BH_SHB_HA_S_SCD_SAV_UserArgs.yaml#Solution420",
+      "status": "compiler_blocker"
+    },
+    {
+      "target": "gfx1201",
+      "type": "fp8_e4m3_fp8_e4m3",
+      "enumerated": 562,
+      "eligible": 562,
+      "winner": {"index": 128316, "median_us": 20.020, "macro_tile": [128, 128], "depth_u": 32, "workgroup": [32, 4, 1], "wave_tile": [4, 4], "global_read_vector_width": [8, 4], "pgr": 1, "plr": 1, "tlds": 1, "store_vector_width": 4},
+      "source_recipe": "hipblaslt/.../Logic/asm_full/gfx1201/GridBased/gfx1201_Cijk_Ailk_Bljk_F8HS_BH_Bias_SHB_HA_S_SAB_SCD_SAV_UserArgs.yaml#Solution451",
+      "status": "compiler_blocker"
+    },
+    {
+      "target": "gfx1201",
+      "type": "fp8_e4m3_fp8_e5m2",
+      "enumerated": 559,
+      "eligible": 559,
+      "winner": {"index": 117847, "median_us": 20.060, "macro_tile": [128, 128], "depth_u": 32, "workgroup": [32, 4, 1], "wave_tile": [4, 4], "global_read_vector_width": [8, 4], "pgr": 1, "plr": 1, "tlds": 1, "store_vector_width": 4},
+      "source_recipe": "hipblaslt/.../Logic/asm_full/gfx1201/GridBased/gfx1201_Cijk_Ailk_Bljk_F8B8HS_BH_Bias_SHB_HA_S_SAB_SCD_SAV_UserArgs.yaml#Solution448",
+      "status": "compiler_blocker"
+    },
+    {
+      "target": "gfx1100",
+      "type": "bf16",
+      "enumerated": 146,
+      "eligible": 73,
+      "winner": {"index": 601, "median_us": 46.120, "macro_tile": [128, 48], "depth_u": 32, "workgroup": [64, 2, 1], "wave_tile": [2, 3], "global_read_vector_width": [8, 4], "pgr": 2, "plr": 1, "tlds": 1, "local_read_vector_width": 16, "store_vector_width": 1, "workgroup_mapping": 8},
+      "source_recipe": "hipblaslt/.../Logic/asm_full/navi33/GridBased/navi33_Cijk_Ailk_Bljk_BBS_BH_Bias_HAS_SAV_UserArgs.yaml#Solutions37-39",
+      "recipe_join": "The runtime name fixes the family but does not distinguish the three source rows with the retained fields; do not claim a false exact row.",
+      "status": "compiler_blocker"
+    },
+    {
+      "target": "gfx1100",
+      "type": "i8",
+      "enumerated": 6,
+      "eligible": 6,
+      "winner": {"index": 2149, "median_us": 40.060, "macro_tile": [64, 96], "depth_u": 32, "workgroup": [32, 4, 1], "wave_tile": [2, 3], "global_read_vector_width": [4, 8], "pgr": 0, "plr": 1, "tlds": 1, "local_read_vector_width": 16, "store_vector_width": 1},
+      "source_recipe": "hipblaslt/.../Logic/asm_full/navi33/GridBased/navi33_Cijk_Ailk_Bljk_I8II_BH_HAI_SAV_UserArgs.yaml#Solution1",
+      "status": "compiler_blocker"
+    },
+    {
+      "target": "gfx1100,gfx1201",
+      "type": "i4",
+      "public_storage_types": ["HIP_R_4I", "HIP_R_4U"],
+      "installed_hipblaslt_recipes": 0,
+      "loom_native_witness": true,
+      "status": "explained_delta",
+      "conclusion": "The public HIP type enum and native gfx11/gfx12 WMMA contracts exist, but this installed hipBLASLt corpus has no I4 recipes or target artifacts. This is an incumbent API/corpus coverage gap, not a Loom representability gap."
+    }
+  ],
+  "conclusion": "The accelerated datatype rows reuse the same WMMA/LDS ownership vocabulary as FP16; they change fragment packing, DepthU, read widths, and occasionally the preferred tile. They do not justify separate router architectures. Full GEMM rows remain blocked by the already isolated gfx12 register-allocation and gfx11 pipeline-scheduling defects."
+}

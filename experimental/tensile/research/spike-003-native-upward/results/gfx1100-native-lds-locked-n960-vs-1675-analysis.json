@@ -1,0 +1,18 @@
+{
+  "schema": "loom-blas.timing-summary.v1",
+  "source": "research/spike-003-native-upward/results/gfx1100-native-lds-locked-n960-vs-1675-paired.json",
+  "sample_count": 30,
+  "loom_median_us": 61.12,
+  "incumbent_median_us": 45.2,
+  "median_ratio": 1.352212389380531,
+  "bootstrap": {
+    "method": "independent resampling of alternating same-process samples",
+    "resamples": 5000,
+    "seed": 2,
+    "confidence": 0.95,
+    "ratio_ci": [
+      1.3448279582776976,
+      1.3638185948125847
+    ]
+  }
+}

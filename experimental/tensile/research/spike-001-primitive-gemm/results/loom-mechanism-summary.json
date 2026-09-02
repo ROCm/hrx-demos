@@ -1,0 +1,76 @@
+{
+  "schema": "loom-blas.loom-mechanism-summary.v1",
+  "loom_revision": "bc59ef458288987a0ee03456e6337ba2b338fd1a",
+  "mechanism": "one wave computes one 16x16x16 FP16 multiply with FP32 accumulation",
+  "experiments": [
+    {
+      "authored_target": "gfx11-generic",
+      "exact_compile_target": "gfx1100",
+      "physical_device": {
+        "ordinal": 1,
+        "name": "AMD Radeon Pro W7900",
+        "arch": "gfx1100"
+      },
+      "source": "research/spike-001-primitive-gemm/loom/wmma-f16-f32-tile.loom",
+      "source_sha256": "0a99e9fc585ab5082adcd59e3853d4273f1af6e6a1116759d8dda44d7f4c9b7b",
+      "hsaco_sha256": "ad022f4b2de55c1d1bc789febfb00db8c158b62c5255c661311ee0bd75fb968a",
+      "compile_report_sha256": "2996abcf92936f1fbb54486d391fb4c9fb6d02c14d22af1c1181727eaa5e4df2",
+      "native_target": "amdgpu-amd-amdhsa-unknown-gfx1100",
+      "native_matrix_instruction": "v_wmma_f32_16x16x16_f16",
+      "operand_carrier": "vector<16xf16>",
+      "result_carrier": "vector<8xf32>",
+      "compile_report": {
+        "artifact_size": 9184,
+        "sgpr_count": 8,
+        "vgpr_count": 32,
+        "scheduled_vector_pressure": 18,
+        "occupancy_percent": 100,
+        "global_load_count": 18,
+        "global_store_count": 8,
+        "wmma_count": 1
+      },
+      "runtime_result": {
+        "mismatches": 0,
+        "max_absolute": 0
+      }
+    },
+    {
+      "authored_target": "gfx12-generic",
+      "exact_compile_target": "gfx1201",
+      "physical_device": {
+        "ordinal": 2,
+        "name": "AMD Radeon RX 9070 XT",
+        "arch": "gfx1201"
+      },
+      "source": "research/spike-001-primitive-gemm/loom/wmma-f16-f32-tile-gfx1201.loom",
+      "source_sha256": "5317de41a781cbb98848d3f54e6dac29de14d7b3310363ddfe5624c1548f4333",
+      "hsaco_sha256": "3ef0f3651690459eeb92a68e7206a8cdf2f78ee588d1e9e08eb595963721e003",
+      "compile_report_sha256": "0f4859936559a598f32cdf2495aa8dcfa534ae38da665a64f8e9675fa416c595",
+      "native_target": "amdgpu-amd-amdhsa-unknown-gfx1201",
+      "native_matrix_instruction": "v_wmma_f32_16x16x16_f16",
+      "operand_carrier": "vector<8xf16>",
+      "result_carrier": "vector<8xf32>",
+      "compile_report": {
+        "artifact_size": 9200,
+        "sgpr_count": 8,
+        "vgpr_count": 24,
+        "scheduled_vector_pressure": 14,
+        "occupancy_percent": 100,
+        "global_load_count": 9,
+        "global_store_count": 8,
+        "wmma_count": 1
+      },
+      "runtime_result": {
+        "mismatches": 0,
+        "max_absolute": 0
+      }
+    }
+  ],
+  "unsupported": [
+    {
+      "exact_compile_target": "gfx906",
+      "result": "AMDGPU target 'gfx906' is not supported",
+      "classification": "Loom target-enablement gap, not a GEMM-mechanism failure"
+    }
+  ]
+}

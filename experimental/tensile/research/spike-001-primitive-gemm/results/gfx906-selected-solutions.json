@@ -1,0 +1,351 @@
+{
+  "encoded_size": 456424,
+  "schema": "loom-blas.tensile-library.v1",
+  "sha256": "08429c84ce1ac84a5d1feed6b406caf254c63478f672f7381830da56588c900d",
+  "source": "<selected-rocm>/lib/rocblas/library/gfx906/TensileLibrary_Type_HH_HPA_Contraction_l_Ailk_Bljk_Cijk_Dijk_gfx906.dat",
+  "summary": {
+    "kind": "solution_shard",
+    "route": {
+      "rows": [
+        {
+          "library_type": "Matching",
+          "matching": {
+            "distance": "Euclidean",
+            "properties": [
+              {
+                "index": 0,
+                "type": "FreeSizeA"
+              },
+              {
+                "index": 0,
+                "type": "FreeSizeB"
+              },
+              {
+                "index": 0,
+                "type": "BoundSize"
+              }
+            ],
+            "table_row_count": 2394,
+            "type": "Matching"
+          },
+          "ordinal": 0,
+          "predicate": {
+            "type": "TruePred"
+          }
+        }
+      ],
+      "type": "Problem"
+    },
+    "selected_solutions": {
+      "605555914": {
+        "debugKernel": false,
+        "hardwarePredicate": {
+          "type": "TruePred"
+        },
+        "ideals": {},
+        "index": 605555914,
+        "libraryLogicIndex": 19,
+        "linearModel": {},
+        "name": "Cijk_Ailk_Bljk_HHS_BH_MT32x32x16_SN_APM1_AF0EM2_AF1EM1_AMAS3_ASAE01_ASCE01_ASEM2_BL1_BS1_DTLA0_DTLB0_EPS1_FL0_GLVWA4_GLVWB4_GRVW4_GSU1_GSUASB_ISA906_IU1_K1_KLA_LPA0_LPB0_LDL1_LRVW4_MDA2_MMFGLC_NLCA1_NLCB1_ONLL1_PK0_PGR1_PLR1_SIA1_SU32_SUM0_SUS256_SVW4_SNLL1_TT4_4_USFGRO0_VAW2_VS1_VW4_VWB4_WG8_8_1_WGM8",
+        "problemPredicate": {
+          "type": "And",
+          "value": [
+            {
+              "index": -1,
+              "type": "BoundSizeMultiple",
+              "value": 2
+            },
+            {
+              "index": 0,
+              "type": "Free0SizeMultiple",
+              "value": 2
+            },
+            {
+              "index": 0,
+              "type": "StrideAEqual",
+              "value": 1
+            },
+            {
+              "index": 0,
+              "type": "StrideBEqual",
+              "value": 1
+            },
+            {
+              "index": 0,
+              "type": "StrideCEqual",
+              "value": 1
+            },
+            {
+              "index": 0,
+              "type": "StrideDEqual",
+              "value": 1
+            },
+            {
+              "type": "OperationIdentifierEqual",
+              "value": "Contraction_l_Ailk_Bljk_Cijk_Dijk"
+            },
+            {
+              "type": "StridedBatched",
+              "value": true
+            },
+            {
+              "type": "TypesEqual",
+              "value": [
+                "Half",
+                "Half",
+                "Half",
+                "Half"
+              ]
+            },
+            {
+              "type": "HighPrecisionAccumulate",
+              "value": true
+            },
+            {
+              "type": "F32XdlMathOp",
+              "value": "Float"
+            },
+            {
+              "type": "StochasticRounding",
+              "value": false
+            },
+            {
+              "type": "LeadingFree0SizesGreaterOrEqual",
+              "value": 4
+            },
+            {
+              "type": "LeadingFree1SizesGreaterOrEqual",
+              "value": 1
+            },
+            {
+              "type": "KernelLanguageCompatible",
+              "value": "Assembly"
+            },
+            {
+              "type": "ArithmeticUnitCompatible",
+              "value": "VALU"
+            },
+            {
+              "type": "BufferLoadOffsetLimitCheck",
+              "value": {
+                "DUorMT0": 16,
+                "DUorMT1": 32,
+                "ShiftPtrElemA": 4,
+                "ShiftPtrElemB": 0
+              }
+            },
+            {
+              "type": "BufferStoreOffsetLimitCheck",
+              "value": 32
+            }
+          ]
+        },
+        "problemType": {
+          "aType": "Half",
+          "bType": "Half",
+          "cType": "Half",
+          "dType": "Half",
+          "f32XdlMathOp": "Float",
+          "highPrecisionAccumulate": true,
+          "operationIdentifier": "Contraction_l_Ailk_Bljk_Cijk_Dijk",
+          "stochasticRounding": false,
+          "stridedBatched": true,
+          "useBeta": true,
+          "useInitialStridesAB": false,
+          "useInitialStridesCD": false
+        },
+        "sizeMapping": {
+          "depthU": 16,
+          "globalAccumulation": 0,
+          "globalSplitU": 1,
+          "macroTile": [
+            32,
+            32,
+            1
+          ],
+          "magicDivAlg": 2,
+          "packBatchDims": 0,
+          "packSummationDims": 0,
+          "persistentKernel": 0,
+          "persistentKernelAlongBatch": false,
+          "preloadKernargs": 0,
+          "sourceKernel": false,
+          "staggerStrideShift": 3,
+          "staggerU": 32,
+          "streamK": 0,
+          "streamKAtomic": 0,
+          "threadTile": [
+            4,
+            4
+          ],
+          "workGroup": [
+            8,
+            8,
+            1
+          ],
+          "workGroupMapping": 8,
+          "workspaceSizePerElemC": 0
+        },
+        "taskPredicate": {
+          "type": "TruePred"
+        }
+      },
+      "605555978": {
+        "debugKernel": false,
+        "hardwarePredicate": {
+          "type": "TruePred"
+        },
+        "ideals": {},
+        "index": 605555978,
+        "libraryLogicIndex": 83,
+        "linearModel": {},
+        "name": "Cijk_Ailk_Bljk_HHS_BH_MT128x64x16_SN_APM1_AF0EM2_AF1EM1_AMAS3_ASAE01_ASCE01_ASEM2_BL1_BS1_DTLA0_DTLB0_EPS1_FL1_GLVWA4_GLVWB4_GRVW4_GSU1_GSUASB_ISA906_IU2_K1_KLA_LPA0_LPB4_LDL2_LRVW4_MDA2_MMFGLC_NLCA1_NLCB1_ONLL1_PK0_PGR1_PLR1_SIA1_SU32_SUM0_SUS256_SVW4_SNLL0_TT8_4_USFGRO0_VAW2_VS1_VW4_VWB4_WG16_16_1_WGM1",
+        "problemPredicate": {
+          "type": "And",
+          "value": [
+            {
+              "index": -1,
+              "type": "BoundSizeMultiple",
+              "value": 2
+            },
+            {
+              "index": 0,
+              "type": "Free0SizeMultiple",
+              "value": 2
+            },
+            {
+              "index": 0,
+              "type": "StrideAEqual",
+              "value": 1
+            },
+            {
+              "index": 0,
+              "type": "StrideBEqual",
+              "value": 1
+            },
+            {
+              "index": 0,
+              "type": "StrideCEqual",
+              "value": 1
+            },
+            {
+              "index": 0,
+              "type": "StrideDEqual",
+              "value": 1
+            },
+            {
+              "type": "OperationIdentifierEqual",
+              "value": "Contraction_l_Ailk_Bljk_Cijk_Dijk"
+            },
+            {
+              "type": "StridedBatched",
+              "value": true
+            },
+            {
+              "type": "TypesEqual",
+              "value": [
+                "Half",
+                "Half",
+                "Half",
+                "Half"
+              ]
+            },
+            {
+              "type": "HighPrecisionAccumulate",
+              "value": true
+            },
+            {
+              "type": "F32XdlMathOp",
+              "value": "Float"
+            },
+            {
+              "type": "StochasticRounding",
+              "value": false
+            },
+            {
+              "type": "LeadingFree0SizesGreaterOrEqual",
+              "value": 4
+            },
+            {
+              "type": "LeadingFree1SizesGreaterOrEqual",
+              "value": 1
+            },
+            {
+              "type": "KernelLanguageCompatible",
+              "value": "Assembly"
+            },
+            {
+              "type": "ArithmeticUnitCompatible",
+              "value": "VALU"
+            },
+            {
+              "type": "BufferLoadOffsetLimitCheck",
+              "value": {
+                "DUorMT0": 16,
+                "DUorMT1": 64,
+                "ShiftPtrElemA": 4,
+                "ShiftPtrElemB": 0
+              }
+            },
+            {
+              "type": "BufferStoreOffsetLimitCheck",
+              "value": 64
+            }
+          ]
+        },
+        "problemType": {
+          "aType": "Half",
+          "bType": "Half",
+          "cType": "Half",
+          "dType": "Half",
+          "f32XdlMathOp": "Float",
+          "highPrecisionAccumulate": true,
+          "operationIdentifier": "Contraction_l_Ailk_Bljk_Cijk_Dijk",
+          "stochasticRounding": false,
+          "stridedBatched": true,
+          "useBeta": true,
+          "useInitialStridesAB": false,
+          "useInitialStridesCD": false
+        },
+        "sizeMapping": {
+          "depthU": 16,
+          "globalAccumulation": 0,
+          "globalSplitU": 1,
+          "macroTile": [
+            128,
+            64,
+            1
+          ],
+          "magicDivAlg": 2,
+          "packBatchDims": 0,
+          "packSummationDims": 0,
+          "persistentKernel": 0,
+          "persistentKernelAlongBatch": false,
+          "preloadKernargs": 0,
+          "sourceKernel": false,
+          "staggerStrideShift": 3,
+          "staggerU": 32,
+          "streamK": 0,
+          "streamKAtomic": 0,
+          "threadTile": [
+            8,
+            4
+          ],
+          "workGroup": [
+            16,
+            16,
+            1
+          ],
+          "workGroupMapping": 1,
+          "workspaceSizePerElemC": 0
+        },
+        "taskPredicate": {
+          "type": "TruePred"
+        }
+      }
+    },
+    "solution_count": 199,
+    "solution_index_max": 605556084,
+    "solution_index_min": 605555731
+  }
+}

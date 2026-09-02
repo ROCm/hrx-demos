@@ -1,0 +1,8 @@
+{
+  "schema":"loom-blas.paired-probe.v1",
+  "backend":"compare",
+  "device":{"ordinal":0,"name":"AMD Radeon Pro W7900","arch":"gfx1100"},
+  "request":{"m":1024,"n":960,"k":1024,"type":"f16"},
+  "loom":{"hsaco":"research/spike-003-native-upward/artifacts/gfx11-buffer-addresses-native-fixed-leaves/kernel.hsaco","kernel":"gemm_f16_f32_mt64x96x32_gfx11_pgr2","time_us":[79.161,77.200,76.321,78.160,76.520,77.881,77.760,76.481,77.960,77.921],"correctness":{"mismatches":0,"max_absolute":0.002}},
+  "incumbent":{"solution_index":1675,"time_us":[46.080,45.881,45.240,46.520,45.280,45.960,45.241,46.240,45.121,46.000],"correctness":{"mismatches":0,"max_absolute":0.004}}
+}

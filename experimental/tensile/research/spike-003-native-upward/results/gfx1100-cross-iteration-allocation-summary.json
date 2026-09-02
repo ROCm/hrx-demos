@@ -1,0 +1,46 @@
+{
+  "schema": "loom-blas.allocation-triage.v1",
+  "target": "gfx1100",
+  "kernel": "gemm_f16_f32_mt64x96x32_gfx11_pgr2",
+  "baseline": {
+    "report": "artifacts/gfx11-cross-iteration-plr/report.json",
+    "scheduled_vgpr_pressure": 151,
+    "final_vgpr_count": 160,
+    "materialized_spill_objects": 4,
+    "spill_store_bytes": 16,
+    "reload_bytes": 16,
+    "private_bytes": 16,
+    "branch_edge_move_units": 71,
+    "high_water": {
+      "value": "even_second_rhs2",
+      "required_contiguous_units": 8,
+      "free_lower_units": 14,
+      "free_lower_run_count": 3,
+      "largest_free_lower_run": 6,
+      "active_assignment_blocker_units": 234,
+      "active_storage_lease_blocker_units": 96
+    }
+  },
+  "native_payload_order": {
+    "report": "artifacts/gfx11-cross-iteration-plr-native-payload-order/report.json",
+    "independent_variable": "move each five-payload LDS publication group after the first three first-half WMMAs",
+    "scheduled_vgpr_pressure": 151,
+    "final_vgpr_count": 160,
+    "materialized_spill_objects": 4,
+    "spill_store_bytes": 16,
+    "reload_bytes": 16,
+    "private_bytes": 16,
+    "branch_edge_move_units": 95,
+    "high_water": {
+      "value": "odd_first_rhs2",
+      "required_contiguous_units": 8,
+      "free_lower_units": 9,
+      "free_lower_run_count": 3,
+      "largest_free_lower_run": 6,
+      "active_assignment_blocker_units": 239,
+      "active_storage_lease_blocker_units": 100
+    },
+    "decision": "compiler consequence absent; candidate did not earn GPU timing"
+  },
+  "conclusion": "The failure follows rotating x8 fragment state and storage leases rather than the original local placement of VMEM payload publication. Exact native publication phase alone does not recover allocation."
+}

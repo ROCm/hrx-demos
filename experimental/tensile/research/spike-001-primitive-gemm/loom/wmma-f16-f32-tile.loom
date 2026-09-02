@@ -1,0 +1,35 @@
+// A target-independent 16x16x16 FP16-input, FP32-accumulate GEMM tile.
+//
+// This is a mechanism probe, not the eventual BLAS kernel: one wave loads one
+// logical fragment from each dense input, issues one matrix multiply, and
+// publishes the FP32 result. The source binds the generic gfx11 family; the
+// exact processor is supplied only when this file is specialized and emitted.
+amdgpu.target<gfx11-generic> @gfx11 {subgroup_size = 32}
+
+kernel.def target(@gfx11) @wmma_f16_f32_tile() {
+  %unit = index.constant 1 : index
+  %workgroup_size = index.constant 32 : index
+  kernel.launch.config workgroups(%unit, %unit, %unit) workgroup_size(%workgroup_size, %unit, %unit) : index
+} launch(%lhs_buffer: buffer, %rhs_buffer: buffer, %output_buffer: buffer) {
+  %base = index.constant 0 : offset
+  %origin = index.constant 0 : index
+  %extent = index.constant 16 : index
+
+  %lhs_global = buffer.assume.memory_space<global> %lhs_buffer : buffer
+  %rhs_global = buffer.assume.memory_space<global> %rhs_buffer : buffer
+  %output_global = buffer.assume.memory_space<global> %output_buffer : buffer
+  %lhs_aligned = buffer.assume.alignment %lhs_global {minimum_alignment = 16} : buffer
+  %rhs_aligned = buffer.assume.alignment %rhs_global {minimum_alignment = 16} : buffer
+  %output_aligned = buffer.assume.alignment %output_global {minimum_alignment = 16} : buffer
+  %lhs_view = buffer.view %lhs_aligned[%base] : buffer -> view<16x16xf16>
+  %rhs_view = buffer.view %rhs_aligned[%base] : buffer -> view<16x16xf16>
+  %output_view = buffer.view %output_aligned[%base] : buffer -> view<16x16xf32>
+
+  %lhs = vector.fragment.load<lhs> %lhs_view[%origin, %origin] shape [%extent, %extent] : view<16x16xf16> -> vector<16xf16>
+  %rhs = vector.fragment.load<rhs> %rhs_view[%origin, %origin] shape [%extent, %extent] : view<16x16xf16> -> vector<16xf16>
+  %zero_values = vector.constant 0.0 : vector<8xf32>
+  %zero = vector.fragment<init> %zero_values shape [%extent, %extent] : vector<8xf32>
+  %result = vector.mma %lhs, %rhs, %zero : vector<16xf16>, vector<16xf16>, vector<8xf32>
+  vector.fragment.store<result> %result, %output_view[%origin, %origin] shape [%extent, %extent] : vector<8xf32>, view<16x16xf32>
+  kernel.return
+}

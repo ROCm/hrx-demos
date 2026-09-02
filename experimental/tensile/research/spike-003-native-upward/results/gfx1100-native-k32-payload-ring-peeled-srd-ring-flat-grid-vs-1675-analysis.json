@@ -1,0 +1,18 @@
+{
+  "schema": "loom-blas.timing-summary.v1",
+  "source": "research/spike-003-native-upward/results/gfx1100-native-k32-payload-ring-peeled-srd-ring-flat-grid-vs-1675-paired.json",
+  "sample_count": 100,
+  "loom_median_us": 49.86,
+  "incumbent_median_us": 45.44,
+  "median_ratio": 1.0972711267605635,
+  "bootstrap": {
+    "method": "independent resampling of alternating same-process samples",
+    "resamples": 20000,
+    "seed": 2,
+    "confidence": 0.95,
+    "ratio_ci": [
+      1.091549295774648,
+      1.1041243934715481
+    ]
+  }
+}

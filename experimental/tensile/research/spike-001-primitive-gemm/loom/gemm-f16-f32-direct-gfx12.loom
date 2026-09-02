@@ -1,0 +1,60 @@
+// Phase-one vertical slice: an exactly specialized column-major NN GEMM.
+//
+// This deliberately uses one wave per 16x16 output tile and reads fragments
+// directly from global memory. It closes the full-K-loop and BLAS-layout path;
+// it is not the proposed parity schedule. The next candidate grows output
+// ownership and reconstructs the incumbent's cooperative LDS pipeline.
+amdgpu.target<gfx12-generic> @gfx12 {subgroup_size = 32}
+
+config.decl @gemm.m : %value: index where [range(%value, 16, 65520), mul(%value, 16)]
+config.decl @gemm.n : %value: index where [range(%value, 16, 65520), mul(%value, 16)]
+config.decl @gemm.k : %value: index where [range(%value, 16, 65520), mul(%value, 16)]
+
+kernel.def target(@gfx12) @gemm_f16_f32_direct_gfx12() {
+  %m = config.get @gemm.m : index
+  %n = config.get @gemm.n : index
+  %tile = index.constant 16 : index
+  %m_tiles = index.div %m, %tile : index
+  %n_tiles = index.div %n, %tile : index
+  %unit = index.constant 1 : index
+  %wave = index.constant 32 : index
+  kernel.launch.config workgroups(%n_tiles, %m_tiles, %unit) workgroup_size(%wave, %unit, %unit) : index
+} launch(%a_buffer: buffer, %b_buffer: buffer, %c_buffer: buffer, %d_buffer: buffer) {
+  %m = config.get @gemm.m : index
+  %n = config.get @gemm.n : index
+  %k = config.get @gemm.k : index
+  %base = index.constant 0 : offset
+  %zero_index = index.constant 0 : index
+  %one = index.constant 1 : index
+  %tile = index.constant 16 : index
+  %k_tiles = index.div %k, %tile : index
+  %workgroup_n = kernel.workgroup.id<x> : index
+  %workgroup_m = kernel.workgroup.id<y> : index
+  %output_m = index.mul %workgroup_m, %tile : index
+  %output_n = index.mul %workgroup_n, %tile : index
+
+  %a_global = buffer.assume.memory_space<global> %a_buffer : buffer
+  %b_global = buffer.assume.memory_space<global> %b_buffer : buffer
+  %d_global = buffer.assume.memory_space<global> %d_buffer : buffer
+  %a_aligned = buffer.assume.alignment %a_global {minimum_alignment = 16} : buffer
+  %b_aligned = buffer.assume.alignment %b_global {minimum_alignment = 16} : buffer
+  %d_aligned = buffer.assume.alignment %d_global {minimum_alignment = 16} : buffer
+  %a_column_major = encoding.layout.strided [1, %m] : encoding<layout>
+  %b_column_major = encoding.layout.strided [1, %k] : encoding<layout>
+  %d_column_major = encoding.layout.strided [1, %m] : encoding<layout>
+  %a = buffer.view %a_aligned[%base] : buffer -> view<[%m]x[%k]xf16, %a_column_major>
+  %b = buffer.view %b_aligned[%base] : buffer -> view<[%k]x[%n]xf16, %b_column_major>
+  %d = buffer.view %d_aligned[%base] : buffer -> view<[%m]x[%n]xf16, %d_column_major>
+
+  %zero_values = vector.constant 0.0 : vector<8xf32>
+  %initial = vector.fragment<init> %zero_values shape [%tile, %tile] : vector<8xf32>
+  %result = scf.for %k_tile = [%zero_index to %k_tiles step %one](%acc = %initial : vector<8xf32>) -> (vector<8xf32>) {
+    %inner = index.mul %k_tile, %tile : index
+    %lhs = vector.fragment.load<lhs> %a[%output_m, %inner] shape [%tile, %tile] : view<[%m]x[%k]xf16, %a_column_major> -> vector<8xf16>
+    %rhs = vector.fragment.load<rhs> %b[%inner, %output_n] shape [%tile, %tile] : view<[%k]x[%n]xf16, %b_column_major> -> vector<8xf16>
+    %next = vector.mma %lhs, %rhs, %acc : vector<8xf16>, vector<8xf16>, vector<8xf32>
+    scf.yield %next : vector<8xf32>
+  }
+  vector.fragment.store<result> %result, %d[%output_m, %output_n] shape [%tile, %tile] : vector<8xf32>, view<[%m]x[%n]xf16, %d_column_major>
+  kernel.return
+}

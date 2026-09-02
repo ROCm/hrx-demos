@@ -1,0 +1,18 @@
+{
+  "schema": "loom-blas.timing-summary.v1",
+  "source": "research/spike-003-native-upward/results/gfx1201-uniform-bpad-carried-saddr-native-rhs-waitcap2-skip-source-wait-vs-133309-paired.json",
+  "sample_count": 60,
+  "loom_median_us": 30.9,
+  "incumbent_median_us": 28.84,
+  "median_ratio": 1.0714285714285714,
+  "bootstrap": {
+    "method": "independent resampling of alternating same-process samples",
+    "resamples": 20000,
+    "seed": 2,
+    "confidence": 0.95,
+    "ratio_ci": [
+      1.0677731673582296,
+      1.0758524704244954
+    ]
+  }
+}

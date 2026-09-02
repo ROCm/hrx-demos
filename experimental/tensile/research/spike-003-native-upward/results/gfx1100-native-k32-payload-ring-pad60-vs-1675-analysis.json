@@ -1,0 +1,18 @@
+{
+  "schema": "loom-blas.timing-summary.v1",
+  "source": "research/spike-003-native-upward/results/gfx1100-native-k32-payload-ring-pad60-vs-1675-paired.json",
+  "sample_count": 50,
+  "loom_median_us": 50.620999999999995,
+  "incumbent_median_us": 45.3605,
+  "median_ratio": 1.1159709438828935,
+  "bootstrap": {
+    "method": "independent resampling of alternating same-process samples",
+    "resamples": 20000,
+    "seed": 2,
+    "confidence": 0.95,
+    "ratio_ci": [
+      1.0982766753326532,
+      1.1476531906060299
+    ]
+  }
+}

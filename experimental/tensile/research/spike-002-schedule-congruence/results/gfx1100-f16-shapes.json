@@ -1,0 +1,14 @@
+{
+  "schema": "loom-blas.shape-sweep-summary.v1",
+  "device": {"ordinal": 1, "name": "AMD Radeon Pro W7900", "arch": "gfx1100"},
+  "request_boundary": "column-major NN, f16 inputs/output, f32 accumulation, alpha=1, beta=0",
+  "selection_method": "all 140 hipBLASLt algorithms, two timed pilot samples",
+  "rows": [
+    {"shape": [1024, 1024, 64], "index": 1655, "pilot_mean_us": 18.2, "macro_tile": [64, 32], "depth_u": 32, "workgroup": [32, 4, 1], "wave_tile": [2, 1], "pgr": 2, "plr": 1, "tlds": 0},
+    {"shape": [128, 2048, 2048], "index": 1677, "pilot_mean_us": 35.2205, "macro_tile": [64, 96], "depth_u": 32, "workgroup": [32, 4, 1], "wave_tile": [2, 3], "gsu": 2, "pgr": 2, "plr": 1, "tlds": 1},
+    {"shape": [2048, 128, 2048], "index": 1667, "pilot_mean_us": 37.38, "macro_tile": [128, 48], "depth_u": 32, "workgroup": [64, 2, 1], "wave_tile": [2, 3], "pgr": 2, "plr": 1, "tlds": 1},
+    {"shape": [256, 256, 256], "index": 1689, "pilot_mean_us": 14.36, "macro_tile": [64, 16], "depth_u": 64, "workgroup": [64, 2, 1], "wave_tile": [1, 1], "pgr": 2, "plr": 1, "tlds": 0}
+  ],
+  "structural_anchor": [1024, 1024, 64],
+  "conclusion": "The first K-shallow cell is already structurally distinct from the 1024-cubed MT64x96x32 anchor. gfx11 therefore also needs configured ownership variants, although they remain variants of one authored WMMA/LDS dataflow."
+}

@@ -1,0 +1,52 @@
+// Minimal register-allocation witness extracted from the gfx1201 MT128 motif.
+// Sixteen independent FP32 WMMA accumulators require 128 VGPRs. gfx1201
+// incumbent kernels legally allocate 252-256 VGPRs without scratch; this case
+// should therefore keep its accumulator bank and small operand set in VGPRs.
+amdgpu.target<gfx12-generic> @gfx12 {subgroup_size = 32}
+
+config.decl @repro.iterations : %value: index where [range(%value, 1, 128)]
+
+kernel.def target(@gfx12) @repro_gfx12_wmma_4x4_bank_spill() {
+  %one = index.constant 1 : index
+  %wave = index.constant 32 : index
+  kernel.launch.config workgroups(%one, %one, %one) workgroup_size(%wave, %one, %one) : index
+} launch(%output: buffer) {
+  %base = index.constant 0 : offset
+  %zero = index.constant 0 : index
+  %one = index.constant 1 : index
+  %four = index.constant 4 : index
+  %tile = index.constant 16 : index
+  %iterations = config.get @repro.iterations : index
+  %output_global = buffer.assume.memory_space<global> %output : buffer
+  %output_view = buffer.view %output_global[%base] : buffer -> view<64x64xf32>
+  %lhs_payload = vector.constant 1.0 : vector<8xf16>
+  %rhs_payload = vector.constant 1.0 : vector<8xf16>
+  %lhs = vector.fragment<lhs> %lhs_payload shape [%tile, %tile] : vector<8xf16>
+  %rhs = vector.fragment<rhs> %rhs_payload shape [%tile, %tile] : vector<8xf16>
+  %zero_payload = vector.constant 0.0 : vector<8xf32>
+  %zero_fragment = vector.fragment<init> %zero_payload shape [%tile, %tile] : vector<8xf32>
+  %empty_bank = vector.broadcast %zero_fragment : vector<8xf32> -> vector<4x4x8xf32>
+  %result_bank = scf.for %iteration = [%zero to %iterations step %one](%iteration_bank = %empty_bank : vector<4x4x8xf32>) -> (vector<4x4x8xf32>) {
+    %after_m = scf.for %m_fragment = [%zero to %four step %one](%m_bank = %iteration_bank : vector<4x4x8xf32>) -> (vector<4x4x8xf32>) unroll {
+      %after_n = scf.for %n_fragment = [%zero to %four step %one](%n_bank = %m_bank : vector<4x4x8xf32>) -> (vector<4x4x8xf32>) unroll {
+        %acc_payload = vector.extract %n_bank[%m_fragment, %n_fragment] : vector<4x4x8xf32> -> vector<8xf32>
+        %acc = vector.fragment<init> %acc_payload shape [%tile, %tile] : vector<8xf32>
+        %next = vector.mma %lhs, %rhs, %acc : vector<8xf16>, vector<8xf16>, vector<8xf32>
+        %next_bank = vector.insert %next into %n_bank[%m_fragment, %n_fragment] : vector<8xf32>, vector<4x4x8xf32>
+        scf.yield %next_bank : vector<4x4x8xf32>
+      }
+      scf.yield %after_n : vector<4x4x8xf32>
+    }
+    scf.yield %after_m : vector<4x4x8xf32>
+  }
+  scf.for %m_fragment = [%zero to %four step %one] unroll {
+    %m_origin = index.mul %m_fragment, %tile : index
+    scf.for %n_fragment = [%zero to %four step %one] unroll {
+      %n_origin = index.mul %n_fragment, %tile : index
+      %payload = vector.extract %result_bank[%m_fragment, %n_fragment] : vector<4x4x8xf32> -> vector<8xf32>
+      %result = vector.fragment<result> %payload shape [%tile, %tile] : vector<8xf32>
+      vector.fragment.store<result> %result, %output_view[%m_origin, %n_origin] shape [%tile, %tile] : vector<8xf32>, view<64x64xf32>
+    }
+  }
+  kernel.return
+}

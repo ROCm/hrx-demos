@@ -1,0 +1,18 @@
+{
+  "schema": "loom-blas.timing-summary.v1",
+  "source": "research/spike-003-native-upward/results/gfx1100-double-buffer-native-lds-high-n960-vs-1675-paired.json",
+  "sample_count": 60,
+  "loom_median_us": 61.200500000000005,
+  "incumbent_median_us": 45.44,
+  "median_ratio": 1.34684198943662,
+  "bootstrap": {
+    "method": "independent resampling of alternating same-process samples",
+    "resamples": 20000,
+    "seed": 2,
+    "confidence": 0.95,
+    "ratio_ci": [
+      1.3428643641278666,
+      1.3527851458885942
+    ]
+  }
+}

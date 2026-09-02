@@ -1,0 +1,183 @@
+// RUN: emit amdgpu-assembly @gfx12_load_ring strategy=source
+
+// Reduced schedule witness for runtime solution 133309. The native loop keeps
+// eight 128-bit global loads outstanding, consumes one result at loadcnt(7),
+// writes it to LDS, and immediately refills that result bank. Two groups of
+// sixteen WMMA instructions execute while the ring remains live.
+amdgpu.target<gfx12-generic> @target
+low.func.def schedule(locked) target<amdgpu.gfx12.generic.core>(@target) @gfx12_load_ring(
+    %srd_a: reg<amdgpu.sgpr x4>,
+    %srd_b: reg<amdgpu.sgpr x4>,
+    %offset0: reg<amdgpu.vgpr>, %offset1: reg<amdgpu.vgpr>,
+    %offset2: reg<amdgpu.vgpr>, %offset3: reg<amdgpu.vgpr>,
+    %offset4: reg<amdgpu.vgpr>, %offset5: reg<amdgpu.vgpr>,
+    %offset6: reg<amdgpu.vgpr>, %offset7: reg<amdgpu.vgpr>,
+    %lds: reg<amdgpu.vgpr>,
+    %lhs0: reg<amdgpu.vgpr x4>, %lhs1: reg<amdgpu.vgpr x4>,
+    %lhs2: reg<amdgpu.vgpr x4>, %lhs3: reg<amdgpu.vgpr x4>,
+    %rhs0: reg<amdgpu.vgpr x4>, %rhs1: reg<amdgpu.vgpr x4>,
+    %rhs2: reg<amdgpu.vgpr x4>, %rhs3: reg<amdgpu.vgpr x4>,
+    %acc0: reg<amdgpu.vgpr x8>, %acc1: reg<amdgpu.vgpr x8>,
+    %acc2: reg<amdgpu.vgpr x8>, %acc3: reg<amdgpu.vgpr x8>,
+    %acc4: reg<amdgpu.vgpr x8>, %acc5: reg<amdgpu.vgpr x8>,
+    %acc6: reg<amdgpu.vgpr x8>, %acc7: reg<amdgpu.vgpr x8>,
+    %acc8: reg<amdgpu.vgpr x8>, %acc9: reg<amdgpu.vgpr x8>,
+    %acc10: reg<amdgpu.vgpr x8>, %acc11: reg<amdgpu.vgpr x8>,
+    %acc12: reg<amdgpu.vgpr x8>, %acc13: reg<amdgpu.vgpr x8>,
+    %acc14: reg<amdgpu.vgpr x8>, %acc15: reg<amdgpu.vgpr x8>) -> (
+      reg<amdgpu.vgpr x4>, reg<amdgpu.vgpr x4>,
+      reg<amdgpu.vgpr x4>, reg<amdgpu.vgpr x4>,
+      reg<amdgpu.vgpr x4>, reg<amdgpu.vgpr x4>,
+      reg<amdgpu.vgpr x4>, reg<amdgpu.vgpr x4>,
+      reg<amdgpu.vgpr x8>, reg<amdgpu.vgpr x8>,
+      reg<amdgpu.vgpr x8>, reg<amdgpu.vgpr x8>,
+      reg<amdgpu.vgpr x8>, reg<amdgpu.vgpr x8>,
+      reg<amdgpu.vgpr x8>, reg<amdgpu.vgpr x8>,
+      reg<amdgpu.vgpr x8>, reg<amdgpu.vgpr x8>,
+      reg<amdgpu.vgpr x8>, reg<amdgpu.vgpr x8>,
+      reg<amdgpu.vgpr x8>, reg<amdgpu.vgpr x8>,
+      reg<amdgpu.vgpr x8>, reg<amdgpu.vgpr x8>) asm {
+  %zero = s_mov_b32 0
+  %old0 = buffer_load_b128 %srd_a, %offset0, %zero
+  %old1 = buffer_load_b128 %srd_a, %offset1, %zero
+  %old2 = buffer_load_b128 %srd_a, %offset2, %zero
+  %old3 = buffer_load_b128 %srd_a, %offset3, %zero
+  %old4 = buffer_load_b128 %srd_b, %offset4, %zero
+  %old5 = buffer_load_b128 %srd_b, %offset5, %zero
+  %old6 = buffer_load_b128 %srd_b, %offset6, %zero
+  %old7 = buffer_load_b128 %srd_b, %offset7, %zero
+
+  s_wait_loadcnt {loadcnt = 7}
+  ds_write_b128 %lds, %old0
+  %next0 = buffer_load_b128 %srd_a, %offset0, %zero
+
+  %mid0 = v_wmma_f32_16x16x16_f16 %lhs0, %rhs0, %acc0
+  %mid1 = v_wmma_f32_16x16x16_f16 %lhs0, %rhs1, %acc1
+  %mid2 = v_wmma_f32_16x16x16_f16 %lhs0, %rhs2, %acc2
+  %mid3 = v_wmma_f32_16x16x16_f16 %lhs0, %rhs3, %acc3
+  %mid4 = v_wmma_f32_16x16x16_f16 %lhs1, %rhs0, %acc4
+  %mid5 = v_wmma_f32_16x16x16_f16 %lhs1, %rhs1, %acc5
+  %mid6 = v_wmma_f32_16x16x16_f16 %lhs1, %rhs2, %acc6
+  %mid7 = v_wmma_f32_16x16x16_f16 %lhs1, %rhs3, %acc7
+  %mid8 = v_wmma_f32_16x16x16_f16 %lhs2, %rhs0, %acc8
+  %mid9 = v_wmma_f32_16x16x16_f16 %lhs2, %rhs1, %acc9
+  %mid10 = v_wmma_f32_16x16x16_f16 %lhs2, %rhs2, %acc10
+  %mid11 = v_wmma_f32_16x16x16_f16 %lhs2, %rhs3, %acc11
+  %mid12 = v_wmma_f32_16x16x16_f16 %lhs3, %rhs0, %acc12
+  %mid13 = v_wmma_f32_16x16x16_f16 %lhs3, %rhs1, %acc13
+  %mid14 = v_wmma_f32_16x16x16_f16 %lhs3, %rhs2, %acc14
+  %mid15 = v_wmma_f32_16x16x16_f16 %lhs3, %rhs3, %acc15
+
+  s_wait_loadcnt {loadcnt = 7}
+  ds_write_b128 %lds, %old1 {offset = 2048}
+  %next1 = buffer_load_b128 %srd_a, %offset1, %zero
+  s_wait_loadcnt {loadcnt = 7}
+  ds_write_b128 %lds, %old2 {offset = 4096}
+  %next2 = buffer_load_b128 %srd_a, %offset2, %zero
+  s_wait_loadcnt {loadcnt = 7}
+  ds_write_b128 %lds, %old3 {offset = 6144}
+  %next3 = buffer_load_b128 %srd_a, %offset3, %zero
+  s_wait_loadcnt {loadcnt = 7}
+  ds_write_b128 %lds, %old4 {offset = 8192}
+  %next4 = buffer_load_b128 %srd_b, %offset4, %zero
+  s_wait_loadcnt {loadcnt = 7}
+  ds_write_b128 %lds, %old5 {offset = 10240}
+  %next5 = buffer_load_b128 %srd_b, %offset5, %zero
+  s_wait_loadcnt {loadcnt = 7}
+  ds_write_b128 %lds, %old6 {offset = 12288}
+  %next6 = buffer_load_b128 %srd_b, %offset6, %zero
+  s_wait_loadcnt {loadcnt = 7}
+  ds_write_b128 %lds, %old7 {offset = 14336}
+  %next7 = buffer_load_b128 %srd_b, %offset7, %zero
+
+  %out0 = v_wmma_f32_16x16x16_f16 %lhs0, %rhs0, %mid0
+  %out1 = v_wmma_f32_16x16x16_f16 %lhs0, %rhs1, %mid1
+  %out2 = v_wmma_f32_16x16x16_f16 %lhs0, %rhs2, %mid2
+  %out3 = v_wmma_f32_16x16x16_f16 %lhs0, %rhs3, %mid3
+  %out4 = v_wmma_f32_16x16x16_f16 %lhs1, %rhs0, %mid4
+  %out5 = v_wmma_f32_16x16x16_f16 %lhs1, %rhs1, %mid5
+  %out6 = v_wmma_f32_16x16x16_f16 %lhs1, %rhs2, %mid6
+  %out7 = v_wmma_f32_16x16x16_f16 %lhs1, %rhs3, %mid7
+  %out8 = v_wmma_f32_16x16x16_f16 %lhs2, %rhs0, %mid8
+  %out9 = v_wmma_f32_16x16x16_f16 %lhs2, %rhs1, %mid9
+  %out10 = v_wmma_f32_16x16x16_f16 %lhs2, %rhs2, %mid10
+  %out11 = v_wmma_f32_16x16x16_f16 %lhs2, %rhs3, %mid11
+  %out12 = v_wmma_f32_16x16x16_f16 %lhs3, %rhs0, %mid12
+  %out13 = v_wmma_f32_16x16x16_f16 %lhs3, %rhs1, %mid13
+  %out14 = v_wmma_f32_16x16x16_f16 %lhs3, %rhs2, %mid14
+  %out15 = v_wmma_f32_16x16x16_f16 %lhs3, %rhs3, %mid15
+
+  return %next0, %next1, %next2, %next3,
+         %next4, %next5, %next6, %next7,
+         %out0, %out1, %out2, %out3, %out4, %out5, %out6, %out7,
+         %out8, %out9, %out10, %out11, %out12, %out13, %out14, %out15
+}
+
+// ----
+s_mov_b32 s8, 0
+  buffer_load_b128 v[172:175], v0, s[0:3], s8 offen offset:0
+  buffer_load_b128 v[176:179], v1, s[0:3], s8 offen offset:0
+  buffer_load_b128 v[180:183], v2, s[0:3], s8 offen offset:0
+  buffer_load_b128 v[184:187], v3, s[0:3], s8 offen offset:0
+  buffer_load_b128 v[188:191], v4, s[4:7], s8 offen offset:0
+  buffer_load_b128 v[192:195], v5, s[4:7], s8 offen offset:0
+  buffer_load_b128 v[196:199], v6, s[4:7], s8 offen offset:0
+  buffer_load_b128 v[200:203], v136, s[4:7], s8 offen offset:0
+  s_wait_loadcnt loadcnt(7)
+  ds_write_b128 v7, v[172:175] offset:0
+  buffer_load_b128 v[172:175], v0, s[0:3], s8 offen offset:0
+  v_wmma_f32_16x16x16_f16 v[8:15], v[140:143], v[152:155], v[8:15]
+  v_wmma_f32_16x16x16_f16 v[16:23], v[140:143], v[156:159], v[16:23]
+  v_wmma_f32_16x16x16_f16 v[24:31], v[140:143], v[160:163], v[24:31]
+  v_wmma_f32_16x16x16_f16 v[32:39], v[140:143], v[168:171], v[32:39]
+  v_wmma_f32_16x16x16_f16 v[40:47], v[144:147], v[152:155], v[40:47]
+  v_wmma_f32_16x16x16_f16 v[48:55], v[144:147], v[156:159], v[48:55]
+  v_wmma_f32_16x16x16_f16 v[56:63], v[144:147], v[160:163], v[56:63]
+  v_wmma_f32_16x16x16_f16 v[64:71], v[144:147], v[168:171], v[64:71]
+  v_wmma_f32_16x16x16_f16 v[72:79], v[148:151], v[152:155], v[72:79]
+  v_wmma_f32_16x16x16_f16 v[80:87], v[148:151], v[156:159], v[80:87]
+  v_wmma_f32_16x16x16_f16 v[88:95], v[148:151], v[160:163], v[88:95]
+  v_wmma_f32_16x16x16_f16 v[96:103], v[148:151], v[168:171], v[96:103]
+  v_wmma_f32_16x16x16_f16 v[104:111], v[164:167], v[152:155], v[104:111]
+  v_wmma_f32_16x16x16_f16 v[112:119], v[164:167], v[156:159], v[112:119]
+  v_wmma_f32_16x16x16_f16 v[120:127], v[164:167], v[160:163], v[120:127]
+  v_wmma_f32_16x16x16_f16 v[128:135], v[164:167], v[168:171], v[128:135]
+  s_wait_loadcnt loadcnt(7)
+  ds_write_b128 v7, v[176:179] offset:2048
+  buffer_load_b128 v[176:179], v1, s[0:3], s8 offen offset:0
+  s_wait_loadcnt loadcnt(7)
+  ds_write_b128 v7, v[180:183] offset:4096
+  buffer_load_b128 v[180:183], v2, s[0:3], s8 offen offset:0
+  s_wait_loadcnt loadcnt(7)
+  ds_write_b128 v7, v[184:187] offset:6144
+  buffer_load_b128 v[0:3], v3, s[0:3], s8 offen offset:0
+  s_wait_loadcnt loadcnt(7)
+  ds_write_b128 v7, v[188:191] offset:8192
+  buffer_load_b128 v[184:187], v4, s[4:7], s8 offen offset:0
+  s_wait_loadcnt loadcnt(7)
+  ds_write_b128 v7, v[192:195] offset:10240
+  buffer_load_b128 v[188:191], v5, s[4:7], s8 offen offset:0
+  s_wait_loadcnt loadcnt(7)
+  ds_write_b128 v7, v[196:199] offset:12288
+  buffer_load_b128 v[192:195], v6, s[4:7], s8 offen offset:0
+  s_wait_loadcnt loadcnt(7)
+  ds_write_b128 v7, v[200:203] offset:14336
+  buffer_load_b128 v[4:7], v136, s[4:7], s8 offen offset:0
+  v_wmma_f32_16x16x16_f16 v[8:15], v[140:143], v[152:155], v[8:15]
+  v_wmma_f32_16x16x16_f16 v[16:23], v[140:143], v[156:159], v[16:23]
+  v_wmma_f32_16x16x16_f16 v[24:31], v[140:143], v[160:163], v[24:31]
+  v_wmma_f32_16x16x16_f16 v[32:39], v[140:143], v[168:171], v[32:39]
+  v_wmma_f32_16x16x16_f16 v[40:47], v[144:147], v[152:155], v[40:47]
+  v_wmma_f32_16x16x16_f16 v[48:55], v[144:147], v[156:159], v[48:55]
+  v_wmma_f32_16x16x16_f16 v[56:63], v[144:147], v[160:163], v[56:63]
+  v_wmma_f32_16x16x16_f16 v[64:71], v[144:147], v[168:171], v[64:71]
+  v_wmma_f32_16x16x16_f16 v[72:79], v[148:151], v[152:155], v[72:79]
+  v_wmma_f32_16x16x16_f16 v[80:87], v[148:151], v[156:159], v[80:87]
+  v_wmma_f32_16x16x16_f16 v[88:95], v[148:151], v[160:163], v[88:95]
+  v_wmma_f32_16x16x16_f16 v[96:103], v[148:151], v[168:171], v[96:103]
+  v_wmma_f32_16x16x16_f16 v[104:111], v[164:167], v[152:155], v[104:111]
+  v_wmma_f32_16x16x16_f16 v[112:119], v[164:167], v[156:159], v[112:119]
+  v_wmma_f32_16x16x16_f16 v[120:127], v[164:167], v[160:163], v[120:127]
+  v_wmma_f32_16x16x16_f16 v[128:135], v[164:167], v[168:171], v[128:135]
+  s_wait_loadcnt loadcnt(0)
+  s_endpgm

@@ -1,0 +1,918 @@
+// Candidate record:
+// Production boundary: FP16 column-major GEMM, M=N=K=1024, gfx12 family.
+// Independent variables retained after separate experiments: name the sixteen
+// accumulator SSA values, flatten the four load groups, with a compact
+// shape-specialized outer K loop.
+// Finding: naming accumulators alone does not remove spill traffic. This variant retains the loop so its prepared Low control flow can be
+// used as the starting point for the locked native-style schedule.
+// Compiler consequence: 32 WMMA packets per K iteration, zero materialized
+// spill storage/reloads, and final VGPR allocation below 256.
+// Correctness: independent full-shape reference plus one complete macro-tile
+// through Loom's native access sanitizer. Full-shape access instrumentation
+// currently fails to compile; see compiler-usability-access-sanitizer.md.
+// Stop: do not time unless the compiler consequence appears.
+amdgpu.target<gfx12-generic> @gfx12 {subgroup_size = 32}
+
+config.decl @gemm.m : %value: index where [range(%value, 128, 65536), mul(%value, 128)]
+
+config.decl @gemm.n : %value: index where [range(%value, 128, 65536), mul(%value, 128)]
+
+config.decl @gemm.k : %value: index where [range(%value, 32, 65536), mul(%value, 32)]
+
+kernel.def target(@gfx12) @gemm_f16_f32_mt128x128x32_gfx12_scalar_acc() {
+  %m = config.get @gemm.m : index
+  %n = config.get @gemm.n : index
+  %macro = index.constant 128 : index
+  %workgroups_m = index.div %m, %macro : index
+  %workgroups_n = index.div %n, %macro : index
+  %wave_size = index.constant 32 : index
+  %waves = index.constant 4 : index
+  %one = index.constant 1 : index
+  kernel.launch.config workgroups(%workgroups_n, %workgroups_m, %one) workgroup_size(%wave_size, %waves, %one) : index
+} launch(%a_buffer: buffer, %b_buffer: buffer, %c_buffer: buffer, %d_buffer: buffer) {
+  %m = config.get @gemm.m : index
+  %n = config.get @gemm.n : index
+  %k = config.get @gemm.k : index
+  %base = index.constant 0 : offset
+  %zero = index.constant 0 : index
+  %one = index.constant 1 : index
+  %two = index.constant 2 : index
+  %three = index.constant 3 : index
+  %four = index.constant 4 : index
+  %eight = index.constant 8 : index
+  %sixteen = index.constant 16 : index
+  %thirty_two = index.constant 32 : index
+  %forty_eight = index.constant 48 : index
+  %sixty_four = index.constant 64 : index
+  %depth_u = index.constant 32 : index
+  %wave_size = index.constant 32 : index
+  %wave_tile = index.constant 64 : index
+  %macro = index.constant 128 : index
+  %load_stride = index.constant 128 : index
+  %lds_bytes = index.constant 51200 : offset
+
+  %workgroup_n = kernel.workgroup.id<x> : index
+  %workgroup_m = kernel.workgroup.id<y> : index
+  %lane = kernel.workitem.id<x> : index
+  %wave = kernel.workitem.id<y> : index
+  %wave_thread_base = index.mul %wave, %wave_size : index
+  %thread = index.add %wave_thread_base, %lane : index
+  %wave_m_id = index.rem %wave, %two : index
+  %wave_n_id = index.div %wave, %two : index
+  %workgroup_m_base = index.mul %workgroup_m, %macro : index
+  %workgroup_n_base = index.mul %workgroup_n, %macro : index
+  %wave_m_delta = index.mul %wave_m_id, %wave_tile : index
+  %wave_n_delta = index.mul %wave_n_id, %wave_tile : index
+  %wave_m_base = index.add %workgroup_m_base, %wave_m_delta : index
+  %wave_n_base = index.add %workgroup_n_base, %wave_n_delta : index
+
+  %a_global = buffer.assume.memory_space<global> %a_buffer : buffer
+  %b_global = buffer.assume.memory_space<global> %b_buffer : buffer
+  %d_global = buffer.assume.memory_space<global> %d_buffer : buffer
+  %a_aligned = buffer.assume.alignment %a_global {minimum_alignment = 16} : buffer
+  %b_aligned = buffer.assume.alignment %b_global {minimum_alignment = 16} : buffer
+  %d_aligned = buffer.assume.alignment %d_global {minimum_alignment = 16} : buffer
+  %d_layout = encoding.layout.strided [1, %m] : encoding<layout>
+  %a_load = buffer.view %a_aligned[%base] : buffer -> view<[%k]x[%m]xf16>
+  %b_load = buffer.view %b_aligned[%base] : buffer -> view<[%n]x[%k]xf16>
+  %d = buffer.view %d_aligned[%base] : buffer -> view<[%m]x[%n]xf16, %d_layout>
+
+  %a_lds_layout = encoding.layout.strided [1, 128] : encoding<layout>
+  %b_lds_layout = encoding.layout.strided [1, 32] : encoding<layout>
+  %lds = buffer.alloca<workgroup> align(16) %lds_bytes : buffer
+  %a_lds = buffer.view %lds[%base] : buffer -> view<128x32xf16, %a_lds_layout>
+  %a_lds_store = buffer.view %lds[%base] : buffer -> view<32x128xf16>
+  %b_offset = index.constant 8192 : offset
+  %b_lds = buffer.view %lds[%b_offset] : buffer -> view<32x128xf16, %b_lds_layout>
+  %b_lds_store = buffer.view %lds[%b_offset] : buffer -> view<128x32xf16>
+  %stage1_offset = index.constant 32768 : offset
+  %a_lds_stage1 = buffer.view %lds[%stage1_offset] : buffer -> view<128x32xf16, %a_lds_layout>
+  %a_lds_store_stage1 = buffer.view %lds[%stage1_offset] : buffer -> view<32x128xf16>
+  %b_stage1_offset = index.constant 40960 : offset
+  %b_lds_stage1 = buffer.view %lds[%b_stage1_offset] : buffer -> view<32x128xf16, %b_lds_layout>
+  %b_lds_store_stage1 = buffer.view %lds[%b_stage1_offset] : buffer -> view<128x32xf16>
+
+  %zero_payload = vector.constant 0.0 : vector<8xf32>
+  %zero_acc = vector.fragment<init> %zero_payload shape [%sixteen, %sixteen] : vector<8xf32>
+
+    %pro_linear0 = index.add %thread, %zero : index
+    %pro_a_row_vector0 = index.rem %pro_linear0, %sixteen : index
+    %pro_a_row00 = index.mul %pro_a_row_vector0, %eight : index
+    %pro_a_row0 = index.assume %pro_a_row00 [range(%pro_a_row00, 0, 120)] : index
+    %pro_a_k00 = index.div %pro_linear0, %sixteen : index
+    %pro_a_k_local0 = index.assume %pro_a_k00 [range(%pro_a_k00, 0, 31)] : index
+    %pro_a_global_row0 = index.add %workgroup_m_base, %pro_a_row0 : index
+    %pro_a_global_k0 = index.add %zero, %pro_a_k_local0 : index
+    %pro_av0 = vector.load %a_load[%pro_a_global_k0, %pro_a_global_row0] : view<[%k]x[%m]xf16> -> vector<8xf16>
+    vector.store %pro_av0, %a_lds_store[%pro_a_k_local0, %pro_a_row0] : vector<8xf16>, view<32x128xf16>
+    %pro_b_k_vector0 = index.rem %pro_linear0, %four : index
+    %pro_b_k00 = index.mul %pro_b_k_vector0, %eight : index
+    %pro_b_k_local0 = index.assume %pro_b_k00 [range(%pro_b_k00, 0, 24)] : index
+    %pro_b_n00 = index.div %pro_linear0, %four : index
+    %pro_b_n_local0 = index.assume %pro_b_n00 [range(%pro_b_n00, 0, 127)] : index
+    %pro_b_global_n0 = index.add %workgroup_n_base, %pro_b_n_local0 : index
+    %pro_b_global_k0 = index.add %zero, %pro_b_k_local0 : index
+    %pro_bv0 = vector.load %b_load[%pro_b_global_n0, %pro_b_global_k0] : view<[%n]x[%k]xf16> -> vector<8xf16>
+    vector.store %pro_bv0, %b_lds_store[%pro_b_n_local0, %pro_b_k_local0] : vector<8xf16>, view<128x32xf16>
+
+    %pro_load_delta1 = index.mul %one, %load_stride : index
+    %pro_linear1 = index.add %thread, %pro_load_delta1 : index
+    %pro_a_row_vector1 = index.rem %pro_linear1, %sixteen : index
+    %pro_a_row01 = index.mul %pro_a_row_vector1, %eight : index
+    %pro_a_row1 = index.assume %pro_a_row01 [range(%pro_a_row01, 0, 120)] : index
+    %pro_a_k01 = index.div %pro_linear1, %sixteen : index
+    %pro_a_k_local1 = index.assume %pro_a_k01 [range(%pro_a_k01, 0, 31)] : index
+    %pro_a_global_row1 = index.add %workgroup_m_base, %pro_a_row1 : index
+    %pro_a_global_k1 = index.add %zero, %pro_a_k_local1 : index
+    %pro_av1 = vector.load %a_load[%pro_a_global_k1, %pro_a_global_row1] : view<[%k]x[%m]xf16> -> vector<8xf16>
+    vector.store %pro_av1, %a_lds_store[%pro_a_k_local1, %pro_a_row1] : vector<8xf16>, view<32x128xf16>
+    %pro_b_k_vector1 = index.rem %pro_linear1, %four : index
+    %pro_b_k01 = index.mul %pro_b_k_vector1, %eight : index
+    %pro_b_k_local1 = index.assume %pro_b_k01 [range(%pro_b_k01, 0, 24)] : index
+    %pro_b_n01 = index.div %pro_linear1, %four : index
+    %pro_b_n_local1 = index.assume %pro_b_n01 [range(%pro_b_n01, 0, 127)] : index
+    %pro_b_global_n1 = index.add %workgroup_n_base, %pro_b_n_local1 : index
+    %pro_b_global_k1 = index.add %zero, %pro_b_k_local1 : index
+    %pro_bv1 = vector.load %b_load[%pro_b_global_n1, %pro_b_global_k1] : view<[%n]x[%k]xf16> -> vector<8xf16>
+    vector.store %pro_bv1, %b_lds_store[%pro_b_n_local1, %pro_b_k_local1] : vector<8xf16>, view<128x32xf16>
+
+    %pro_load_delta2 = index.mul %two, %load_stride : index
+    %pro_linear2 = index.add %thread, %pro_load_delta2 : index
+    %pro_a_row_vector2 = index.rem %pro_linear2, %sixteen : index
+    %pro_a_row02 = index.mul %pro_a_row_vector2, %eight : index
+    %pro_a_row2 = index.assume %pro_a_row02 [range(%pro_a_row02, 0, 120)] : index
+    %pro_a_k02 = index.div %pro_linear2, %sixteen : index
+    %pro_a_k_local2 = index.assume %pro_a_k02 [range(%pro_a_k02, 0, 31)] : index
+    %pro_a_global_row2 = index.add %workgroup_m_base, %pro_a_row2 : index
+    %pro_a_global_k2 = index.add %zero, %pro_a_k_local2 : index
+    %pro_av2 = vector.load %a_load[%pro_a_global_k2, %pro_a_global_row2] : view<[%k]x[%m]xf16> -> vector<8xf16>
+    vector.store %pro_av2, %a_lds_store[%pro_a_k_local2, %pro_a_row2] : vector<8xf16>, view<32x128xf16>
+    %pro_b_k_vector2 = index.rem %pro_linear2, %four : index
+    %pro_b_k02 = index.mul %pro_b_k_vector2, %eight : index
+    %pro_b_k_local2 = index.assume %pro_b_k02 [range(%pro_b_k02, 0, 24)] : index
+    %pro_b_n02 = index.div %pro_linear2, %four : index
+    %pro_b_n_local2 = index.assume %pro_b_n02 [range(%pro_b_n02, 0, 127)] : index
+    %pro_b_global_n2 = index.add %workgroup_n_base, %pro_b_n_local2 : index
+    %pro_b_global_k2 = index.add %zero, %pro_b_k_local2 : index
+    %pro_bv2 = vector.load %b_load[%pro_b_global_n2, %pro_b_global_k2] : view<[%n]x[%k]xf16> -> vector<8xf16>
+    vector.store %pro_bv2, %b_lds_store[%pro_b_n_local2, %pro_b_k_local2] : vector<8xf16>, view<128x32xf16>
+
+    %pro_load_delta3 = index.mul %three, %load_stride : index
+    %pro_linear3 = index.add %thread, %pro_load_delta3 : index
+    %pro_a_row_vector3 = index.rem %pro_linear3, %sixteen : index
+    %pro_a_row03 = index.mul %pro_a_row_vector3, %eight : index
+    %pro_a_row3 = index.assume %pro_a_row03 [range(%pro_a_row03, 0, 120)] : index
+    %pro_a_k03 = index.div %pro_linear3, %sixteen : index
+    %pro_a_k_local3 = index.assume %pro_a_k03 [range(%pro_a_k03, 0, 31)] : index
+    %pro_a_global_row3 = index.add %workgroup_m_base, %pro_a_row3 : index
+    %pro_a_global_k3 = index.add %zero, %pro_a_k_local3 : index
+    %pro_av3 = vector.load %a_load[%pro_a_global_k3, %pro_a_global_row3] : view<[%k]x[%m]xf16> -> vector<8xf16>
+    vector.store %pro_av3, %a_lds_store[%pro_a_k_local3, %pro_a_row3] : vector<8xf16>, view<32x128xf16>
+    %pro_b_k_vector3 = index.rem %pro_linear3, %four : index
+    %pro_b_k03 = index.mul %pro_b_k_vector3, %eight : index
+    %pro_b_k_local3 = index.assume %pro_b_k03 [range(%pro_b_k03, 0, 24)] : index
+    %pro_b_n03 = index.div %pro_linear3, %four : index
+    %pro_b_n_local3 = index.assume %pro_b_n03 [range(%pro_b_n03, 0, 127)] : index
+    %pro_b_global_n3 = index.add %workgroup_n_base, %pro_b_n_local3 : index
+    %pro_b_global_k3 = index.add %zero, %pro_b_k_local3 : index
+    %pro_bv3 = vector.load %b_load[%pro_b_global_n3, %pro_b_global_k3] : view<[%n]x[%k]xf16> -> vector<8xf16>
+    vector.store %pro_bv3, %b_lds_store[%pro_b_n_local3, %pro_b_k_local3] : vector<8xf16>, view<128x32xf16>
+    kernel.barrier<workgroup> scope(workgroup) ordering(acq_rel)
+  %pair_end = index.sub %k, %sixty_four : index
+  %pair_a0, %pair_a1, %pair_a2, %pair_a3, %pair_a4, %pair_a5, %pair_a6, %pair_a7, %pair_a8, %pair_a9, %pair_a10, %pair_a11, %pair_a12, %pair_a13, %pair_a14, %pair_a15 = scf.for %k_base = [%zero to %pair_end step %sixty_four](%a0 = %zero_acc : vector<8xf32>, %a1 = %zero_acc : vector<8xf32>, %a2 = %zero_acc : vector<8xf32>, %a3 = %zero_acc : vector<8xf32>, %a4 = %zero_acc : vector<8xf32>, %a5 = %zero_acc : vector<8xf32>, %a6 = %zero_acc : vector<8xf32>, %a7 = %zero_acc : vector<8xf32>, %a8 = %zero_acc : vector<8xf32>, %a9 = %zero_acc : vector<8xf32>, %a10 = %zero_acc : vector<8xf32>, %a11 = %zero_acc : vector<8xf32>, %a12 = %zero_acc : vector<8xf32>, %a13 = %zero_acc : vector<8xf32>, %a14 = %zero_acc : vector<8xf32>, %a15 = %zero_acc : vector<8xf32>) -> (vector<8xf32>, vector<8xf32>, vector<8xf32>, vector<8xf32>, vector<8xf32>, vector<8xf32>, vector<8xf32>, vector<8xf32>, vector<8xf32>, vector<8xf32>, vector<8xf32>, vector<8xf32>, vector<8xf32>, vector<8xf32>, vector<8xf32>, vector<8xf32>) {
+    %odd_k = index.add %k_base, %depth_u : index
+    %odd_load_linear0 = index.add %thread, %zero : index
+    %odd_load_a_row_vector0 = index.rem %odd_load_linear0, %sixteen : index
+    %odd_load_a_row00 = index.mul %odd_load_a_row_vector0, %eight : index
+    %odd_load_a_row0 = index.assume %odd_load_a_row00 [range(%odd_load_a_row00, 0, 120)] : index
+    %odd_load_a_k00 = index.div %odd_load_linear0, %sixteen : index
+    %odd_load_a_k_local0 = index.assume %odd_load_a_k00 [range(%odd_load_a_k00, 0, 31)] : index
+    %odd_load_a_global_row0 = index.add %workgroup_m_base, %odd_load_a_row0 : index
+    %odd_load_a_global_k0 = index.add %odd_k, %odd_load_a_k_local0 : index
+    %odd_load_av0 = vector.load %a_load[%odd_load_a_global_k0, %odd_load_a_global_row0] : view<[%k]x[%m]xf16> -> vector<8xf16>
+    %odd_load_b_k_vector0 = index.rem %odd_load_linear0, %four : index
+    %odd_load_b_k00 = index.mul %odd_load_b_k_vector0, %eight : index
+    %odd_load_b_k_local0 = index.assume %odd_load_b_k00 [range(%odd_load_b_k00, 0, 24)] : index
+    %odd_load_b_n00 = index.div %odd_load_linear0, %four : index
+    %odd_load_b_n_local0 = index.assume %odd_load_b_n00 [range(%odd_load_b_n00, 0, 127)] : index
+    %odd_load_b_global_n0 = index.add %workgroup_n_base, %odd_load_b_n_local0 : index
+    %odd_load_b_global_k0 = index.add %odd_k, %odd_load_b_k_local0 : index
+    %odd_load_bv0 = vector.load %b_load[%odd_load_b_global_n0, %odd_load_b_global_k0] : view<[%n]x[%k]xf16> -> vector<8xf16>
+
+    %odd_load_load_delta1 = index.mul %one, %load_stride : index
+    %odd_load_linear1 = index.add %thread, %odd_load_load_delta1 : index
+    %odd_load_a_row_vector1 = index.rem %odd_load_linear1, %sixteen : index
+    %odd_load_a_row01 = index.mul %odd_load_a_row_vector1, %eight : index
+    %odd_load_a_row1 = index.assume %odd_load_a_row01 [range(%odd_load_a_row01, 0, 120)] : index
+    %odd_load_a_k01 = index.div %odd_load_linear1, %sixteen : index
+    %odd_load_a_k_local1 = index.assume %odd_load_a_k01 [range(%odd_load_a_k01, 0, 31)] : index
+    %odd_load_a_global_row1 = index.add %workgroup_m_base, %odd_load_a_row1 : index
+    %odd_load_a_global_k1 = index.add %odd_k, %odd_load_a_k_local1 : index
+    %odd_load_av1 = vector.load %a_load[%odd_load_a_global_k1, %odd_load_a_global_row1] : view<[%k]x[%m]xf16> -> vector<8xf16>
+    %odd_load_b_k_vector1 = index.rem %odd_load_linear1, %four : index
+    %odd_load_b_k01 = index.mul %odd_load_b_k_vector1, %eight : index
+    %odd_load_b_k_local1 = index.assume %odd_load_b_k01 [range(%odd_load_b_k01, 0, 24)] : index
+    %odd_load_b_n01 = index.div %odd_load_linear1, %four : index
+    %odd_load_b_n_local1 = index.assume %odd_load_b_n01 [range(%odd_load_b_n01, 0, 127)] : index
+    %odd_load_b_global_n1 = index.add %workgroup_n_base, %odd_load_b_n_local1 : index
+    %odd_load_b_global_k1 = index.add %odd_k, %odd_load_b_k_local1 : index
+    %odd_load_bv1 = vector.load %b_load[%odd_load_b_global_n1, %odd_load_b_global_k1] : view<[%n]x[%k]xf16> -> vector<8xf16>
+
+    %odd_load_load_delta2 = index.mul %two, %load_stride : index
+    %odd_load_linear2 = index.add %thread, %odd_load_load_delta2 : index
+    %odd_load_a_row_vector2 = index.rem %odd_load_linear2, %sixteen : index
+    %odd_load_a_row02 = index.mul %odd_load_a_row_vector2, %eight : index
+    %odd_load_a_row2 = index.assume %odd_load_a_row02 [range(%odd_load_a_row02, 0, 120)] : index
+    %odd_load_a_k02 = index.div %odd_load_linear2, %sixteen : index
+    %odd_load_a_k_local2 = index.assume %odd_load_a_k02 [range(%odd_load_a_k02, 0, 31)] : index
+    %odd_load_a_global_row2 = index.add %workgroup_m_base, %odd_load_a_row2 : index
+    %odd_load_a_global_k2 = index.add %odd_k, %odd_load_a_k_local2 : index
+    %odd_load_av2 = vector.load %a_load[%odd_load_a_global_k2, %odd_load_a_global_row2] : view<[%k]x[%m]xf16> -> vector<8xf16>
+    %odd_load_b_k_vector2 = index.rem %odd_load_linear2, %four : index
+    %odd_load_b_k02 = index.mul %odd_load_b_k_vector2, %eight : index
+    %odd_load_b_k_local2 = index.assume %odd_load_b_k02 [range(%odd_load_b_k02, 0, 24)] : index
+    %odd_load_b_n02 = index.div %odd_load_linear2, %four : index
+    %odd_load_b_n_local2 = index.assume %odd_load_b_n02 [range(%odd_load_b_n02, 0, 127)] : index
+    %odd_load_b_global_n2 = index.add %workgroup_n_base, %odd_load_b_n_local2 : index
+    %odd_load_b_global_k2 = index.add %odd_k, %odd_load_b_k_local2 : index
+    %odd_load_bv2 = vector.load %b_load[%odd_load_b_global_n2, %odd_load_b_global_k2] : view<[%n]x[%k]xf16> -> vector<8xf16>
+
+    %odd_load_load_delta3 = index.mul %three, %load_stride : index
+    %odd_load_linear3 = index.add %thread, %odd_load_load_delta3 : index
+    %odd_load_a_row_vector3 = index.rem %odd_load_linear3, %sixteen : index
+    %odd_load_a_row03 = index.mul %odd_load_a_row_vector3, %eight : index
+    %odd_load_a_row3 = index.assume %odd_load_a_row03 [range(%odd_load_a_row03, 0, 120)] : index
+    %odd_load_a_k03 = index.div %odd_load_linear3, %sixteen : index
+    %odd_load_a_k_local3 = index.assume %odd_load_a_k03 [range(%odd_load_a_k03, 0, 31)] : index
+    %odd_load_a_global_row3 = index.add %workgroup_m_base, %odd_load_a_row3 : index
+    %odd_load_a_global_k3 = index.add %odd_k, %odd_load_a_k_local3 : index
+    %odd_load_av3 = vector.load %a_load[%odd_load_a_global_k3, %odd_load_a_global_row3] : view<[%k]x[%m]xf16> -> vector<8xf16>
+    %odd_load_b_k_vector3 = index.rem %odd_load_linear3, %four : index
+    %odd_load_b_k03 = index.mul %odd_load_b_k_vector3, %eight : index
+    %odd_load_b_k_local3 = index.assume %odd_load_b_k03 [range(%odd_load_b_k03, 0, 24)] : index
+    %odd_load_b_n03 = index.div %odd_load_linear3, %four : index
+    %odd_load_b_n_local3 = index.assume %odd_load_b_n03 [range(%odd_load_b_n03, 0, 127)] : index
+    %odd_load_b_global_n3 = index.add %workgroup_n_base, %odd_load_b_n_local3 : index
+    %odd_load_b_global_k3 = index.add %odd_k, %odd_load_b_k_local3 : index
+    %odd_load_bv3 = vector.load %b_load[%odd_load_b_global_n3, %odd_load_b_global_k3] : view<[%n]x[%k]xf16> -> vector<8xf16>
+
+    %even_compute_m1 = index.add %wave_m_delta, %sixteen : index
+    %even_compute_m2 = index.add %wave_m_delta, %thirty_two : index
+    %even_compute_m3 = index.add %wave_m_delta, %forty_eight : index
+    %even_compute_n1 = index.add %wave_n_delta, %sixteen : index
+    %even_compute_n2 = index.add %wave_n_delta, %thirty_two : index
+    %even_compute_n3 = index.add %wave_n_delta, %forty_eight : index
+
+    %even_compute_l0 = vector.fragment.load<lhs> %a_lds[%wave_m_delta, %zero] shape [%sixteen, %sixteen] : view<128x32xf16, %a_lds_layout> -> vector<8xf16>
+    %even_compute_l1 = vector.fragment.load<lhs> %a_lds[%even_compute_m1, %zero] shape [%sixteen, %sixteen] : view<128x32xf16, %a_lds_layout> -> vector<8xf16>
+    %even_compute_l2 = vector.fragment.load<lhs> %a_lds[%even_compute_m2, %zero] shape [%sixteen, %sixteen] : view<128x32xf16, %a_lds_layout> -> vector<8xf16>
+    %even_compute_l3 = vector.fragment.load<lhs> %a_lds[%even_compute_m3, %zero] shape [%sixteen, %sixteen] : view<128x32xf16, %a_lds_layout> -> vector<8xf16>
+    %even_compute_q0 = vector.fragment.load<rhs> %b_lds[%zero, %wave_n_delta] shape [%sixteen, %sixteen] : view<32x128xf16, %b_lds_layout> -> vector<8xf16>
+    %even_compute_q1 = vector.fragment.load<rhs> %b_lds[%zero, %even_compute_n1] shape [%sixteen, %sixteen] : view<32x128xf16, %b_lds_layout> -> vector<8xf16>
+    %even_compute_q2 = vector.fragment.load<rhs> %b_lds[%zero, %even_compute_n2] shape [%sixteen, %sixteen] : view<32x128xf16, %b_lds_layout> -> vector<8xf16>
+    %even_compute_q3 = vector.fragment.load<rhs> %b_lds[%zero, %even_compute_n3] shape [%sixteen, %sixteen] : view<32x128xf16, %b_lds_layout> -> vector<8xf16>
+    %even_compute_x0 = vector.mma %even_compute_l0, %even_compute_q0, %a0 : vector<8xf16>, vector<8xf16>, vector<8xf32>
+    %even_compute_x1 = vector.mma %even_compute_l0, %even_compute_q1, %a1 : vector<8xf16>, vector<8xf16>, vector<8xf32>
+    %even_compute_x2 = vector.mma %even_compute_l0, %even_compute_q2, %a2 : vector<8xf16>, vector<8xf16>, vector<8xf32>
+    %even_compute_x3 = vector.mma %even_compute_l0, %even_compute_q3, %a3 : vector<8xf16>, vector<8xf16>, vector<8xf32>
+    %even_compute_x4 = vector.mma %even_compute_l1, %even_compute_q0, %a4 : vector<8xf16>, vector<8xf16>, vector<8xf32>
+    %even_compute_x5 = vector.mma %even_compute_l1, %even_compute_q1, %a5 : vector<8xf16>, vector<8xf16>, vector<8xf32>
+    %even_compute_x6 = vector.mma %even_compute_l1, %even_compute_q2, %a6 : vector<8xf16>, vector<8xf16>, vector<8xf32>
+    %even_compute_x7 = vector.mma %even_compute_l1, %even_compute_q3, %a7 : vector<8xf16>, vector<8xf16>, vector<8xf32>
+    %even_compute_x8 = vector.mma %even_compute_l2, %even_compute_q0, %a8 : vector<8xf16>, vector<8xf16>, vector<8xf32>
+    %even_compute_x9 = vector.mma %even_compute_l2, %even_compute_q1, %a9 : vector<8xf16>, vector<8xf16>, vector<8xf32>
+    %even_compute_x10 = vector.mma %even_compute_l2, %even_compute_q2, %a10 : vector<8xf16>, vector<8xf16>, vector<8xf32>
+    %even_compute_x11 = vector.mma %even_compute_l2, %even_compute_q3, %a11 : vector<8xf16>, vector<8xf16>, vector<8xf32>
+    %even_compute_x12 = vector.mma %even_compute_l3, %even_compute_q0, %a12 : vector<8xf16>, vector<8xf16>, vector<8xf32>
+    %even_compute_x13 = vector.mma %even_compute_l3, %even_compute_q1, %a13 : vector<8xf16>, vector<8xf16>, vector<8xf32>
+    %even_compute_x14 = vector.mma %even_compute_l3, %even_compute_q2, %a14 : vector<8xf16>, vector<8xf16>, vector<8xf32>
+    %even_compute_x15 = vector.mma %even_compute_l3, %even_compute_q3, %a15 : vector<8xf16>, vector<8xf16>, vector<8xf32>
+
+    %even_compute_l4 = vector.fragment.load<lhs> %a_lds[%wave_m_delta, %sixteen] shape [%sixteen, %sixteen] : view<128x32xf16, %a_lds_layout> -> vector<8xf16>
+    %even_compute_l5 = vector.fragment.load<lhs> %a_lds[%even_compute_m1, %sixteen] shape [%sixteen, %sixteen] : view<128x32xf16, %a_lds_layout> -> vector<8xf16>
+    %even_compute_l6 = vector.fragment.load<lhs> %a_lds[%even_compute_m2, %sixteen] shape [%sixteen, %sixteen] : view<128x32xf16, %a_lds_layout> -> vector<8xf16>
+    %even_compute_l7 = vector.fragment.load<lhs> %a_lds[%even_compute_m3, %sixteen] shape [%sixteen, %sixteen] : view<128x32xf16, %a_lds_layout> -> vector<8xf16>
+    %even_compute_q4 = vector.fragment.load<rhs> %b_lds[%sixteen, %wave_n_delta] shape [%sixteen, %sixteen] : view<32x128xf16, %b_lds_layout> -> vector<8xf16>
+    %even_compute_q5 = vector.fragment.load<rhs> %b_lds[%sixteen, %even_compute_n1] shape [%sixteen, %sixteen] : view<32x128xf16, %b_lds_layout> -> vector<8xf16>
+    %even_compute_q6 = vector.fragment.load<rhs> %b_lds[%sixteen, %even_compute_n2] shape [%sixteen, %sixteen] : view<32x128xf16, %b_lds_layout> -> vector<8xf16>
+    %even_compute_q7 = vector.fragment.load<rhs> %b_lds[%sixteen, %even_compute_n3] shape [%sixteen, %sixteen] : view<32x128xf16, %b_lds_layout> -> vector<8xf16>
+    %even_compute_y0 = vector.mma %even_compute_l4, %even_compute_q4, %even_compute_x0 : vector<8xf16>, vector<8xf16>, vector<8xf32>
+    %even_compute_y1 = vector.mma %even_compute_l4, %even_compute_q5, %even_compute_x1 : vector<8xf16>, vector<8xf16>, vector<8xf32>
+    %even_compute_y2 = vector.mma %even_compute_l4, %even_compute_q6, %even_compute_x2 : vector<8xf16>, vector<8xf16>, vector<8xf32>
+    %even_compute_y3 = vector.mma %even_compute_l4, %even_compute_q7, %even_compute_x3 : vector<8xf16>, vector<8xf16>, vector<8xf32>
+    %even_compute_y4 = vector.mma %even_compute_l5, %even_compute_q4, %even_compute_x4 : vector<8xf16>, vector<8xf16>, vector<8xf32>
+    %even_compute_y5 = vector.mma %even_compute_l5, %even_compute_q5, %even_compute_x5 : vector<8xf16>, vector<8xf16>, vector<8xf32>
+    %even_compute_y6 = vector.mma %even_compute_l5, %even_compute_q6, %even_compute_x6 : vector<8xf16>, vector<8xf16>, vector<8xf32>
+    %even_compute_y7 = vector.mma %even_compute_l5, %even_compute_q7, %even_compute_x7 : vector<8xf16>, vector<8xf16>, vector<8xf32>
+    %even_compute_y8 = vector.mma %even_compute_l6, %even_compute_q4, %even_compute_x8 : vector<8xf16>, vector<8xf16>, vector<8xf32>
+    %even_compute_y9 = vector.mma %even_compute_l6, %even_compute_q5, %even_compute_x9 : vector<8xf16>, vector<8xf16>, vector<8xf32>
+    %even_compute_y10 = vector.mma %even_compute_l6, %even_compute_q6, %even_compute_x10 : vector<8xf16>, vector<8xf16>, vector<8xf32>
+    %even_compute_y11 = vector.mma %even_compute_l6, %even_compute_q7, %even_compute_x11 : vector<8xf16>, vector<8xf16>, vector<8xf32>
+    %even_compute_y12 = vector.mma %even_compute_l7, %even_compute_q4, %even_compute_x12 : vector<8xf16>, vector<8xf16>, vector<8xf32>
+    %even_compute_y13 = vector.mma %even_compute_l7, %even_compute_q5, %even_compute_x13 : vector<8xf16>, vector<8xf16>, vector<8xf32>
+    %even_compute_y14 = vector.mma %even_compute_l7, %even_compute_q6, %even_compute_x14 : vector<8xf16>, vector<8xf16>, vector<8xf32>
+    %even_compute_y15 = vector.mma %even_compute_l7, %even_compute_q7, %even_compute_x15 : vector<8xf16>, vector<8xf16>, vector<8xf32>
+    %odd_store_linear0 = index.add %thread, %zero : index
+    %odd_store_a_row_vector0 = index.rem %odd_store_linear0, %sixteen : index
+    %odd_store_a_row00 = index.mul %odd_store_a_row_vector0, %eight : index
+    %odd_store_a_row0 = index.assume %odd_store_a_row00 [range(%odd_store_a_row00, 0, 120)] : index
+    %odd_store_a_k00 = index.div %odd_store_linear0, %sixteen : index
+    %odd_store_a_k_local0 = index.assume %odd_store_a_k00 [range(%odd_store_a_k00, 0, 31)] : index
+    %odd_store_a_global_row0 = index.add %workgroup_m_base, %odd_store_a_row0 : index
+    %odd_store_a_global_k0 = index.add %odd_k, %odd_store_a_k_local0 : index
+    vector.store %odd_load_av0, %a_lds_store_stage1[%odd_store_a_k_local0, %odd_store_a_row0] : vector<8xf16>, view<32x128xf16>
+    %odd_store_b_k_vector0 = index.rem %odd_store_linear0, %four : index
+    %odd_store_b_k00 = index.mul %odd_store_b_k_vector0, %eight : index
+    %odd_store_b_k_local0 = index.assume %odd_store_b_k00 [range(%odd_store_b_k00, 0, 24)] : index
+    %odd_store_b_n00 = index.div %odd_store_linear0, %four : index
+    %odd_store_b_n_local0 = index.assume %odd_store_b_n00 [range(%odd_store_b_n00, 0, 127)] : index
+    %odd_store_b_global_n0 = index.add %workgroup_n_base, %odd_store_b_n_local0 : index
+    %odd_store_b_global_k0 = index.add %odd_k, %odd_store_b_k_local0 : index
+    vector.store %odd_load_bv0, %b_lds_store_stage1[%odd_store_b_n_local0, %odd_store_b_k_local0] : vector<8xf16>, view<128x32xf16>
+
+    %odd_store_load_delta1 = index.mul %one, %load_stride : index
+    %odd_store_linear1 = index.add %thread, %odd_store_load_delta1 : index
+    %odd_store_a_row_vector1 = index.rem %odd_store_linear1, %sixteen : index
+    %odd_store_a_row01 = index.mul %odd_store_a_row_vector1, %eight : index
+    %odd_store_a_row1 = index.assume %odd_store_a_row01 [range(%odd_store_a_row01, 0, 120)] : index
+    %odd_store_a_k01 = index.div %odd_store_linear1, %sixteen : index
+    %odd_store_a_k_local1 = index.assume %odd_store_a_k01 [range(%odd_store_a_k01, 0, 31)] : index
+    %odd_store_a_global_row1 = index.add %workgroup_m_base, %odd_store_a_row1 : index
+    %odd_store_a_global_k1 = index.add %odd_k, %odd_store_a_k_local1 : index
+    vector.store %odd_load_av1, %a_lds_store_stage1[%odd_store_a_k_local1, %odd_store_a_row1] : vector<8xf16>, view<32x128xf16>
+    %odd_store_b_k_vector1 = index.rem %odd_store_linear1, %four : index
+    %odd_store_b_k01 = index.mul %odd_store_b_k_vector1, %eight : index
+    %odd_store_b_k_local1 = index.assume %odd_store_b_k01 [range(%odd_store_b_k01, 0, 24)] : index
+    %odd_store_b_n01 = index.div %odd_store_linear1, %four : index
+    %odd_store_b_n_local1 = index.assume %odd_store_b_n01 [range(%odd_store_b_n01, 0, 127)] : index
+    %odd_store_b_global_n1 = index.add %workgroup_n_base, %odd_store_b_n_local1 : index
+    %odd_store_b_global_k1 = index.add %odd_k, %odd_store_b_k_local1 : index
+    vector.store %odd_load_bv1, %b_lds_store_stage1[%odd_store_b_n_local1, %odd_store_b_k_local1] : vector<8xf16>, view<128x32xf16>
+
+    %odd_store_load_delta2 = index.mul %two, %load_stride : index
+    %odd_store_linear2 = index.add %thread, %odd_store_load_delta2 : index
+    %odd_store_a_row_vector2 = index.rem %odd_store_linear2, %sixteen : index
+    %odd_store_a_row02 = index.mul %odd_store_a_row_vector2, %eight : index
+    %odd_store_a_row2 = index.assume %odd_store_a_row02 [range(%odd_store_a_row02, 0, 120)] : index
+    %odd_store_a_k02 = index.div %odd_store_linear2, %sixteen : index
+    %odd_store_a_k_local2 = index.assume %odd_store_a_k02 [range(%odd_store_a_k02, 0, 31)] : index
+    %odd_store_a_global_row2 = index.add %workgroup_m_base, %odd_store_a_row2 : index
+    %odd_store_a_global_k2 = index.add %odd_k, %odd_store_a_k_local2 : index
+    vector.store %odd_load_av2, %a_lds_store_stage1[%odd_store_a_k_local2, %odd_store_a_row2] : vector<8xf16>, view<32x128xf16>
+    %odd_store_b_k_vector2 = index.rem %odd_store_linear2, %four : index
+    %odd_store_b_k02 = index.mul %odd_store_b_k_vector2, %eight : index
+    %odd_store_b_k_local2 = index.assume %odd_store_b_k02 [range(%odd_store_b_k02, 0, 24)] : index
+    %odd_store_b_n02 = index.div %odd_store_linear2, %four : index
+    %odd_store_b_n_local2 = index.assume %odd_store_b_n02 [range(%odd_store_b_n02, 0, 127)] : index
+    %odd_store_b_global_n2 = index.add %workgroup_n_base, %odd_store_b_n_local2 : index
+    %odd_store_b_global_k2 = index.add %odd_k, %odd_store_b_k_local2 : index
+    vector.store %odd_load_bv2, %b_lds_store_stage1[%odd_store_b_n_local2, %odd_store_b_k_local2] : vector<8xf16>, view<128x32xf16>
+
+    %odd_store_load_delta3 = index.mul %three, %load_stride : index
+    %odd_store_linear3 = index.add %thread, %odd_store_load_delta3 : index
+    %odd_store_a_row_vector3 = index.rem %odd_store_linear3, %sixteen : index
+    %odd_store_a_row03 = index.mul %odd_store_a_row_vector3, %eight : index
+    %odd_store_a_row3 = index.assume %odd_store_a_row03 [range(%odd_store_a_row03, 0, 120)] : index
+    %odd_store_a_k03 = index.div %odd_store_linear3, %sixteen : index
+    %odd_store_a_k_local3 = index.assume %odd_store_a_k03 [range(%odd_store_a_k03, 0, 31)] : index
+    %odd_store_a_global_row3 = index.add %workgroup_m_base, %odd_store_a_row3 : index
+    %odd_store_a_global_k3 = index.add %odd_k, %odd_store_a_k_local3 : index
+    vector.store %odd_load_av3, %a_lds_store_stage1[%odd_store_a_k_local3, %odd_store_a_row3] : vector<8xf16>, view<32x128xf16>
+    %odd_store_b_k_vector3 = index.rem %odd_store_linear3, %four : index
+    %odd_store_b_k03 = index.mul %odd_store_b_k_vector3, %eight : index
+    %odd_store_b_k_local3 = index.assume %odd_store_b_k03 [range(%odd_store_b_k03, 0, 24)] : index
+    %odd_store_b_n03 = index.div %odd_store_linear3, %four : index
+    %odd_store_b_n_local3 = index.assume %odd_store_b_n03 [range(%odd_store_b_n03, 0, 127)] : index
+    %odd_store_b_global_n3 = index.add %workgroup_n_base, %odd_store_b_n_local3 : index
+    %odd_store_b_global_k3 = index.add %odd_k, %odd_store_b_k_local3 : index
+    vector.store %odd_load_bv3, %b_lds_store_stage1[%odd_store_b_n_local3, %odd_store_b_k_local3] : vector<8xf16>, view<128x32xf16>
+    kernel.barrier<workgroup> scope(workgroup) ordering(acq_rel)
+    %even_k = index.add %odd_k, %depth_u : index
+    %even_load_linear0 = index.add %thread, %zero : index
+    %even_load_a_row_vector0 = index.rem %even_load_linear0, %sixteen : index
+    %even_load_a_row00 = index.mul %even_load_a_row_vector0, %eight : index
+    %even_load_a_row0 = index.assume %even_load_a_row00 [range(%even_load_a_row00, 0, 120)] : index
+    %even_load_a_k00 = index.div %even_load_linear0, %sixteen : index
+    %even_load_a_k_local0 = index.assume %even_load_a_k00 [range(%even_load_a_k00, 0, 31)] : index
+    %even_load_a_global_row0 = index.add %workgroup_m_base, %even_load_a_row0 : index
+    %even_load_a_global_k0 = index.add %even_k, %even_load_a_k_local0 : index
+    %even_load_av0 = vector.load %a_load[%even_load_a_global_k0, %even_load_a_global_row0] : view<[%k]x[%m]xf16> -> vector<8xf16>
+    %even_load_b_k_vector0 = index.rem %even_load_linear0, %four : index
+    %even_load_b_k00 = index.mul %even_load_b_k_vector0, %eight : index
+    %even_load_b_k_local0 = index.assume %even_load_b_k00 [range(%even_load_b_k00, 0, 24)] : index
+    %even_load_b_n00 = index.div %even_load_linear0, %four : index
+    %even_load_b_n_local0 = index.assume %even_load_b_n00 [range(%even_load_b_n00, 0, 127)] : index
+    %even_load_b_global_n0 = index.add %workgroup_n_base, %even_load_b_n_local0 : index
+    %even_load_b_global_k0 = index.add %even_k, %even_load_b_k_local0 : index
+    %even_load_bv0 = vector.load %b_load[%even_load_b_global_n0, %even_load_b_global_k0] : view<[%n]x[%k]xf16> -> vector<8xf16>
+
+    %even_load_load_delta1 = index.mul %one, %load_stride : index
+    %even_load_linear1 = index.add %thread, %even_load_load_delta1 : index
+    %even_load_a_row_vector1 = index.rem %even_load_linear1, %sixteen : index
+    %even_load_a_row01 = index.mul %even_load_a_row_vector1, %eight : index
+    %even_load_a_row1 = index.assume %even_load_a_row01 [range(%even_load_a_row01, 0, 120)] : index
+    %even_load_a_k01 = index.div %even_load_linear1, %sixteen : index
+    %even_load_a_k_local1 = index.assume %even_load_a_k01 [range(%even_load_a_k01, 0, 31)] : index
+    %even_load_a_global_row1 = index.add %workgroup_m_base, %even_load_a_row1 : index
+    %even_load_a_global_k1 = index.add %even_k, %even_load_a_k_local1 : index
+    %even_load_av1 = vector.load %a_load[%even_load_a_global_k1, %even_load_a_global_row1] : view<[%k]x[%m]xf16> -> vector<8xf16>
+    %even_load_b_k_vector1 = index.rem %even_load_linear1, %four : index
+    %even_load_b_k01 = index.mul %even_load_b_k_vector1, %eight : index
+    %even_load_b_k_local1 = index.assume %even_load_b_k01 [range(%even_load_b_k01, 0, 24)] : index
+    %even_load_b_n01 = index.div %even_load_linear1, %four : index
+    %even_load_b_n_local1 = index.assume %even_load_b_n01 [range(%even_load_b_n01, 0, 127)] : index
+    %even_load_b_global_n1 = index.add %workgroup_n_base, %even_load_b_n_local1 : index
+    %even_load_b_global_k1 = index.add %even_k, %even_load_b_k_local1 : index
+    %even_load_bv1 = vector.load %b_load[%even_load_b_global_n1, %even_load_b_global_k1] : view<[%n]x[%k]xf16> -> vector<8xf16>
+
+    %even_load_load_delta2 = index.mul %two, %load_stride : index
+    %even_load_linear2 = index.add %thread, %even_load_load_delta2 : index
+    %even_load_a_row_vector2 = index.rem %even_load_linear2, %sixteen : index
+    %even_load_a_row02 = index.mul %even_load_a_row_vector2, %eight : index
+    %even_load_a_row2 = index.assume %even_load_a_row02 [range(%even_load_a_row02, 0, 120)] : index
+    %even_load_a_k02 = index.div %even_load_linear2, %sixteen : index
+    %even_load_a_k_local2 = index.assume %even_load_a_k02 [range(%even_load_a_k02, 0, 31)] : index
+    %even_load_a_global_row2 = index.add %workgroup_m_base, %even_load_a_row2 : index
+    %even_load_a_global_k2 = index.add %even_k, %even_load_a_k_local2 : index
+    %even_load_av2 = vector.load %a_load[%even_load_a_global_k2, %even_load_a_global_row2] : view<[%k]x[%m]xf16> -> vector<8xf16>
+    %even_load_b_k_vector2 = index.rem %even_load_linear2, %four : index
+    %even_load_b_k02 = index.mul %even_load_b_k_vector2, %eight : index
+    %even_load_b_k_local2 = index.assume %even_load_b_k02 [range(%even_load_b_k02, 0, 24)] : index
+    %even_load_b_n02 = index.div %even_load_linear2, %four : index
+    %even_load_b_n_local2 = index.assume %even_load_b_n02 [range(%even_load_b_n02, 0, 127)] : index
+    %even_load_b_global_n2 = index.add %workgroup_n_base, %even_load_b_n_local2 : index
+    %even_load_b_global_k2 = index.add %even_k, %even_load_b_k_local2 : index
+    %even_load_bv2 = vector.load %b_load[%even_load_b_global_n2, %even_load_b_global_k2] : view<[%n]x[%k]xf16> -> vector<8xf16>
+
+    %even_load_load_delta3 = index.mul %three, %load_stride : index
+    %even_load_linear3 = index.add %thread, %even_load_load_delta3 : index
+    %even_load_a_row_vector3 = index.rem %even_load_linear3, %sixteen : index
+    %even_load_a_row03 = index.mul %even_load_a_row_vector3, %eight : index
+    %even_load_a_row3 = index.assume %even_load_a_row03 [range(%even_load_a_row03, 0, 120)] : index
+    %even_load_a_k03 = index.div %even_load_linear3, %sixteen : index
+    %even_load_a_k_local3 = index.assume %even_load_a_k03 [range(%even_load_a_k03, 0, 31)] : index
+    %even_load_a_global_row3 = index.add %workgroup_m_base, %even_load_a_row3 : index
+    %even_load_a_global_k3 = index.add %even_k, %even_load_a_k_local3 : index
+    %even_load_av3 = vector.load %a_load[%even_load_a_global_k3, %even_load_a_global_row3] : view<[%k]x[%m]xf16> -> vector<8xf16>
+    %even_load_b_k_vector3 = index.rem %even_load_linear3, %four : index
+    %even_load_b_k03 = index.mul %even_load_b_k_vector3, %eight : index
+    %even_load_b_k_local3 = index.assume %even_load_b_k03 [range(%even_load_b_k03, 0, 24)] : index
+    %even_load_b_n03 = index.div %even_load_linear3, %four : index
+    %even_load_b_n_local3 = index.assume %even_load_b_n03 [range(%even_load_b_n03, 0, 127)] : index
+    %even_load_b_global_n3 = index.add %workgroup_n_base, %even_load_b_n_local3 : index
+    %even_load_b_global_k3 = index.add %even_k, %even_load_b_k_local3 : index
+    %even_load_bv3 = vector.load %b_load[%even_load_b_global_n3, %even_load_b_global_k3] : view<[%n]x[%k]xf16> -> vector<8xf16>
+
+    %odd_compute_m1 = index.add %wave_m_delta, %sixteen : index
+    %odd_compute_m2 = index.add %wave_m_delta, %thirty_two : index
+    %odd_compute_m3 = index.add %wave_m_delta, %forty_eight : index
+    %odd_compute_n1 = index.add %wave_n_delta, %sixteen : index
+    %odd_compute_n2 = index.add %wave_n_delta, %thirty_two : index
+    %odd_compute_n3 = index.add %wave_n_delta, %forty_eight : index
+
+    %odd_compute_l0 = vector.fragment.load<lhs> %a_lds_stage1[%wave_m_delta, %zero] shape [%sixteen, %sixteen] : view<128x32xf16, %a_lds_layout> -> vector<8xf16>
+    %odd_compute_l1 = vector.fragment.load<lhs> %a_lds_stage1[%odd_compute_m1, %zero] shape [%sixteen, %sixteen] : view<128x32xf16, %a_lds_layout> -> vector<8xf16>
+    %odd_compute_l2 = vector.fragment.load<lhs> %a_lds_stage1[%odd_compute_m2, %zero] shape [%sixteen, %sixteen] : view<128x32xf16, %a_lds_layout> -> vector<8xf16>
+    %odd_compute_l3 = vector.fragment.load<lhs> %a_lds_stage1[%odd_compute_m3, %zero] shape [%sixteen, %sixteen] : view<128x32xf16, %a_lds_layout> -> vector<8xf16>
+    %odd_compute_q0 = vector.fragment.load<rhs> %b_lds_stage1[%zero, %wave_n_delta] shape [%sixteen, %sixteen] : view<32x128xf16, %b_lds_layout> -> vector<8xf16>
+    %odd_compute_q1 = vector.fragment.load<rhs> %b_lds_stage1[%zero, %odd_compute_n1] shape [%sixteen, %sixteen] : view<32x128xf16, %b_lds_layout> -> vector<8xf16>
+    %odd_compute_q2 = vector.fragment.load<rhs> %b_lds_stage1[%zero, %odd_compute_n2] shape [%sixteen, %sixteen] : view<32x128xf16, %b_lds_layout> -> vector<8xf16>
+    %odd_compute_q3 = vector.fragment.load<rhs> %b_lds_stage1[%zero, %odd_compute_n3] shape [%sixteen, %sixteen] : view<32x128xf16, %b_lds_layout> -> vector<8xf16>
+    %odd_compute_x0 = vector.mma %odd_compute_l0, %odd_compute_q0, %even_compute_y0 : vector<8xf16>, vector<8xf16>, vector<8xf32>
+    %odd_compute_x1 = vector.mma %odd_compute_l0, %odd_compute_q1, %even_compute_y1 : vector<8xf16>, vector<8xf16>, vector<8xf32>
+    %odd_compute_x2 = vector.mma %odd_compute_l0, %odd_compute_q2, %even_compute_y2 : vector<8xf16>, vector<8xf16>, vector<8xf32>
+    %odd_compute_x3 = vector.mma %odd_compute_l0, %odd_compute_q3, %even_compute_y3 : vector<8xf16>, vector<8xf16>, vector<8xf32>
+    %odd_compute_x4 = vector.mma %odd_compute_l1, %odd_compute_q0, %even_compute_y4 : vector<8xf16>, vector<8xf16>, vector<8xf32>
+    %odd_compute_x5 = vector.mma %odd_compute_l1, %odd_compute_q1, %even_compute_y5 : vector<8xf16>, vector<8xf16>, vector<8xf32>
+    %odd_compute_x6 = vector.mma %odd_compute_l1, %odd_compute_q2, %even_compute_y6 : vector<8xf16>, vector<8xf16>, vector<8xf32>
+    %odd_compute_x7 = vector.mma %odd_compute_l1, %odd_compute_q3, %even_compute_y7 : vector<8xf16>, vector<8xf16>, vector<8xf32>
+    %odd_compute_x8 = vector.mma %odd_compute_l2, %odd_compute_q0, %even_compute_y8 : vector<8xf16>, vector<8xf16>, vector<8xf32>
+    %odd_compute_x9 = vector.mma %odd_compute_l2, %odd_compute_q1, %even_compute_y9 : vector<8xf16>, vector<8xf16>, vector<8xf32>
+    %odd_compute_x10 = vector.mma %odd_compute_l2, %odd_compute_q2, %even_compute_y10 : vector<8xf16>, vector<8xf16>, vector<8xf32>
+    %odd_compute_x11 = vector.mma %odd_compute_l2, %odd_compute_q3, %even_compute_y11 : vector<8xf16>, vector<8xf16>, vector<8xf32>
+    %odd_compute_x12 = vector.mma %odd_compute_l3, %odd_compute_q0, %even_compute_y12 : vector<8xf16>, vector<8xf16>, vector<8xf32>
+    %odd_compute_x13 = vector.mma %odd_compute_l3, %odd_compute_q1, %even_compute_y13 : vector<8xf16>, vector<8xf16>, vector<8xf32>
+    %odd_compute_x14 = vector.mma %odd_compute_l3, %odd_compute_q2, %even_compute_y14 : vector<8xf16>, vector<8xf16>, vector<8xf32>
+    %odd_compute_x15 = vector.mma %odd_compute_l3, %odd_compute_q3, %even_compute_y15 : vector<8xf16>, vector<8xf16>, vector<8xf32>
+
+    %odd_compute_l4 = vector.fragment.load<lhs> %a_lds_stage1[%wave_m_delta, %sixteen] shape [%sixteen, %sixteen] : view<128x32xf16, %a_lds_layout> -> vector<8xf16>
+    %odd_compute_l5 = vector.fragment.load<lhs> %a_lds_stage1[%odd_compute_m1, %sixteen] shape [%sixteen, %sixteen] : view<128x32xf16, %a_lds_layout> -> vector<8xf16>
+    %odd_compute_l6 = vector.fragment.load<lhs> %a_lds_stage1[%odd_compute_m2, %sixteen] shape [%sixteen, %sixteen] : view<128x32xf16, %a_lds_layout> -> vector<8xf16>
+    %odd_compute_l7 = vector.fragment.load<lhs> %a_lds_stage1[%odd_compute_m3, %sixteen] shape [%sixteen, %sixteen] : view<128x32xf16, %a_lds_layout> -> vector<8xf16>
+    %odd_compute_q4 = vector.fragment.load<rhs> %b_lds_stage1[%sixteen, %wave_n_delta] shape [%sixteen, %sixteen] : view<32x128xf16, %b_lds_layout> -> vector<8xf16>
+    %odd_compute_q5 = vector.fragment.load<rhs> %b_lds_stage1[%sixteen, %odd_compute_n1] shape [%sixteen, %sixteen] : view<32x128xf16, %b_lds_layout> -> vector<8xf16>
+    %odd_compute_q6 = vector.fragment.load<rhs> %b_lds_stage1[%sixteen, %odd_compute_n2] shape [%sixteen, %sixteen] : view<32x128xf16, %b_lds_layout> -> vector<8xf16>
+    %odd_compute_q7 = vector.fragment.load<rhs> %b_lds_stage1[%sixteen, %odd_compute_n3] shape [%sixteen, %sixteen] : view<32x128xf16, %b_lds_layout> -> vector<8xf16>
+    %odd_compute_y0 = vector.mma %odd_compute_l4, %odd_compute_q4, %odd_compute_x0 : vector<8xf16>, vector<8xf16>, vector<8xf32>
+    %odd_compute_y1 = vector.mma %odd_compute_l4, %odd_compute_q5, %odd_compute_x1 : vector<8xf16>, vector<8xf16>, vector<8xf32>
+    %odd_compute_y2 = vector.mma %odd_compute_l4, %odd_compute_q6, %odd_compute_x2 : vector<8xf16>, vector<8xf16>, vector<8xf32>
+    %odd_compute_y3 = vector.mma %odd_compute_l4, %odd_compute_q7, %odd_compute_x3 : vector<8xf16>, vector<8xf16>, vector<8xf32>
+    %odd_compute_y4 = vector.mma %odd_compute_l5, %odd_compute_q4, %odd_compute_x4 : vector<8xf16>, vector<8xf16>, vector<8xf32>
+    %odd_compute_y5 = vector.mma %odd_compute_l5, %odd_compute_q5, %odd_compute_x5 : vector<8xf16>, vector<8xf16>, vector<8xf32>
+    %odd_compute_y6 = vector.mma %odd_compute_l5, %odd_compute_q6, %odd_compute_x6 : vector<8xf16>, vector<8xf16>, vector<8xf32>
+    %odd_compute_y7 = vector.mma %odd_compute_l5, %odd_compute_q7, %odd_compute_x7 : vector<8xf16>, vector<8xf16>, vector<8xf32>
+    %odd_compute_y8 = vector.mma %odd_compute_l6, %odd_compute_q4, %odd_compute_x8 : vector<8xf16>, vector<8xf16>, vector<8xf32>
+    %odd_compute_y9 = vector.mma %odd_compute_l6, %odd_compute_q5, %odd_compute_x9 : vector<8xf16>, vector<8xf16>, vector<8xf32>
+    %odd_compute_y10 = vector.mma %odd_compute_l6, %odd_compute_q6, %odd_compute_x10 : vector<8xf16>, vector<8xf16>, vector<8xf32>
+    %odd_compute_y11 = vector.mma %odd_compute_l6, %odd_compute_q7, %odd_compute_x11 : vector<8xf16>, vector<8xf16>, vector<8xf32>
+    %odd_compute_y12 = vector.mma %odd_compute_l7, %odd_compute_q4, %odd_compute_x12 : vector<8xf16>, vector<8xf16>, vector<8xf32>
+    %odd_compute_y13 = vector.mma %odd_compute_l7, %odd_compute_q5, %odd_compute_x13 : vector<8xf16>, vector<8xf16>, vector<8xf32>
+    %odd_compute_y14 = vector.mma %odd_compute_l7, %odd_compute_q6, %odd_compute_x14 : vector<8xf16>, vector<8xf16>, vector<8xf32>
+    %odd_compute_y15 = vector.mma %odd_compute_l7, %odd_compute_q7, %odd_compute_x15 : vector<8xf16>, vector<8xf16>, vector<8xf32>
+    %even_store_linear0 = index.add %thread, %zero : index
+    %even_store_a_row_vector0 = index.rem %even_store_linear0, %sixteen : index
+    %even_store_a_row00 = index.mul %even_store_a_row_vector0, %eight : index
+    %even_store_a_row0 = index.assume %even_store_a_row00 [range(%even_store_a_row00, 0, 120)] : index
+    %even_store_a_k00 = index.div %even_store_linear0, %sixteen : index
+    %even_store_a_k_local0 = index.assume %even_store_a_k00 [range(%even_store_a_k00, 0, 31)] : index
+    %even_store_a_global_row0 = index.add %workgroup_m_base, %even_store_a_row0 : index
+    %even_store_a_global_k0 = index.add %even_k, %even_store_a_k_local0 : index
+    vector.store %even_load_av0, %a_lds_store[%even_store_a_k_local0, %even_store_a_row0] : vector<8xf16>, view<32x128xf16>
+    %even_store_b_k_vector0 = index.rem %even_store_linear0, %four : index
+    %even_store_b_k00 = index.mul %even_store_b_k_vector0, %eight : index
+    %even_store_b_k_local0 = index.assume %even_store_b_k00 [range(%even_store_b_k00, 0, 24)] : index
+    %even_store_b_n00 = index.div %even_store_linear0, %four : index
+    %even_store_b_n_local0 = index.assume %even_store_b_n00 [range(%even_store_b_n00, 0, 127)] : index
+    %even_store_b_global_n0 = index.add %workgroup_n_base, %even_store_b_n_local0 : index
+    %even_store_b_global_k0 = index.add %even_k, %even_store_b_k_local0 : index
+    vector.store %even_load_bv0, %b_lds_store[%even_store_b_n_local0, %even_store_b_k_local0] : vector<8xf16>, view<128x32xf16>
+
+    %even_store_load_delta1 = index.mul %one, %load_stride : index
+    %even_store_linear1 = index.add %thread, %even_store_load_delta1 : index
+    %even_store_a_row_vector1 = index.rem %even_store_linear1, %sixteen : index
+    %even_store_a_row01 = index.mul %even_store_a_row_vector1, %eight : index
+    %even_store_a_row1 = index.assume %even_store_a_row01 [range(%even_store_a_row01, 0, 120)] : index
+    %even_store_a_k01 = index.div %even_store_linear1, %sixteen : index
+    %even_store_a_k_local1 = index.assume %even_store_a_k01 [range(%even_store_a_k01, 0, 31)] : index
+    %even_store_a_global_row1 = index.add %workgroup_m_base, %even_store_a_row1 : index
+    %even_store_a_global_k1 = index.add %even_k, %even_store_a_k_local1 : index
+    vector.store %even_load_av1, %a_lds_store[%even_store_a_k_local1, %even_store_a_row1] : vector<8xf16>, view<32x128xf16>
+    %even_store_b_k_vector1 = index.rem %even_store_linear1, %four : index
+    %even_store_b_k01 = index.mul %even_store_b_k_vector1, %eight : index
+    %even_store_b_k_local1 = index.assume %even_store_b_k01 [range(%even_store_b_k01, 0, 24)] : index
+    %even_store_b_n01 = index.div %even_store_linear1, %four : index
+    %even_store_b_n_local1 = index.assume %even_store_b_n01 [range(%even_store_b_n01, 0, 127)] : index
+    %even_store_b_global_n1 = index.add %workgroup_n_base, %even_store_b_n_local1 : index
+    %even_store_b_global_k1 = index.add %even_k, %even_store_b_k_local1 : index
+    vector.store %even_load_bv1, %b_lds_store[%even_store_b_n_local1, %even_store_b_k_local1] : vector<8xf16>, view<128x32xf16>
+
+    %even_store_load_delta2 = index.mul %two, %load_stride : index
+    %even_store_linear2 = index.add %thread, %even_store_load_delta2 : index
+    %even_store_a_row_vector2 = index.rem %even_store_linear2, %sixteen : index
+    %even_store_a_row02 = index.mul %even_store_a_row_vector2, %eight : index
+    %even_store_a_row2 = index.assume %even_store_a_row02 [range(%even_store_a_row02, 0, 120)] : index
+    %even_store_a_k02 = index.div %even_store_linear2, %sixteen : index
+    %even_store_a_k_local2 = index.assume %even_store_a_k02 [range(%even_store_a_k02, 0, 31)] : index
+    %even_store_a_global_row2 = index.add %workgroup_m_base, %even_store_a_row2 : index
+    %even_store_a_global_k2 = index.add %even_k, %even_store_a_k_local2 : index
+    vector.store %even_load_av2, %a_lds_store[%even_store_a_k_local2, %even_store_a_row2] : vector<8xf16>, view<32x128xf16>
+    %even_store_b_k_vector2 = index.rem %even_store_linear2, %four : index
+    %even_store_b_k02 = index.mul %even_store_b_k_vector2, %eight : index
+    %even_store_b_k_local2 = index.assume %even_store_b_k02 [range(%even_store_b_k02, 0, 24)] : index
+    %even_store_b_n02 = index.div %even_store_linear2, %four : index
+    %even_store_b_n_local2 = index.assume %even_store_b_n02 [range(%even_store_b_n02, 0, 127)] : index
+    %even_store_b_global_n2 = index.add %workgroup_n_base, %even_store_b_n_local2 : index
+    %even_store_b_global_k2 = index.add %even_k, %even_store_b_k_local2 : index
+    vector.store %even_load_bv2, %b_lds_store[%even_store_b_n_local2, %even_store_b_k_local2] : vector<8xf16>, view<128x32xf16>
+
+    %even_store_load_delta3 = index.mul %three, %load_stride : index
+    %even_store_linear3 = index.add %thread, %even_store_load_delta3 : index
+    %even_store_a_row_vector3 = index.rem %even_store_linear3, %sixteen : index
+    %even_store_a_row03 = index.mul %even_store_a_row_vector3, %eight : index
+    %even_store_a_row3 = index.assume %even_store_a_row03 [range(%even_store_a_row03, 0, 120)] : index
+    %even_store_a_k03 = index.div %even_store_linear3, %sixteen : index
+    %even_store_a_k_local3 = index.assume %even_store_a_k03 [range(%even_store_a_k03, 0, 31)] : index
+    %even_store_a_global_row3 = index.add %workgroup_m_base, %even_store_a_row3 : index
+    %even_store_a_global_k3 = index.add %even_k, %even_store_a_k_local3 : index
+    vector.store %even_load_av3, %a_lds_store[%even_store_a_k_local3, %even_store_a_row3] : vector<8xf16>, view<32x128xf16>
+    %even_store_b_k_vector3 = index.rem %even_store_linear3, %four : index
+    %even_store_b_k03 = index.mul %even_store_b_k_vector3, %eight : index
+    %even_store_b_k_local3 = index.assume %even_store_b_k03 [range(%even_store_b_k03, 0, 24)] : index
+    %even_store_b_n03 = index.div %even_store_linear3, %four : index
+    %even_store_b_n_local3 = index.assume %even_store_b_n03 [range(%even_store_b_n03, 0, 127)] : index
+    %even_store_b_global_n3 = index.add %workgroup_n_base, %even_store_b_n_local3 : index
+    %even_store_b_global_k3 = index.add %even_k, %even_store_b_k_local3 : index
+    vector.store %even_load_bv3, %b_lds_store[%even_store_b_n_local3, %even_store_b_k_local3] : vector<8xf16>, view<128x32xf16>
+    kernel.barrier<workgroup> scope(workgroup) ordering(acq_rel)
+    scf.yield %odd_compute_y0, %odd_compute_y1, %odd_compute_y2, %odd_compute_y3, %odd_compute_y4, %odd_compute_y5, %odd_compute_y6, %odd_compute_y7, %odd_compute_y8, %odd_compute_y9, %odd_compute_y10, %odd_compute_y11, %odd_compute_y12, %odd_compute_y13, %odd_compute_y14, %odd_compute_y15 : vector<8xf32>, vector<8xf32>, vector<8xf32>, vector<8xf32>, vector<8xf32>, vector<8xf32>, vector<8xf32>, vector<8xf32>, vector<8xf32>, vector<8xf32>, vector<8xf32>, vector<8xf32>, vector<8xf32>, vector<8xf32>, vector<8xf32>, vector<8xf32>
+  }
+
+  %tail_k = index.sub %k, %depth_u : index
+    %tail_load_linear0 = index.add %thread, %zero : index
+    %tail_load_a_row_vector0 = index.rem %tail_load_linear0, %sixteen : index
+    %tail_load_a_row00 = index.mul %tail_load_a_row_vector0, %eight : index
+    %tail_load_a_row0 = index.assume %tail_load_a_row00 [range(%tail_load_a_row00, 0, 120)] : index
+    %tail_load_a_k00 = index.div %tail_load_linear0, %sixteen : index
+    %tail_load_a_k_local0 = index.assume %tail_load_a_k00 [range(%tail_load_a_k00, 0, 31)] : index
+    %tail_load_a_global_row0 = index.add %workgroup_m_base, %tail_load_a_row0 : index
+    %tail_load_a_global_k0 = index.add %tail_k, %tail_load_a_k_local0 : index
+    %tail_load_av0 = vector.load %a_load[%tail_load_a_global_k0, %tail_load_a_global_row0] : view<[%k]x[%m]xf16> -> vector<8xf16>
+    %tail_load_b_k_vector0 = index.rem %tail_load_linear0, %four : index
+    %tail_load_b_k00 = index.mul %tail_load_b_k_vector0, %eight : index
+    %tail_load_b_k_local0 = index.assume %tail_load_b_k00 [range(%tail_load_b_k00, 0, 24)] : index
+    %tail_load_b_n00 = index.div %tail_load_linear0, %four : index
+    %tail_load_b_n_local0 = index.assume %tail_load_b_n00 [range(%tail_load_b_n00, 0, 127)] : index
+    %tail_load_b_global_n0 = index.add %workgroup_n_base, %tail_load_b_n_local0 : index
+    %tail_load_b_global_k0 = index.add %tail_k, %tail_load_b_k_local0 : index
+    %tail_load_bv0 = vector.load %b_load[%tail_load_b_global_n0, %tail_load_b_global_k0] : view<[%n]x[%k]xf16> -> vector<8xf16>
+
+    %tail_load_load_delta1 = index.mul %one, %load_stride : index
+    %tail_load_linear1 = index.add %thread, %tail_load_load_delta1 : index
+    %tail_load_a_row_vector1 = index.rem %tail_load_linear1, %sixteen : index
+    %tail_load_a_row01 = index.mul %tail_load_a_row_vector1, %eight : index
+    %tail_load_a_row1 = index.assume %tail_load_a_row01 [range(%tail_load_a_row01, 0, 120)] : index
+    %tail_load_a_k01 = index.div %tail_load_linear1, %sixteen : index
+    %tail_load_a_k_local1 = index.assume %tail_load_a_k01 [range(%tail_load_a_k01, 0, 31)] : index
+    %tail_load_a_global_row1 = index.add %workgroup_m_base, %tail_load_a_row1 : index
+    %tail_load_a_global_k1 = index.add %tail_k, %tail_load_a_k_local1 : index
+    %tail_load_av1 = vector.load %a_load[%tail_load_a_global_k1, %tail_load_a_global_row1] : view<[%k]x[%m]xf16> -> vector<8xf16>
+    %tail_load_b_k_vector1 = index.rem %tail_load_linear1, %four : index
+    %tail_load_b_k01 = index.mul %tail_load_b_k_vector1, %eight : index
+    %tail_load_b_k_local1 = index.assume %tail_load_b_k01 [range(%tail_load_b_k01, 0, 24)] : index
+    %tail_load_b_n01 = index.div %tail_load_linear1, %four : index
+    %tail_load_b_n_local1 = index.assume %tail_load_b_n01 [range(%tail_load_b_n01, 0, 127)] : index
+    %tail_load_b_global_n1 = index.add %workgroup_n_base, %tail_load_b_n_local1 : index
+    %tail_load_b_global_k1 = index.add %tail_k, %tail_load_b_k_local1 : index
+    %tail_load_bv1 = vector.load %b_load[%tail_load_b_global_n1, %tail_load_b_global_k1] : view<[%n]x[%k]xf16> -> vector<8xf16>
+
+    %tail_load_load_delta2 = index.mul %two, %load_stride : index
+    %tail_load_linear2 = index.add %thread, %tail_load_load_delta2 : index
+    %tail_load_a_row_vector2 = index.rem %tail_load_linear2, %sixteen : index
+    %tail_load_a_row02 = index.mul %tail_load_a_row_vector2, %eight : index
+    %tail_load_a_row2 = index.assume %tail_load_a_row02 [range(%tail_load_a_row02, 0, 120)] : index
+    %tail_load_a_k02 = index.div %tail_load_linear2, %sixteen : index
+    %tail_load_a_k_local2 = index.assume %tail_load_a_k02 [range(%tail_load_a_k02, 0, 31)] : index
+    %tail_load_a_global_row2 = index.add %workgroup_m_base, %tail_load_a_row2 : index
+    %tail_load_a_global_k2 = index.add %tail_k, %tail_load_a_k_local2 : index
+    %tail_load_av2 = vector.load %a_load[%tail_load_a_global_k2, %tail_load_a_global_row2] : view<[%k]x[%m]xf16> -> vector<8xf16>
+    %tail_load_b_k_vector2 = index.rem %tail_load_linear2, %four : index
+    %tail_load_b_k02 = index.mul %tail_load_b_k_vector2, %eight : index
+    %tail_load_b_k_local2 = index.assume %tail_load_b_k02 [range(%tail_load_b_k02, 0, 24)] : index
+    %tail_load_b_n02 = index.div %tail_load_linear2, %four : index
+    %tail_load_b_n_local2 = index.assume %tail_load_b_n02 [range(%tail_load_b_n02, 0, 127)] : index
+    %tail_load_b_global_n2 = index.add %workgroup_n_base, %tail_load_b_n_local2 : index
+    %tail_load_b_global_k2 = index.add %tail_k, %tail_load_b_k_local2 : index
+    %tail_load_bv2 = vector.load %b_load[%tail_load_b_global_n2, %tail_load_b_global_k2] : view<[%n]x[%k]xf16> -> vector<8xf16>
+
+    %tail_load_load_delta3 = index.mul %three, %load_stride : index
+    %tail_load_linear3 = index.add %thread, %tail_load_load_delta3 : index
+    %tail_load_a_row_vector3 = index.rem %tail_load_linear3, %sixteen : index
+    %tail_load_a_row03 = index.mul %tail_load_a_row_vector3, %eight : index
+    %tail_load_a_row3 = index.assume %tail_load_a_row03 [range(%tail_load_a_row03, 0, 120)] : index
+    %tail_load_a_k03 = index.div %tail_load_linear3, %sixteen : index
+    %tail_load_a_k_local3 = index.assume %tail_load_a_k03 [range(%tail_load_a_k03, 0, 31)] : index
+    %tail_load_a_global_row3 = index.add %workgroup_m_base, %tail_load_a_row3 : index
+    %tail_load_a_global_k3 = index.add %tail_k, %tail_load_a_k_local3 : index
+    %tail_load_av3 = vector.load %a_load[%tail_load_a_global_k3, %tail_load_a_global_row3] : view<[%k]x[%m]xf16> -> vector<8xf16>
+    %tail_load_b_k_vector3 = index.rem %tail_load_linear3, %four : index
+    %tail_load_b_k03 = index.mul %tail_load_b_k_vector3, %eight : index
+    %tail_load_b_k_local3 = index.assume %tail_load_b_k03 [range(%tail_load_b_k03, 0, 24)] : index
+    %tail_load_b_n03 = index.div %tail_load_linear3, %four : index
+    %tail_load_b_n_local3 = index.assume %tail_load_b_n03 [range(%tail_load_b_n03, 0, 127)] : index
+    %tail_load_b_global_n3 = index.add %workgroup_n_base, %tail_load_b_n_local3 : index
+    %tail_load_b_global_k3 = index.add %tail_k, %tail_load_b_k_local3 : index
+    %tail_load_bv3 = vector.load %b_load[%tail_load_b_global_n3, %tail_load_b_global_k3] : view<[%n]x[%k]xf16> -> vector<8xf16>
+
+    %tail30_compute_m1 = index.add %wave_m_delta, %sixteen : index
+    %tail30_compute_m2 = index.add %wave_m_delta, %thirty_two : index
+    %tail30_compute_m3 = index.add %wave_m_delta, %forty_eight : index
+    %tail30_compute_n1 = index.add %wave_n_delta, %sixteen : index
+    %tail30_compute_n2 = index.add %wave_n_delta, %thirty_two : index
+    %tail30_compute_n3 = index.add %wave_n_delta, %forty_eight : index
+
+    %tail30_compute_l0 = vector.fragment.load<lhs> %a_lds[%wave_m_delta, %zero] shape [%sixteen, %sixteen] : view<128x32xf16, %a_lds_layout> -> vector<8xf16>
+    %tail30_compute_l1 = vector.fragment.load<lhs> %a_lds[%tail30_compute_m1, %zero] shape [%sixteen, %sixteen] : view<128x32xf16, %a_lds_layout> -> vector<8xf16>
+    %tail30_compute_l2 = vector.fragment.load<lhs> %a_lds[%tail30_compute_m2, %zero] shape [%sixteen, %sixteen] : view<128x32xf16, %a_lds_layout> -> vector<8xf16>
+    %tail30_compute_l3 = vector.fragment.load<lhs> %a_lds[%tail30_compute_m3, %zero] shape [%sixteen, %sixteen] : view<128x32xf16, %a_lds_layout> -> vector<8xf16>
+    %tail30_compute_q0 = vector.fragment.load<rhs> %b_lds[%zero, %wave_n_delta] shape [%sixteen, %sixteen] : view<32x128xf16, %b_lds_layout> -> vector<8xf16>
+    %tail30_compute_q1 = vector.fragment.load<rhs> %b_lds[%zero, %tail30_compute_n1] shape [%sixteen, %sixteen] : view<32x128xf16, %b_lds_layout> -> vector<8xf16>
+    %tail30_compute_q2 = vector.fragment.load<rhs> %b_lds[%zero, %tail30_compute_n2] shape [%sixteen, %sixteen] : view<32x128xf16, %b_lds_layout> -> vector<8xf16>
+    %tail30_compute_q3 = vector.fragment.load<rhs> %b_lds[%zero, %tail30_compute_n3] shape [%sixteen, %sixteen] : view<32x128xf16, %b_lds_layout> -> vector<8xf16>
+    %tail30_compute_x0 = vector.mma %tail30_compute_l0, %tail30_compute_q0, %pair_a0 : vector<8xf16>, vector<8xf16>, vector<8xf32>
+    %tail30_compute_x1 = vector.mma %tail30_compute_l0, %tail30_compute_q1, %pair_a1 : vector<8xf16>, vector<8xf16>, vector<8xf32>
+    %tail30_compute_x2 = vector.mma %tail30_compute_l0, %tail30_compute_q2, %pair_a2 : vector<8xf16>, vector<8xf16>, vector<8xf32>
+    %tail30_compute_x3 = vector.mma %tail30_compute_l0, %tail30_compute_q3, %pair_a3 : vector<8xf16>, vector<8xf16>, vector<8xf32>
+    %tail30_compute_x4 = vector.mma %tail30_compute_l1, %tail30_compute_q0, %pair_a4 : vector<8xf16>, vector<8xf16>, vector<8xf32>
+    %tail30_compute_x5 = vector.mma %tail30_compute_l1, %tail30_compute_q1, %pair_a5 : vector<8xf16>, vector<8xf16>, vector<8xf32>
+    %tail30_compute_x6 = vector.mma %tail30_compute_l1, %tail30_compute_q2, %pair_a6 : vector<8xf16>, vector<8xf16>, vector<8xf32>
+    %tail30_compute_x7 = vector.mma %tail30_compute_l1, %tail30_compute_q3, %pair_a7 : vector<8xf16>, vector<8xf16>, vector<8xf32>
+    %tail30_compute_x8 = vector.mma %tail30_compute_l2, %tail30_compute_q0, %pair_a8 : vector<8xf16>, vector<8xf16>, vector<8xf32>
+    %tail30_compute_x9 = vector.mma %tail30_compute_l2, %tail30_compute_q1, %pair_a9 : vector<8xf16>, vector<8xf16>, vector<8xf32>
+    %tail30_compute_x10 = vector.mma %tail30_compute_l2, %tail30_compute_q2, %pair_a10 : vector<8xf16>, vector<8xf16>, vector<8xf32>
+    %tail30_compute_x11 = vector.mma %tail30_compute_l2, %tail30_compute_q3, %pair_a11 : vector<8xf16>, vector<8xf16>, vector<8xf32>
+    %tail30_compute_x12 = vector.mma %tail30_compute_l3, %tail30_compute_q0, %pair_a12 : vector<8xf16>, vector<8xf16>, vector<8xf32>
+    %tail30_compute_x13 = vector.mma %tail30_compute_l3, %tail30_compute_q1, %pair_a13 : vector<8xf16>, vector<8xf16>, vector<8xf32>
+    %tail30_compute_x14 = vector.mma %tail30_compute_l3, %tail30_compute_q2, %pair_a14 : vector<8xf16>, vector<8xf16>, vector<8xf32>
+    %tail30_compute_x15 = vector.mma %tail30_compute_l3, %tail30_compute_q3, %pair_a15 : vector<8xf16>, vector<8xf16>, vector<8xf32>
+
+    %tail30_compute_l4 = vector.fragment.load<lhs> %a_lds[%wave_m_delta, %sixteen] shape [%sixteen, %sixteen] : view<128x32xf16, %a_lds_layout> -> vector<8xf16>
+    %tail30_compute_l5 = vector.fragment.load<lhs> %a_lds[%tail30_compute_m1, %sixteen] shape [%sixteen, %sixteen] : view<128x32xf16, %a_lds_layout> -> vector<8xf16>
+    %tail30_compute_l6 = vector.fragment.load<lhs> %a_lds[%tail30_compute_m2, %sixteen] shape [%sixteen, %sixteen] : view<128x32xf16, %a_lds_layout> -> vector<8xf16>
+    %tail30_compute_l7 = vector.fragment.load<lhs> %a_lds[%tail30_compute_m3, %sixteen] shape [%sixteen, %sixteen] : view<128x32xf16, %a_lds_layout> -> vector<8xf16>
+    %tail30_compute_q4 = vector.fragment.load<rhs> %b_lds[%sixteen, %wave_n_delta] shape [%sixteen, %sixteen] : view<32x128xf16, %b_lds_layout> -> vector<8xf16>
+    %tail30_compute_q5 = vector.fragment.load<rhs> %b_lds[%sixteen, %tail30_compute_n1] shape [%sixteen, %sixteen] : view<32x128xf16, %b_lds_layout> -> vector<8xf16>
+    %tail30_compute_q6 = vector.fragment.load<rhs> %b_lds[%sixteen, %tail30_compute_n2] shape [%sixteen, %sixteen] : view<32x128xf16, %b_lds_layout> -> vector<8xf16>
+    %tail30_compute_q7 = vector.fragment.load<rhs> %b_lds[%sixteen, %tail30_compute_n3] shape [%sixteen, %sixteen] : view<32x128xf16, %b_lds_layout> -> vector<8xf16>
+    %tail30_compute_y0 = vector.mma %tail30_compute_l4, %tail30_compute_q4, %tail30_compute_x0 : vector<8xf16>, vector<8xf16>, vector<8xf32>
+    %tail30_compute_y1 = vector.mma %tail30_compute_l4, %tail30_compute_q5, %tail30_compute_x1 : vector<8xf16>, vector<8xf16>, vector<8xf32>
+    %tail30_compute_y2 = vector.mma %tail30_compute_l4, %tail30_compute_q6, %tail30_compute_x2 : vector<8xf16>, vector<8xf16>, vector<8xf32>
+    %tail30_compute_y3 = vector.mma %tail30_compute_l4, %tail30_compute_q7, %tail30_compute_x3 : vector<8xf16>, vector<8xf16>, vector<8xf32>
+    %tail30_compute_y4 = vector.mma %tail30_compute_l5, %tail30_compute_q4, %tail30_compute_x4 : vector<8xf16>, vector<8xf16>, vector<8xf32>
+    %tail30_compute_y5 = vector.mma %tail30_compute_l5, %tail30_compute_q5, %tail30_compute_x5 : vector<8xf16>, vector<8xf16>, vector<8xf32>
+    %tail30_compute_y6 = vector.mma %tail30_compute_l5, %tail30_compute_q6, %tail30_compute_x6 : vector<8xf16>, vector<8xf16>, vector<8xf32>
+    %tail30_compute_y7 = vector.mma %tail30_compute_l5, %tail30_compute_q7, %tail30_compute_x7 : vector<8xf16>, vector<8xf16>, vector<8xf32>
+    %tail30_compute_y8 = vector.mma %tail30_compute_l6, %tail30_compute_q4, %tail30_compute_x8 : vector<8xf16>, vector<8xf16>, vector<8xf32>
+    %tail30_compute_y9 = vector.mma %tail30_compute_l6, %tail30_compute_q5, %tail30_compute_x9 : vector<8xf16>, vector<8xf16>, vector<8xf32>
+    %tail30_compute_y10 = vector.mma %tail30_compute_l6, %tail30_compute_q6, %tail30_compute_x10 : vector<8xf16>, vector<8xf16>, vector<8xf32>
+    %tail30_compute_y11 = vector.mma %tail30_compute_l6, %tail30_compute_q7, %tail30_compute_x11 : vector<8xf16>, vector<8xf16>, vector<8xf32>
+    %tail30_compute_y12 = vector.mma %tail30_compute_l7, %tail30_compute_q4, %tail30_compute_x12 : vector<8xf16>, vector<8xf16>, vector<8xf32>
+    %tail30_compute_y13 = vector.mma %tail30_compute_l7, %tail30_compute_q5, %tail30_compute_x13 : vector<8xf16>, vector<8xf16>, vector<8xf32>
+    %tail30_compute_y14 = vector.mma %tail30_compute_l7, %tail30_compute_q6, %tail30_compute_x14 : vector<8xf16>, vector<8xf16>, vector<8xf32>
+    %tail30_compute_y15 = vector.mma %tail30_compute_l7, %tail30_compute_q7, %tail30_compute_x15 : vector<8xf16>, vector<8xf16>, vector<8xf32>
+    %tail_store_linear0 = index.add %thread, %zero : index
+    %tail_store_a_row_vector0 = index.rem %tail_store_linear0, %sixteen : index
+    %tail_store_a_row00 = index.mul %tail_store_a_row_vector0, %eight : index
+    %tail_store_a_row0 = index.assume %tail_store_a_row00 [range(%tail_store_a_row00, 0, 120)] : index
+    %tail_store_a_k00 = index.div %tail_store_linear0, %sixteen : index
+    %tail_store_a_k_local0 = index.assume %tail_store_a_k00 [range(%tail_store_a_k00, 0, 31)] : index
+    %tail_store_a_global_row0 = index.add %workgroup_m_base, %tail_store_a_row0 : index
+    %tail_store_a_global_k0 = index.add %tail_k, %tail_store_a_k_local0 : index
+    vector.store %tail_load_av0, %a_lds_store_stage1[%tail_store_a_k_local0, %tail_store_a_row0] : vector<8xf16>, view<32x128xf16>
+    %tail_store_b_k_vector0 = index.rem %tail_store_linear0, %four : index
+    %tail_store_b_k00 = index.mul %tail_store_b_k_vector0, %eight : index
+    %tail_store_b_k_local0 = index.assume %tail_store_b_k00 [range(%tail_store_b_k00, 0, 24)] : index
+    %tail_store_b_n00 = index.div %tail_store_linear0, %four : index
+    %tail_store_b_n_local0 = index.assume %tail_store_b_n00 [range(%tail_store_b_n00, 0, 127)] : index
+    %tail_store_b_global_n0 = index.add %workgroup_n_base, %tail_store_b_n_local0 : index
+    %tail_store_b_global_k0 = index.add %tail_k, %tail_store_b_k_local0 : index
+    vector.store %tail_load_bv0, %b_lds_store_stage1[%tail_store_b_n_local0, %tail_store_b_k_local0] : vector<8xf16>, view<128x32xf16>
+
+    %tail_store_load_delta1 = index.mul %one, %load_stride : index
+    %tail_store_linear1 = index.add %thread, %tail_store_load_delta1 : index
+    %tail_store_a_row_vector1 = index.rem %tail_store_linear1, %sixteen : index
+    %tail_store_a_row01 = index.mul %tail_store_a_row_vector1, %eight : index
+    %tail_store_a_row1 = index.assume %tail_store_a_row01 [range(%tail_store_a_row01, 0, 120)] : index
+    %tail_store_a_k01 = index.div %tail_store_linear1, %sixteen : index
+    %tail_store_a_k_local1 = index.assume %tail_store_a_k01 [range(%tail_store_a_k01, 0, 31)] : index
+    %tail_store_a_global_row1 = index.add %workgroup_m_base, %tail_store_a_row1 : index
+    %tail_store_a_global_k1 = index.add %tail_k, %tail_store_a_k_local1 : index
+    vector.store %tail_load_av1, %a_lds_store_stage1[%tail_store_a_k_local1, %tail_store_a_row1] : vector<8xf16>, view<32x128xf16>
+    %tail_store_b_k_vector1 = index.rem %tail_store_linear1, %four : index
+    %tail_store_b_k01 = index.mul %tail_store_b_k_vector1, %eight : index
+    %tail_store_b_k_local1 = index.assume %tail_store_b_k01 [range(%tail_store_b_k01, 0, 24)] : index
+    %tail_store_b_n01 = index.div %tail_store_linear1, %four : index
+    %tail_store_b_n_local1 = index.assume %tail_store_b_n01 [range(%tail_store_b_n01, 0, 127)] : index
+    %tail_store_b_global_n1 = index.add %workgroup_n_base, %tail_store_b_n_local1 : index
+    %tail_store_b_global_k1 = index.add %tail_k, %tail_store_b_k_local1 : index
+    vector.store %tail_load_bv1, %b_lds_store_stage1[%tail_store_b_n_local1, %tail_store_b_k_local1] : vector<8xf16>, view<128x32xf16>
+
+    %tail_store_load_delta2 = index.mul %two, %load_stride : index
+    %tail_store_linear2 = index.add %thread, %tail_store_load_delta2 : index
+    %tail_store_a_row_vector2 = index.rem %tail_store_linear2, %sixteen : index
+    %tail_store_a_row02 = index.mul %tail_store_a_row_vector2, %eight : index
+    %tail_store_a_row2 = index.assume %tail_store_a_row02 [range(%tail_store_a_row02, 0, 120)] : index
+    %tail_store_a_k02 = index.div %tail_store_linear2, %sixteen : index
+    %tail_store_a_k_local2 = index.assume %tail_store_a_k02 [range(%tail_store_a_k02, 0, 31)] : index
+    %tail_store_a_global_row2 = index.add %workgroup_m_base, %tail_store_a_row2 : index
+    %tail_store_a_global_k2 = index.add %tail_k, %tail_store_a_k_local2 : index
+    vector.store %tail_load_av2, %a_lds_store_stage1[%tail_store_a_k_local2, %tail_store_a_row2] : vector<8xf16>, view<32x128xf16>
+    %tail_store_b_k_vector2 = index.rem %tail_store_linear2, %four : index
+    %tail_store_b_k02 = index.mul %tail_store_b_k_vector2, %eight : index
+    %tail_store_b_k_local2 = index.assume %tail_store_b_k02 [range(%tail_store_b_k02, 0, 24)] : index
+    %tail_store_b_n02 = index.div %tail_store_linear2, %four : index
+    %tail_store_b_n_local2 = index.assume %tail_store_b_n02 [range(%tail_store_b_n02, 0, 127)] : index
+    %tail_store_b_global_n2 = index.add %workgroup_n_base, %tail_store_b_n_local2 : index
+    %tail_store_b_global_k2 = index.add %tail_k, %tail_store_b_k_local2 : index
+    vector.store %tail_load_bv2, %b_lds_store_stage1[%tail_store_b_n_local2, %tail_store_b_k_local2] : vector<8xf16>, view<128x32xf16>
+
+    %tail_store_load_delta3 = index.mul %three, %load_stride : index
+    %tail_store_linear3 = index.add %thread, %tail_store_load_delta3 : index
+    %tail_store_a_row_vector3 = index.rem %tail_store_linear3, %sixteen : index
+    %tail_store_a_row03 = index.mul %tail_store_a_row_vector3, %eight : index
+    %tail_store_a_row3 = index.assume %tail_store_a_row03 [range(%tail_store_a_row03, 0, 120)] : index
+    %tail_store_a_k03 = index.div %tail_store_linear3, %sixteen : index
+    %tail_store_a_k_local3 = index.assume %tail_store_a_k03 [range(%tail_store_a_k03, 0, 31)] : index
+    %tail_store_a_global_row3 = index.add %workgroup_m_base, %tail_store_a_row3 : index
+    %tail_store_a_global_k3 = index.add %tail_k, %tail_store_a_k_local3 : index
+    vector.store %tail_load_av3, %a_lds_store_stage1[%tail_store_a_k_local3, %tail_store_a_row3] : vector<8xf16>, view<32x128xf16>
+    %tail_store_b_k_vector3 = index.rem %tail_store_linear3, %four : index
+    %tail_store_b_k03 = index.mul %tail_store_b_k_vector3, %eight : index
+    %tail_store_b_k_local3 = index.assume %tail_store_b_k03 [range(%tail_store_b_k03, 0, 24)] : index
+    %tail_store_b_n03 = index.div %tail_store_linear3, %four : index
+    %tail_store_b_n_local3 = index.assume %tail_store_b_n03 [range(%tail_store_b_n03, 0, 127)] : index
+    %tail_store_b_global_n3 = index.add %workgroup_n_base, %tail_store_b_n_local3 : index
+    %tail_store_b_global_k3 = index.add %tail_k, %tail_store_b_k_local3 : index
+    vector.store %tail_load_bv3, %b_lds_store_stage1[%tail_store_b_n_local3, %tail_store_b_k_local3] : vector<8xf16>, view<128x32xf16>
+    kernel.barrier<workgroup> scope(workgroup) ordering(acq_rel)
+
+    %tail31_compute_m1 = index.add %wave_m_delta, %sixteen : index
+    %tail31_compute_m2 = index.add %wave_m_delta, %thirty_two : index
+    %tail31_compute_m3 = index.add %wave_m_delta, %forty_eight : index
+    %tail31_compute_n1 = index.add %wave_n_delta, %sixteen : index
+    %tail31_compute_n2 = index.add %wave_n_delta, %thirty_two : index
+    %tail31_compute_n3 = index.add %wave_n_delta, %forty_eight : index
+
+    %tail31_compute_l0 = vector.fragment.load<lhs> %a_lds_stage1[%wave_m_delta, %zero] shape [%sixteen, %sixteen] : view<128x32xf16, %a_lds_layout> -> vector<8xf16>
+    %tail31_compute_l1 = vector.fragment.load<lhs> %a_lds_stage1[%tail31_compute_m1, %zero] shape [%sixteen, %sixteen] : view<128x32xf16, %a_lds_layout> -> vector<8xf16>
+    %tail31_compute_l2 = vector.fragment.load<lhs> %a_lds_stage1[%tail31_compute_m2, %zero] shape [%sixteen, %sixteen] : view<128x32xf16, %a_lds_layout> -> vector<8xf16>
+    %tail31_compute_l3 = vector.fragment.load<lhs> %a_lds_stage1[%tail31_compute_m3, %zero] shape [%sixteen, %sixteen] : view<128x32xf16, %a_lds_layout> -> vector<8xf16>
+    %tail31_compute_q0 = vector.fragment.load<rhs> %b_lds_stage1[%zero, %wave_n_delta] shape [%sixteen, %sixteen] : view<32x128xf16, %b_lds_layout> -> vector<8xf16>
+    %tail31_compute_q1 = vector.fragment.load<rhs> %b_lds_stage1[%zero, %tail31_compute_n1] shape [%sixteen, %sixteen] : view<32x128xf16, %b_lds_layout> -> vector<8xf16>
+    %tail31_compute_q2 = vector.fragment.load<rhs> %b_lds_stage1[%zero, %tail31_compute_n2] shape [%sixteen, %sixteen] : view<32x128xf16, %b_lds_layout> -> vector<8xf16>
+    %tail31_compute_q3 = vector.fragment.load<rhs> %b_lds_stage1[%zero, %tail31_compute_n3] shape [%sixteen, %sixteen] : view<32x128xf16, %b_lds_layout> -> vector<8xf16>
+    %tail31_compute_x0 = vector.mma %tail31_compute_l0, %tail31_compute_q0, %tail30_compute_y0 : vector<8xf16>, vector<8xf16>, vector<8xf32>
+    %tail31_compute_x1 = vector.mma %tail31_compute_l0, %tail31_compute_q1, %tail30_compute_y1 : vector<8xf16>, vector<8xf16>, vector<8xf32>
+    %tail31_compute_x2 = vector.mma %tail31_compute_l0, %tail31_compute_q2, %tail30_compute_y2 : vector<8xf16>, vector<8xf16>, vector<8xf32>
+    %tail31_compute_x3 = vector.mma %tail31_compute_l0, %tail31_compute_q3, %tail30_compute_y3 : vector<8xf16>, vector<8xf16>, vector<8xf32>
+    %tail31_compute_x4 = vector.mma %tail31_compute_l1, %tail31_compute_q0, %tail30_compute_y4 : vector<8xf16>, vector<8xf16>, vector<8xf32>
+    %tail31_compute_x5 = vector.mma %tail31_compute_l1, %tail31_compute_q1, %tail30_compute_y5 : vector<8xf16>, vector<8xf16>, vector<8xf32>
+    %tail31_compute_x6 = vector.mma %tail31_compute_l1, %tail31_compute_q2, %tail30_compute_y6 : vector<8xf16>, vector<8xf16>, vector<8xf32>
+    %tail31_compute_x7 = vector.mma %tail31_compute_l1, %tail31_compute_q3, %tail30_compute_y7 : vector<8xf16>, vector<8xf16>, vector<8xf32>
+    %tail31_compute_x8 = vector.mma %tail31_compute_l2, %tail31_compute_q0, %tail30_compute_y8 : vector<8xf16>, vector<8xf16>, vector<8xf32>
+    %tail31_compute_x9 = vector.mma %tail31_compute_l2, %tail31_compute_q1, %tail30_compute_y9 : vector<8xf16>, vector<8xf16>, vector<8xf32>
+    %tail31_compute_x10 = vector.mma %tail31_compute_l2, %tail31_compute_q2, %tail30_compute_y10 : vector<8xf16>, vector<8xf16>, vector<8xf32>
+    %tail31_compute_x11 = vector.mma %tail31_compute_l2, %tail31_compute_q3, %tail30_compute_y11 : vector<8xf16>, vector<8xf16>, vector<8xf32>
+    %tail31_compute_x12 = vector.mma %tail31_compute_l3, %tail31_compute_q0, %tail30_compute_y12 : vector<8xf16>, vector<8xf16>, vector<8xf32>
+    %tail31_compute_x13 = vector.mma %tail31_compute_l3, %tail31_compute_q1, %tail30_compute_y13 : vector<8xf16>, vector<8xf16>, vector<8xf32>
+    %tail31_compute_x14 = vector.mma %tail31_compute_l3, %tail31_compute_q2, %tail30_compute_y14 : vector<8xf16>, vector<8xf16>, vector<8xf32>
+    %tail31_compute_x15 = vector.mma %tail31_compute_l3, %tail31_compute_q3, %tail30_compute_y15 : vector<8xf16>, vector<8xf16>, vector<8xf32>
+
+    %tail31_compute_l4 = vector.fragment.load<lhs> %a_lds_stage1[%wave_m_delta, %sixteen] shape [%sixteen, %sixteen] : view<128x32xf16, %a_lds_layout> -> vector<8xf16>
+    %tail31_compute_l5 = vector.fragment.load<lhs> %a_lds_stage1[%tail31_compute_m1, %sixteen] shape [%sixteen, %sixteen] : view<128x32xf16, %a_lds_layout> -> vector<8xf16>
+    %tail31_compute_l6 = vector.fragment.load<lhs> %a_lds_stage1[%tail31_compute_m2, %sixteen] shape [%sixteen, %sixteen] : view<128x32xf16, %a_lds_layout> -> vector<8xf16>
+    %tail31_compute_l7 = vector.fragment.load<lhs> %a_lds_stage1[%tail31_compute_m3, %sixteen] shape [%sixteen, %sixteen] : view<128x32xf16, %a_lds_layout> -> vector<8xf16>
+    %tail31_compute_q4 = vector.fragment.load<rhs> %b_lds_stage1[%sixteen, %wave_n_delta] shape [%sixteen, %sixteen] : view<32x128xf16, %b_lds_layout> -> vector<8xf16>
+    %tail31_compute_q5 = vector.fragment.load<rhs> %b_lds_stage1[%sixteen, %tail31_compute_n1] shape [%sixteen, %sixteen] : view<32x128xf16, %b_lds_layout> -> vector<8xf16>
+    %tail31_compute_q6 = vector.fragment.load<rhs> %b_lds_stage1[%sixteen, %tail31_compute_n2] shape [%sixteen, %sixteen] : view<32x128xf16, %b_lds_layout> -> vector<8xf16>
+    %tail31_compute_q7 = vector.fragment.load<rhs> %b_lds_stage1[%sixteen, %tail31_compute_n3] shape [%sixteen, %sixteen] : view<32x128xf16, %b_lds_layout> -> vector<8xf16>
+    %tail31_compute_y0 = vector.mma %tail31_compute_l4, %tail31_compute_q4, %tail31_compute_x0 : vector<8xf16>, vector<8xf16>, vector<8xf32>
+    %tail31_compute_y1 = vector.mma %tail31_compute_l4, %tail31_compute_q5, %tail31_compute_x1 : vector<8xf16>, vector<8xf16>, vector<8xf32>
+    %tail31_compute_y2 = vector.mma %tail31_compute_l4, %tail31_compute_q6, %tail31_compute_x2 : vector<8xf16>, vector<8xf16>, vector<8xf32>
+    %tail31_compute_y3 = vector.mma %tail31_compute_l4, %tail31_compute_q7, %tail31_compute_x3 : vector<8xf16>, vector<8xf16>, vector<8xf32>
+    %tail31_compute_y4 = vector.mma %tail31_compute_l5, %tail31_compute_q4, %tail31_compute_x4 : vector<8xf16>, vector<8xf16>, vector<8xf32>
+    %tail31_compute_y5 = vector.mma %tail31_compute_l5, %tail31_compute_q5, %tail31_compute_x5 : vector<8xf16>, vector<8xf16>, vector<8xf32>
+    %tail31_compute_y6 = vector.mma %tail31_compute_l5, %tail31_compute_q6, %tail31_compute_x6 : vector<8xf16>, vector<8xf16>, vector<8xf32>
+    %tail31_compute_y7 = vector.mma %tail31_compute_l5, %tail31_compute_q7, %tail31_compute_x7 : vector<8xf16>, vector<8xf16>, vector<8xf32>
+    %tail31_compute_y8 = vector.mma %tail31_compute_l6, %tail31_compute_q4, %tail31_compute_x8 : vector<8xf16>, vector<8xf16>, vector<8xf32>
+    %tail31_compute_y9 = vector.mma %tail31_compute_l6, %tail31_compute_q5, %tail31_compute_x9 : vector<8xf16>, vector<8xf16>, vector<8xf32>
+    %tail31_compute_y10 = vector.mma %tail31_compute_l6, %tail31_compute_q6, %tail31_compute_x10 : vector<8xf16>, vector<8xf16>, vector<8xf32>
+    %tail31_compute_y11 = vector.mma %tail31_compute_l6, %tail31_compute_q7, %tail31_compute_x11 : vector<8xf16>, vector<8xf16>, vector<8xf32>
+    %tail31_compute_y12 = vector.mma %tail31_compute_l7, %tail31_compute_q4, %tail31_compute_x12 : vector<8xf16>, vector<8xf16>, vector<8xf32>
+    %tail31_compute_y13 = vector.mma %tail31_compute_l7, %tail31_compute_q5, %tail31_compute_x13 : vector<8xf16>, vector<8xf16>, vector<8xf32>
+    %tail31_compute_y14 = vector.mma %tail31_compute_l7, %tail31_compute_q6, %tail31_compute_x14 : vector<8xf16>, vector<8xf16>, vector<8xf32>
+    %tail31_compute_y15 = vector.mma %tail31_compute_l7, %tail31_compute_q7, %tail31_compute_x15 : vector<8xf16>, vector<8xf16>, vector<8xf32>
+
+  %sm1 = index.add %wave_m_base, %sixteen : index
+  %sm2 = index.add %wave_m_base, %thirty_two : index
+  %sm3 = index.add %wave_m_base, %forty_eight : index
+  %sn1 = index.add %wave_n_base, %sixteen : index
+  %sn2 = index.add %wave_n_base, %thirty_two : index
+  %sn3 = index.add %wave_n_base, %forty_eight : index
+  vector.fragment.store<result> %tail31_compute_y0, %d[%wave_m_base, %wave_n_base] shape [%sixteen, %sixteen] : vector<8xf32>, view<[%m]x[%n]xf16, %d_layout>
+  vector.fragment.store<result> %tail31_compute_y1, %d[%wave_m_base, %sn1] shape [%sixteen, %sixteen] : vector<8xf32>, view<[%m]x[%n]xf16, %d_layout>
+  vector.fragment.store<result> %tail31_compute_y2, %d[%wave_m_base, %sn2] shape [%sixteen, %sixteen] : vector<8xf32>, view<[%m]x[%n]xf16, %d_layout>
+  vector.fragment.store<result> %tail31_compute_y3, %d[%wave_m_base, %sn3] shape [%sixteen, %sixteen] : vector<8xf32>, view<[%m]x[%n]xf16, %d_layout>
+  vector.fragment.store<result> %tail31_compute_y4, %d[%sm1, %wave_n_base] shape [%sixteen, %sixteen] : vector<8xf32>, view<[%m]x[%n]xf16, %d_layout>
+  vector.fragment.store<result> %tail31_compute_y5, %d[%sm1, %sn1] shape [%sixteen, %sixteen] : vector<8xf32>, view<[%m]x[%n]xf16, %d_layout>
+  vector.fragment.store<result> %tail31_compute_y6, %d[%sm1, %sn2] shape [%sixteen, %sixteen] : vector<8xf32>, view<[%m]x[%n]xf16, %d_layout>
+  vector.fragment.store<result> %tail31_compute_y7, %d[%sm1, %sn3] shape [%sixteen, %sixteen] : vector<8xf32>, view<[%m]x[%n]xf16, %d_layout>
+  vector.fragment.store<result> %tail31_compute_y8, %d[%sm2, %wave_n_base] shape [%sixteen, %sixteen] : vector<8xf32>, view<[%m]x[%n]xf16, %d_layout>
+  vector.fragment.store<result> %tail31_compute_y9, %d[%sm2, %sn1] shape [%sixteen, %sixteen] : vector<8xf32>, view<[%m]x[%n]xf16, %d_layout>
+  vector.fragment.store<result> %tail31_compute_y10, %d[%sm2, %sn2] shape [%sixteen, %sixteen] : vector<8xf32>, view<[%m]x[%n]xf16, %d_layout>
+  vector.fragment.store<result> %tail31_compute_y11, %d[%sm2, %sn3] shape [%sixteen, %sixteen] : vector<8xf32>, view<[%m]x[%n]xf16, %d_layout>
+  vector.fragment.store<result> %tail31_compute_y12, %d[%sm3, %wave_n_base] shape [%sixteen, %sixteen] : vector<8xf32>, view<[%m]x[%n]xf16, %d_layout>
+  vector.fragment.store<result> %tail31_compute_y13, %d[%sm3, %sn1] shape [%sixteen, %sixteen] : vector<8xf32>, view<[%m]x[%n]xf16, %d_layout>
+  vector.fragment.store<result> %tail31_compute_y14, %d[%sm3, %sn2] shape [%sixteen, %sixteen] : vector<8xf32>, view<[%m]x[%n]xf16, %d_layout>
+  vector.fragment.store<result> %tail31_compute_y15, %d[%sm3, %sn3] shape [%sixteen, %sixteen] : vector<8xf32>, view<[%m]x[%n]xf16, %d_layout>
+  kernel.return
+}
+
+// A uniform input keeps this case independent of the host's row/column-major
+// tensor convention while still exercising every production address. Each
+// output is 1024 * (1/32) * (1/32) = 1 exactly.
+check.case public @gemm_f16_f32_mt128x128x32_gfx12_scalar_acc_access_case {
+  %a = check.generate.fill value(0.03125) : tensor<1024x1024xf16>
+  %b = check.generate.fill value(0.03125) : tensor<1024x1024xf16>
+  %c = check.generate.fill value(0.0) : tensor<1024x1024xf16>
+  %d = check.generate.fill value(0.0) : tensor<1024x1024xf16>
+  %expected = check.generate.fill value(1.0) : tensor<1024x1024xf16>
+  kernel.launch @gemm_f16_f32_mt128x128x32_gfx12_scalar_acc(%a, %b, %c, %d) : (tensor<1024x1024xf16>, tensor<1024x1024xf16>, tensor<1024x1024xf16>, tensor<1024x1024xf16>)
+  check.expect.close actual(%d) expected(%expected) atol(0.0) rtol(0.0) nan(same) : tensor<1024x1024xf16>
+  check.return
+}
+
+check.benchmark<@gemm_f16_f32_mt128x128x32_gfx12_scalar_acc_access_case> @gemm_f16_f32_mt128x128x32_gfx12_scalar_acc_1024
+
+// One complete macro-tile is the access-sanitizer witness. It executes the
+// same vectorized global/LDS/fragment address maps as the production case,
+// without multiplying sanitizer instrumentation through 32 unrolled K tiles.
+check.case public @gemm_f16_f32_mt128x128x32_gfx12_scalar_acc_access_tile_case {
+  %a = check.generate.fill value(0.03125) : tensor<32x128xf16>
+  %b = check.generate.fill value(0.03125) : tensor<128x32xf16>
+  %c = check.generate.fill value(0.0) : tensor<128x128xf16>
+  %d = check.generate.fill value(0.0) : tensor<128x128xf16>
+  %expected = check.generate.fill value(0.03125) : tensor<128x128xf16>
+  kernel.launch @gemm_f16_f32_mt128x128x32_gfx12_scalar_acc(%a, %b, %c, %d) : (tensor<32x128xf16>, tensor<128x32xf16>, tensor<128x128xf16>, tensor<128x128xf16>)
+  check.expect.close actual(%d) expected(%expected) atol(0.0) rtol(0.0) nan(same) : tensor<128x128xf16>
+  check.return
+}

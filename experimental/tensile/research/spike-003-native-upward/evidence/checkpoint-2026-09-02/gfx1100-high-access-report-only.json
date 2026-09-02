@@ -1,0 +1,1 @@
+{"format":"loom.test.v0","case_count":1,"sample_count":1,"failed_sample_count":0,"skipped_case_count":0,"planning_issue_count":0,"samples":[{"case":"gemm_f16_f32_mt64x96x32_gfx11_pgr2_access_tile_case","sample_ordinal":0,"passed":true,"expectations":{"expectation_count":1,"passed_count":1,"failure_count":0,"failures":[]}}],"skipped_cases":[],"planning_issues":[]}

@@ -1,0 +1,37 @@
+{
+  "encoded_size": 450,
+  "schema": "loom-blas.tensile-library.v1",
+  "sha256": "43e80177500b3725bd8ef916212a09cbc1924e1f40d62acdf740adbae7ededde",
+  "source": "<selected-rocm>/lib/hipblaslt/library/gfx1100/TensileLiteLibrary_lazy_gfx1100_Mapping.dat.zlib",
+  "summary": {
+    "entries": {
+      "1640": {
+        "library": "TensileLibrary_HH_HH_HA_Bias_SAV_UA_Type_HH_HPA_Contraction_l_Ailk_Bljk_Cijk_Dijk_gfx1100",
+        "range_base": 1633,
+        "range_offset": 7
+      },
+      "1650": {
+        "library": "TensileLibrary_HH_HH_HA_Bias_SAV_UA_Type_HH_HPA_Contraction_l_Ailk_Bljk_Cijk_Dijk_gfx1100",
+        "range_base": 1633,
+        "range_offset": 17
+      },
+      "1667": {
+        "library": "TensileLibrary_HH_HH_HA_Bias_SAV_UA_Type_HH_HPA_Contraction_l_Ailk_Bljk_Cijk_Dijk_gfx1100",
+        "range_base": 1633,
+        "range_offset": 34
+      },
+      "1675": {
+        "library": "TensileLibrary_HH_HH_HA_Bias_SAV_UA_Type_HH_HPA_Contraction_l_Ailk_Bljk_Cijk_Dijk_gfx1100",
+        "range_base": 1633,
+        "range_offset": 42
+      },
+      "1692": {
+        "library": "TensileLibrary_HH_HH_HA_Bias_SAV_UA_Type_HH_HPA_Contraction_l_Ailk_Bljk_Cijk_Dijk_gfx1100",
+        "range_base": 1633,
+        "range_offset": 59
+      }
+    },
+    "entry_count": 46,
+    "kind": "solution_mapping"
+  }
+}

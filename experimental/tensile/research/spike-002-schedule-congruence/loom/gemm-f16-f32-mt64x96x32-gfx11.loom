@@ -1,0 +1,264 @@
+// gfx11-family FP16 GEMM motif reconstructed from runtime solution 1675.
+// Four wave32 waves form a 2x2 grid; each wave owns 32x48 (2x3 WMMA
+// fragments) of the MT64x96 result. Global payload vectors are carried one
+// DepthU ahead across the K loop so their VMEM latency overlaps the current
+// LDS/WMMA phase. A second LDS stage and PLR1 remain explicit follow-ons.
+amdgpu.target<gfx11-generic> @gfx11 {subgroup_size = 32}
+
+config.decl @gemm.m : %value: index where [range(%value, 64, 65536), mul(%value, 64)]
+config.decl @gemm.n : %value: index where [range(%value, 96, 65440), mul(%value, 16)]
+config.decl @gemm.k : %value: index where [range(%value, 32, 65536), mul(%value, 32)]
+
+kernel.def target(@gfx11) @gemm_f16_f32_mt64x96x32_gfx11() {
+  %m = config.get @gemm.m : index
+  %n = config.get @gemm.n : index
+  %macro_m = index.constant 64 : index
+  %macro_n = index.constant 96 : index
+  %workgroups_m = index.div %m, %macro_m : index
+  %round_n = index.constant 95 : index
+  %n_rounded = index.add %n, %round_n : index
+  %workgroups_n = index.div %n_rounded, %macro_n : index
+  %wave_size = index.constant 32 : index
+  %wave_count = index.constant 4 : index
+  %unit = index.constant 1 : index
+  kernel.launch.config workgroups(%workgroups_n, %workgroups_m, %unit) workgroup_size(%wave_size, %wave_count, %unit) : index
+} launch(%a_buffer: buffer, %b_buffer: buffer, %c_buffer: buffer, %d_buffer: buffer) {
+  %m = config.get @gemm.m : index
+  %n = config.get @gemm.n : index
+  %k = config.get @gemm.k : index
+  %base = index.constant 0 : offset
+  %zero = index.constant 0 : index
+  %one = index.constant 1 : index
+  %two = index.constant 2 : index
+  %three = index.constant 3 : index
+  %four = index.constant 4 : index
+  %eight = index.constant 8 : index
+  %tile = index.constant 16 : index
+  %depth_u = index.constant 32 : index
+  %wave_size = index.constant 32 : index
+  %wave_m_extent = index.constant 32 : index
+  %wave_n_extent = index.constant 48 : index
+  %macro_m = index.constant 64 : index
+  %macro_n = index.constant 96 : index
+  %load_vector_stride = index.constant 128 : index
+  %lds_bytes = index.constant 10240 : offset
+
+  %workgroup_n = kernel.workgroup.id<x> : index
+  %workgroup_m = kernel.workgroup.id<y> : index
+  %lane = kernel.workitem.id<x> : index
+  %wave = kernel.workitem.id<y> : index
+  %thread_wave_base = index.mul %wave, %wave_size : index
+  %thread = index.add %thread_wave_base, %lane : index
+  %wave_m_id = index.rem %wave, %two : index
+  %wave_n_id = index.div %wave, %two : index
+  %workgroup_m_base = index.mul %workgroup_m, %macro_m : index
+  %workgroup_n_base = index.mul %workgroup_n, %macro_n : index
+  %wave_m_delta = index.mul %wave_m_id, %wave_m_extent : index
+  %wave_n_delta = index.mul %wave_n_id, %wave_n_extent : index
+  %wave_m_base = index.add %workgroup_m_base, %wave_m_delta : index
+  %wave_n_base = index.add %workgroup_n_base, %wave_n_delta : index
+
+  %a_global = buffer.assume.memory_space<global> %a_buffer : buffer
+  %b_global = buffer.assume.memory_space<global> %b_buffer : buffer
+  %d_global = buffer.assume.memory_space<global> %d_buffer : buffer
+  %a_aligned = buffer.assume.alignment %a_global {minimum_alignment = 16} : buffer
+  %b_aligned = buffer.assume.alignment %b_global {minimum_alignment = 16} : buffer
+  %d_aligned = buffer.assume.alignment %d_global {minimum_alignment = 16} : buffer
+  %a_column_major = encoding.layout.strided [1, %m] : encoding<layout>
+  %b_column_major = encoding.layout.strided [1, %k] : encoding<layout>
+  %d_column_major = encoding.layout.strided [1, %m] : encoding<layout>
+  %a = buffer.view %a_aligned[%base] : buffer -> view<[%m]x[%k]xf16, %a_column_major>
+  %b = buffer.view %b_aligned[%base] : buffer -> view<[%k]x[%n]xf16, %b_column_major>
+  %d = buffer.view %d_aligned[%base] : buffer -> view<[%m]x[%n]xf16, %d_column_major>
+  %a_load = buffer.view %a_aligned[%base] : buffer -> view<[%k]x[%m]xf16>
+  %b_load = buffer.view %b_aligned[%base] : buffer -> view<[%n]x[%k]xf16>
+
+  %a_lds_layout = encoding.layout.strided [1, 64] : encoding<layout>
+  %b_lds_layout = encoding.layout.strided [1, 32] : encoding<layout>
+  %lds = buffer.alloca<workgroup> align(16) %lds_bytes : buffer
+  %a_lds = buffer.view %lds[%base] : buffer -> view<64x32xf16, %a_lds_layout>
+  %a_lds_store = buffer.view %lds[%base] : buffer -> view<32x64xf16>
+  %b_lds_offset = index.constant 4096 : offset
+  %b_lds = buffer.view %lds[%b_lds_offset] : buffer -> view<32x96xf16, %b_lds_layout>
+  %b_lds_store = buffer.view %lds[%b_lds_offset] : buffer -> view<96x32xf16>
+
+  %zero_accumulator_payload = vector.constant 0.0 : vector<8xf32>
+  %zero_accumulator = vector.fragment<init> %zero_accumulator_payload shape [%tile, %tile] : vector<8xf32>
+  %empty_accumulator_bank = vector.broadcast %zero_accumulator : vector<8xf32> -> vector<2x3x8xf32>
+  %empty_operand_payload = vector.constant 0.0 : vector<16xf16>
+  %empty_lhs_bank = vector.broadcast %empty_operand_payload : vector<16xf16> -> vector<2x16xf16>
+  %empty_rhs_bank = vector.broadcast %empty_operand_payload : vector<16xf16> -> vector<3x16xf16>
+  %empty_global_payload = vector.constant 0.0 : vector<8xf16>
+  %empty_global_a_bank = vector.broadcast %empty_global_payload : vector<8xf16> -> vector<2x8xf16>
+  %empty_global_b_bank = vector.broadcast %empty_global_payload : vector<8xf16> -> vector<3x8xf16>
+
+  // Prologue: fetch the first DepthU tile into registers. The same address
+  // calculation is used by the steady-state prefetch below.
+  %initial_a_bank = scf.for %load_iteration = [%zero to %two step %one](%a_bank = %empty_global_a_bank : vector<2x8xf16>) -> (vector<2x8xf16>) unroll {
+    %iteration_delta = index.mul %load_iteration, %load_vector_stride : index
+    %linear_vector = index.add %thread, %iteration_delta : index
+    %a_row_vector = index.rem %linear_vector, %eight : index
+    %a_row_in_tile0 = index.mul %a_row_vector, %eight : index
+    %a_row_in_tile = index.assume %a_row_in_tile0 [range(%a_row_in_tile0, 0, 56)] : index
+    %a_k_in_tile0 = index.div %linear_vector, %eight : index
+    %a_k_in_tile = index.assume %a_k_in_tile0 [range(%a_k_in_tile0, 0, 31)] : index
+    %a_row = index.add %workgroup_m_base, %a_row_in_tile : index
+    %a_values = vector.load %a_load[%a_k_in_tile, %a_row] : view<[%k]x[%m]xf16> -> vector<8xf16>
+    %next_a_bank = vector.insert %a_values into %a_bank[%load_iteration] : vector<8xf16>, vector<2x8xf16>
+    scf.yield %next_a_bank : vector<2x8xf16>
+  }
+  %initial_b_bank = scf.for %load_iteration = [%zero to %three step %one](%b_bank = %empty_global_b_bank : vector<3x8xf16>) -> (vector<3x8xf16>) unroll {
+    %iteration_delta = index.mul %load_iteration, %load_vector_stride : index
+    %linear_vector = index.add %thread, %iteration_delta : index
+    %b_k_vector = index.rem %linear_vector, %four : index
+    %b_k_in_tile0 = index.mul %b_k_vector, %eight : index
+    %b_k_in_tile = index.assume %b_k_in_tile0 [range(%b_k_in_tile0, 0, 24)] : index
+    %b_n_in_tile0 = index.div %linear_vector, %four : index
+    %b_n_in_tile = index.assume %b_n_in_tile0 [range(%b_n_in_tile0, 0, 95)] : index
+    %b_n = index.add %workgroup_n_base, %b_n_in_tile : index
+    %b_in_bounds = index.cmp ult, %b_n, %n : index
+    %b_values = scf.if %b_in_bounds -> (vector<8xf16>) {
+      %loaded = vector.load %b_load[%b_n, %b_k_in_tile] : view<[%n]x[%k]xf16> -> vector<8xf16>
+      scf.yield %loaded : vector<8xf16>
+    } else {
+      scf.yield %empty_global_payload : vector<8xf16>
+    }
+    %next_b_bank = vector.insert %b_values into %b_bank[%load_iteration] : vector<8xf16>, vector<3x8xf16>
+    scf.yield %next_b_bank : vector<3x8xf16>
+  }
+  %initial_a0 = vector.extract %initial_a_bank[0] : vector<2x8xf16> -> vector<8xf16>
+  %initial_a1 = vector.extract %initial_a_bank[1] : vector<2x8xf16> -> vector<8xf16>
+  %initial_b0 = vector.extract %initial_b_bank[0] : vector<3x8xf16> -> vector<8xf16>
+  %initial_b1 = vector.extract %initial_b_bank[1] : vector<3x8xf16> -> vector<8xf16>
+  %initial_b2 = vector.extract %initial_b_bank[2] : vector<3x8xf16> -> vector<8xf16>
+
+  %result_bank, %unused_a0, %unused_a1, %unused_b0, %unused_b1, %unused_b2 = scf.for %k_base = [%zero to %k step %depth_u](%outer_bank = %empty_accumulator_bank : vector<2x3x8xf32>, %current_a0 = %initial_a0 : vector<8xf16>, %current_a1 = %initial_a1 : vector<8xf16>, %current_b0 = %initial_b0 : vector<8xf16>, %current_b1 = %initial_b1 : vector<8xf16>, %current_b2 = %initial_b2 : vector<8xf16>) -> (vector<2x3x8xf32>, vector<8xf16>, vector<8xf16>, vector<8xf16>, vector<8xf16>, vector<8xf16>) {
+    %current_a_bank0 = vector.insert %current_a0 into %empty_global_a_bank[0] : vector<8xf16>, vector<2x8xf16>
+    %current_a_bank = vector.insert %current_a1 into %current_a_bank0[1] : vector<8xf16>, vector<2x8xf16>
+    %current_b_bank0 = vector.insert %current_b0 into %empty_global_b_bank[0] : vector<8xf16>, vector<3x8xf16>
+    %current_b_bank1 = vector.insert %current_b1 into %current_b_bank0[1] : vector<8xf16>, vector<3x8xf16>
+    %current_b_bank = vector.insert %current_b2 into %current_b_bank1[2] : vector<8xf16>, vector<3x8xf16>
+    scf.for %load_iteration = [%zero to %two step %one] unroll {
+      %iteration_delta = index.mul %load_iteration, %load_vector_stride : index
+      %linear_vector = index.add %thread, %iteration_delta : index
+      %a_row_vector = index.rem %linear_vector, %eight : index
+      %a_row_in_tile0 = index.mul %a_row_vector, %eight : index
+      %a_row_in_tile = index.assume %a_row_in_tile0 [range(%a_row_in_tile0, 0, 56)] : index
+      %a_k_in_tile0 = index.div %linear_vector, %eight : index
+      %a_k_in_tile = index.assume %a_k_in_tile0 [range(%a_k_in_tile0, 0, 31)] : index
+      %a_values = vector.extract %current_a_bank[%load_iteration] : vector<2x8xf16> -> vector<8xf16>
+      vector.store %a_values, %a_lds_store[%a_k_in_tile, %a_row_in_tile] : vector<8xf16>, view<32x64xf16>
+    }
+    scf.for %load_iteration = [%zero to %three step %one] unroll {
+      %iteration_delta = index.mul %load_iteration, %load_vector_stride : index
+      %linear_vector = index.add %thread, %iteration_delta : index
+      %b_k_vector = index.rem %linear_vector, %four : index
+      %b_k_in_tile0 = index.mul %b_k_vector, %eight : index
+      %b_k_in_tile = index.assume %b_k_in_tile0 [range(%b_k_in_tile0, 0, 24)] : index
+      %b_n_in_tile0 = index.div %linear_vector, %four : index
+      %b_n_in_tile = index.assume %b_n_in_tile0 [range(%b_n_in_tile0, 0, 95)] : index
+      %b_values = vector.extract %current_b_bank[%load_iteration] : vector<3x8xf16> -> vector<8xf16>
+      vector.store %b_values, %b_lds_store[%b_n_in_tile, %b_k_in_tile] : vector<8xf16>, view<96x32xf16>
+    }
+
+    // Fetch k+DepthU before consuming the current LDS tile. These values stay
+    // live through the WMMA phase and are written at the next iteration.
+    %candidate_next_k_base = index.add %k_base, %depth_u : index
+    %has_next = index.cmp ult, %candidate_next_k_base, %k : index
+    // The final value is unused. Re-read the current tile on the last
+    // iteration to keep every address valid and the carried vector banks in
+    // the static insert-chain form understood by sroa-vector-banks.
+    %next_k_base = scf.select %has_next, %candidate_next_k_base, %k_base : index
+    %next_a_bank = scf.for %load_iteration = [%zero to %two step %one](%a_bank = %empty_global_a_bank : vector<2x8xf16>) -> (vector<2x8xf16>) unroll {
+      %iteration_delta = index.mul %load_iteration, %load_vector_stride : index
+      %linear_vector = index.add %thread, %iteration_delta : index
+      %a_row_vector = index.rem %linear_vector, %eight : index
+      %a_row_in_tile0 = index.mul %a_row_vector, %eight : index
+      %a_row_in_tile = index.assume %a_row_in_tile0 [range(%a_row_in_tile0, 0, 56)] : index
+      %a_k_in_tile0 = index.div %linear_vector, %eight : index
+      %a_k_in_tile = index.assume %a_k_in_tile0 [range(%a_k_in_tile0, 0, 31)] : index
+      %a_row = index.add %workgroup_m_base, %a_row_in_tile : index
+      %a_k = index.add %next_k_base, %a_k_in_tile : index
+      %a_values = vector.load %a_load[%a_k, %a_row] : view<[%k]x[%m]xf16> -> vector<8xf16>
+      %after_insert = vector.insert %a_values into %a_bank[%load_iteration] : vector<8xf16>, vector<2x8xf16>
+      scf.yield %after_insert : vector<2x8xf16>
+    }
+    %next_b_bank = scf.for %load_iteration = [%zero to %three step %one](%b_bank = %empty_global_b_bank : vector<3x8xf16>) -> (vector<3x8xf16>) unroll {
+      %iteration_delta = index.mul %load_iteration, %load_vector_stride : index
+      %linear_vector = index.add %thread, %iteration_delta : index
+      %b_k_vector = index.rem %linear_vector, %four : index
+      %b_k_in_tile0 = index.mul %b_k_vector, %eight : index
+      %b_k_in_tile = index.assume %b_k_in_tile0 [range(%b_k_in_tile0, 0, 24)] : index
+      %b_n_in_tile0 = index.div %linear_vector, %four : index
+      %b_n_in_tile = index.assume %b_n_in_tile0 [range(%b_n_in_tile0, 0, 95)] : index
+      %b_k = index.add %next_k_base, %b_k_in_tile : index
+      %b_n = index.add %workgroup_n_base, %b_n_in_tile : index
+      %b_in_bounds = index.cmp ult, %b_n, %n : index
+      %b_values = scf.if %b_in_bounds -> (vector<8xf16>) {
+        %loaded = vector.load %b_load[%b_n, %b_k] : view<[%n]x[%k]xf16> -> vector<8xf16>
+        scf.yield %loaded : vector<8xf16>
+      } else {
+        scf.yield %empty_global_payload : vector<8xf16>
+      }
+      %after_insert = vector.insert %b_values into %b_bank[%load_iteration] : vector<8xf16>, vector<3x8xf16>
+      scf.yield %after_insert : vector<3x8xf16>
+    }
+    kernel.barrier<workgroup> scope(workgroup) ordering(acq_rel)
+
+    %depth_bank = scf.for %k_inner = [%zero to %depth_u step %tile](%inner_bank = %outer_bank : vector<2x3x8xf32>) -> (vector<2x3x8xf32>) unroll {
+      %lhs_bank = scf.for %m_fragment = [%zero to %two step %one](%lhs_values = %empty_lhs_bank : vector<2x16xf16>) -> (vector<2x16xf16>) unroll {
+        %m_delta = index.mul %m_fragment, %tile : index
+        %m_origin = index.add %wave_m_delta, %m_delta : index
+        %lhs = vector.fragment.load<lhs> %a_lds[%m_origin, %k_inner] shape [%tile, %tile] : view<64x32xf16, %a_lds_layout> -> vector<16xf16>
+        %next = vector.insert %lhs into %lhs_values[%m_fragment] : vector<16xf16>, vector<2x16xf16>
+        scf.yield %next : vector<2x16xf16>
+      }
+      %rhs_bank = scf.for %n_fragment = [%zero to %three step %one](%rhs_values = %empty_rhs_bank : vector<3x16xf16>) -> (vector<3x16xf16>) unroll {
+        %n_delta = index.mul %n_fragment, %tile : index
+        %n_origin = index.add %wave_n_delta, %n_delta : index
+        %rhs = vector.fragment.load<rhs> %b_lds[%k_inner, %n_origin] shape [%tile, %tile] : view<32x96xf16, %b_lds_layout> -> vector<16xf16>
+        %next = vector.insert %rhs into %rhs_values[%n_fragment] : vector<16xf16>, vector<3x16xf16>
+        scf.yield %next : vector<3x16xf16>
+      }
+      %after_m = scf.for %m_fragment = [%zero to %two step %one](%m_bank = %inner_bank : vector<2x3x8xf32>) -> (vector<2x3x8xf32>) unroll {
+        %lhs_payload = vector.extract %lhs_bank[%m_fragment] : vector<2x16xf16> -> vector<16xf16>
+        %lhs = vector.fragment<lhs> %lhs_payload shape [%tile, %tile] : vector<16xf16>
+        %after_n = scf.for %n_fragment = [%zero to %three step %one](%n_bank = %m_bank : vector<2x3x8xf32>) -> (vector<2x3x8xf32>) unroll {
+          %rhs_payload = vector.extract %rhs_bank[%n_fragment] : vector<3x16xf16> -> vector<16xf16>
+          %rhs = vector.fragment<rhs> %rhs_payload shape [%tile, %tile] : vector<16xf16>
+          %acc_payload = vector.extract %n_bank[%m_fragment, %n_fragment] : vector<2x3x8xf32> -> vector<8xf32>
+          %acc = vector.fragment<init> %acc_payload shape [%tile, %tile] : vector<8xf32>
+          %next_acc = vector.mma %lhs, %rhs, %acc : vector<16xf16>, vector<16xf16>, vector<8xf32>
+          %next_bank = vector.insert %next_acc into %n_bank[%m_fragment, %n_fragment] : vector<8xf32>, vector<2x3x8xf32>
+          scf.yield %next_bank : vector<2x3x8xf32>
+        }
+        scf.yield %after_n : vector<2x3x8xf32>
+      }
+      scf.yield %after_m : vector<2x3x8xf32>
+    }
+    kernel.barrier<workgroup> scope(workgroup) ordering(acq_rel)
+    %next_a0 = vector.extract %next_a_bank[0] : vector<2x8xf16> -> vector<8xf16>
+    %next_a1 = vector.extract %next_a_bank[1] : vector<2x8xf16> -> vector<8xf16>
+    %next_b0 = vector.extract %next_b_bank[0] : vector<3x8xf16> -> vector<8xf16>
+    %next_b1 = vector.extract %next_b_bank[1] : vector<3x8xf16> -> vector<8xf16>
+    %next_b2 = vector.extract %next_b_bank[2] : vector<3x8xf16> -> vector<8xf16>
+    scf.yield %depth_bank, %next_a0, %next_a1, %next_b0, %next_b1, %next_b2 : vector<2x3x8xf32>, vector<8xf16>, vector<8xf16>, vector<8xf16>, vector<8xf16>, vector<8xf16>
+  }
+
+  scf.for %store_m = [%zero to %two step %one] unroll {
+    %m_delta = index.mul %store_m, %tile : index
+    %m_origin = index.add %wave_m_base, %m_delta : index
+    scf.for %store_n = [%zero to %three step %one] unroll {
+      %n_delta = index.mul %store_n, %tile : index
+      %n_origin = index.add %wave_n_base, %n_delta : index
+      %payload = vector.extract %result_bank[%store_m, %store_n] : vector<2x3x8xf32> -> vector<8xf32>
+      %result = vector.fragment<result> %payload shape [%tile, %tile] : vector<8xf32>
+      %store_n_end = index.add %n_origin, %tile : index
+      %store_in_bounds = index.cmp ule, %store_n_end, %n : index
+      scf.if %store_in_bounds {
+        vector.fragment.store<result> %result, %d[%m_origin, %n_origin] shape [%tile, %tile] : vector<8xf32>, view<[%m]x[%n]xf16, %d_column_major>
+      }
+    }
+  }
+  kernel.return
+}

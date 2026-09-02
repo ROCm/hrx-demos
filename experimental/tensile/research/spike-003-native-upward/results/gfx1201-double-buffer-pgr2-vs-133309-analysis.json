@@ -1,0 +1,18 @@
+{
+  "schema": "loom-blas.timing-summary.v1",
+  "source": "research/spike-003-native-upward/results/gfx1201-double-buffer-pgr2-vs-133309-paired.json",
+  "sample_count": 50,
+  "loom_median_us": 36.4005,
+  "incumbent_median_us": 28.9405,
+  "median_ratio": 1.257770252759973,
+  "bootstrap": {
+    "method": "independent resampling of alternating same-process samples",
+    "resamples": 20000,
+    "seed": 2,
+    "confidence": 0.95,
+    "ratio_ci": [
+      1.2469135802469136,
+      1.2608996539792388
+    ]
+  }
+}

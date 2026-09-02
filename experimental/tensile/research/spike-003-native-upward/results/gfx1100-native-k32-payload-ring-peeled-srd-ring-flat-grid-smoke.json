@@ -1,0 +1,8 @@
+{
+  "schema":"loom-blas.paired-probe.v1",
+  "backend":"compare",
+  "device":{"ordinal":0,"name":"AMD Radeon Pro W7900","arch":"gfx1100"},
+  "request":{"m":1024,"n":960,"k":1024,"type":"f16"},
+  "loom":{"hsaco":"research/spike-003-native-upward/artifacts/gfx11-native-k32-payload-ring-peeled-srd-ring-flat-grid/kernel.hsaco","kernel":"gemm_f16_f32_mt64x96x32_gfx11_pgr2","time_us":[53.481,49.641,49.720,49.720,50.881,49.560,50.760,49.441,51.160,49.840,50.841,50.441,50.240,48.521,50.161,50.240,56.561,48.681,49.560,48.680,50.201,49.880,51.800,49.561,49.840,49.080,48.361,49.321,50.040,48.681],"correctness":{"mismatches":0,"max_absolute":0.000}},
+  "incumbent":{"solution_index":1675,"time_us":[46.001,45.400,44.881,45.280,45.080,45.561,45.321,45.440,45.360,45.601,45.080,45.721,45.201,45.480,45.200,45.521,54.001,45.400,45.000,45.881,45.120,45.521,45.081,45.320,45.240,45.161,45.200,45.440,45.481,45.360],"correctness":{"mismatches":0,"max_absolute":0.000}}
+}

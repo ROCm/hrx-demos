@@ -1,0 +1,18 @@
+{
+  "schema": "loom-blas.microtile-permutation.v1",
+  "reference": "<scratch>/gfx11-correct-output.f16",
+  "candidate": "<scratch>/gfx11-swapped-output.f16",
+  "shape": [
+    1024,
+    960
+  ],
+  "layout": "column-major",
+  "microtile": [
+    16,
+    16
+  ],
+  "relation": "transpose-each-microtile",
+  "mismatches": 0,
+  "max_abs_error": 0.0,
+  "exact": true
+}

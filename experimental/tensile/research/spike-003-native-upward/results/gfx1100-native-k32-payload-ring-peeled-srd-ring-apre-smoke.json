@@ -1,0 +1,10 @@
+{
+  "schema":"loom-blas.probe.v1",
+  "backend":"loom",
+  "device":{"ordinal":0,"name":"AMD Radeon Pro W7900","arch":"gfx1100"},
+  "request":{"m":1024,"n":960,"k":1024,"trans_a":"N","trans_b":"N","a_type":"f16","b_type":"f16","c_type":"f16","d_type":"f16","compute_type":"f32","alpha":1.0,"beta":0.0},
+  "artifact":{"hsaco":"research/spike-003-native-upward/artifacts/gfx11-native-k32-payload-ring-peeled-srd-ring-apre/kernel.hsaco","kernel":"gemm_f16_f32_mt64x96x32_gfx11_pgr2"},
+  "launch":{"grid":[10,16,1],"workgroup":[32,4,1]},
+  "time_us":[57.320,52.640,49.280,51.560,50.921,49.440,49.961,49.720,49.720,50.361],
+  "correctness":{"mismatches":898982,"max_absolute":36.133,"max_relative":12.654}
+}

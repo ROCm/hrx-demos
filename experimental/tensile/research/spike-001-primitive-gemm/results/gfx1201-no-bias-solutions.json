@@ -1,0 +1,404 @@
+{
+  "encoded_size": 5262,
+  "schema": "loom-blas.tensile-library.v1",
+  "sha256": "0ee71b6ac22aa445101505456dec583e5e12d776678fd841e8335d3bc8bc8a2d",
+  "source": "<selected-rocm>/lib/hipblaslt/library/gfx1201/TensileLibrary_HH_HH_HA_UA_Type_HH_HPA_Contraction_l_Ailk_Bljk_Cijk_Dijk_gfx1201.dat.zlib",
+  "summary": {
+    "kind": "solution_shard",
+    "route": {
+      "rows": [
+        {
+          "library_type": "Matching",
+          "matching": {
+            "distance": "Equality",
+            "properties": [
+              {
+                "index": 0,
+                "type": "FreeSizeA"
+              },
+              {
+                "index": 0,
+                "type": "FreeSizeB"
+              },
+              {
+                "index": 0,
+                "type": "BatchSize"
+              },
+              {
+                "index": 0,
+                "type": "BoundSize"
+              }
+            ],
+            "table_row_count": 25,
+            "type": "Matching"
+          },
+          "ordinal": 0,
+          "predicate": {
+            "type": "EqualityMatching"
+          }
+        }
+      ],
+      "type": "Problem"
+    },
+    "selected_solutions": {
+      "133764": {
+        "debugKernel": false,
+        "hardwarePredicate": {
+          "type": "AMDGPU",
+          "value": {
+            "type": "Processor",
+            "value": "gfx1201"
+          }
+        },
+        "ideals": {},
+        "index": 133764,
+        "internalArgsSupport": {
+          "gsu": true,
+          "staggerU": true,
+          "useSFC": false,
+          "useUniversalArgs": true,
+          "version": 2,
+          "wgm": true
+        },
+        "kernelName": "Cijk_Ailk_Bljk_HHS_BH_HA_S_UserArgs_MT64x32x64_MI16x16x1_SN_LDSB0_AFC1_AG0_AGGSUA0_AGNTAB0_AFEM1_AFEM1_ASEM1_BL1_BS1_CD1_1_CLR1_CLS0_CADS0_DTLA0_DTLB0_DTLM0_DTVA0_DTVB0_DTVMXSA0_DTVMXSB0_DTVSM0_DPLB0_EPS0_ELFLR0_EMLLn1_FDSI0_GRPM1_GRVWA8_GRVWB8_GSUAMB_GLS0_HPLR0_ISA1201_ICIW0_IU1_K1_LDSSI0_LDSTI0_LBSPPA1024_LBSPPB128_LBSPPMXSA0_LBSPPMXSB0_LBSPPM0_LPA16_LPB16_LPMXSA0_LPMXSB0_LPM0_LRVW8_LWPMn1_MIAV1_MIWT1_2_MXLIBL_MXSFNS_MO40_MGRIPM1_NTn1_NTA0_NTB0_NTC0_NTD0_NTE0_NTMXSA0_NTMXSB0_NTM0_NTWS0_NVn1_NVA0_NVB0_NVC0_NVD0_NVE0_NVMXSA0_NVMXSB0_NVM0_NVWS0_NEPBS0_NLCA1_NLCB1_ONLL1_PAP0_PGL0_PGR2_PLR1_PKA0_SGROB0_SIA3_SS0_SPO0_SRVW0_SSO0_SVW8_SK0_SKFTR0_SKFDPO0_SKWS0_SKXCCM0_SNLL0_SIP1_SGRO0_TDMI0_TDMIM0_TDMLWS0_TDMPLB0_TDMS0_TIN0_THn1_THA0_THB0_THC0_THD0_THE0_THMXSA0_THMXSB0_THM0_THWS0_TLDS1_TLDSM1_ULSGRO0_USL1_USLMX0_UDFMAC0_UIOFGRO0_UPLRP0_USFGROn1_USI0_VSn1_VWA1_VWB1_WSGRA0_WSGRB0_WS32_WG64_2_1_WGMXCC1",
+        "libraryLogicIndex": 16,
+        "linearModel": {},
+        "name": "Cijk_Ailk_Bljk_HHS_BH_HA_S_UserArgs_MT64x32x64_MI16x16x1_SN_LDSB0_AFC1_AG0_AGGSUA0_AGNTAB0_AFEM1_AFEM1_ASEM1_BL1_BS1_CD1_1_CLR1_CLS0_CADS0_DTLA0_DTLB0_DTLM0_DTVA0_DTVB0_DTVMXSA0_DTVMXSB0_DTVSM0_DPLB0_EPS0_ELFLR0_EMLLn1_FDSI0_GRPM1_GRVWA8_GRVWB8_GSU1_GSUAMB_GSUC0_GSUWGMRR0_GLS0_HPLR0_ISA1201_ICIW0_IU1_K1_LDSSI0_LDSTI0_LBSPPA1024_LBSPPB128_LBSPPMXSA0_LBSPPMXSB0_LBSPPM0_LPA16_LPB16_LPMXSA0_LPMXSB0_LPM0_LRVW8_LWPMn1_MIAV1_MIWT1_2_MXLIBL_MXSFNS_MO40_MGRIPM1_NTn1_NTA0_NTB0_NTC0_NTD0_NTE0_NTMXSA0_NTMXSB0_NTM0_NTWS0_NVn1_NVA0_NVB0_NVC0_NVD0_NVE0_NVMXSA0_NVMXSB0_NVM0_NVWS0_NEPBS0_NLCA1_NLCB1_ONLL1_PAP0_PGL0_PGR2_PLR1_PKA0_SGROB0_SIA3_SS0_SU32_SUM1_SUS256_SPO0_SRVW0_SSO0_SVW8_SK0_SKFTR0_SKFDPO0_SKWS0_SKXCCM0_SNLL0_SIP1_SGRO0_TDMI0_TDMIM0_TDMLWS0_TDMPLB0_TDMS0_TIN0_THn1_THA0_THB0_THC0_THD0_THE0_THMXSA0_THMXSB0_THM0_THWS0_TLDS1_TLDSM1_ULSGRO0_USL1_USLMX0_UDFMAC0_UIOFGRO0_UPLRP0_USFGROn1_USI0_VSn1_VWA1_VWB1_WSGRA0_WSGRB0_WS32_WG64_2_1_WGM8_WGMXCC1_WGMXCCGn1",
+        "problemPredicate": {
+          "type": "And",
+          "value": [
+            {
+              "type": "OperationIdentifierEqual",
+              "value": "Contraction_l_Ailk_Bljk_Cijk_Dijk"
+            },
+            {
+              "type": "BiasDataTypeWhiteList",
+              "value": [
+                "Float",
+                "Half"
+              ]
+            },
+            {
+              "type": "GateResidualDataTypeWhiteList",
+              "value": []
+            },
+            {
+              "type": "BiasSrcWhiteList",
+              "value": [
+                3
+              ]
+            },
+            {
+              "type": "AmaxDCheck",
+              "value": false
+            },
+            {
+              "type": "ActivationEnumWhiteList",
+              "value": [
+                "None",
+                "Gelu",
+                "Relu",
+                "Sigmoid",
+                "Silu",
+                "Clamp"
+              ]
+            },
+            {
+              "type": "TypesEqual",
+              "value": [
+                "Half",
+                "Half",
+                "Half",
+                "Half",
+                "Half",
+                "Half"
+              ]
+            },
+            {
+              "type": "HighPrecisionAccumulate",
+              "value": true
+            },
+            {
+              "type": "Activation",
+              "value": "Hipblaslt_all"
+            },
+            {
+              "type": "ActivationComputeType",
+              "value": "Float"
+            },
+            {
+              "type": "ActivationNoGuard",
+              "value": false
+            },
+            {
+              "type": "UseGradient",
+              "value": false
+            },
+            {
+              "type": "UseBias",
+              "value": 0
+            },
+            {
+              "type": "UseE",
+              "value": false
+            },
+            {
+              "type": "UseGateResidual",
+              "value": false
+            },
+            {
+              "type": "DataTypeE",
+              "value": "Half"
+            },
+            {
+              "type": "StridedBatched",
+              "value": true
+            },
+            {
+              "type": "GroupedGemm",
+              "value": false
+            },
+            {
+              "type": "UseScaleAB",
+              "value": ""
+            },
+            {
+              "type": "UseScaleCD",
+              "value": false
+            },
+            {
+              "type": "UseScaleAlphaVec",
+              "value": 0
+            },
+            {
+              "type": "Sparse",
+              "value": 0
+            },
+            {
+              "type": "F32XdlMathOp",
+              "value": "Float"
+            },
+            {
+              "type": "SupportDeviceUserArguments",
+              "value": true
+            },
+            {
+              "type": "SwizzleTensorA",
+              "value": false
+            },
+            {
+              "type": "SwizzleTensorB",
+              "value": false
+            },
+            {
+              "type": "MXBlockA",
+              "value": 0
+            },
+            {
+              "type": "MXBlockB",
+              "value": 0
+            },
+            {
+              "index": 0,
+              "type": "WorkgroupNumberCheck",
+              "value": [
+                64,
+                32,
+                1
+              ]
+            },
+            {
+              "type": "LeadingFree0SizesGreaterOrEqual",
+              "value": 8
+            },
+            {
+              "type": "LeadingFree1SizesGreaterOrEqual",
+              "value": 1
+            },
+            {
+              "type": "KernelLanguageCompatible",
+              "value": "Assembly"
+            },
+            {
+              "type": "BufferLoadOffsetLimitCheck",
+              "value": {
+                "DUorMT0": 64,
+                "DUorMT1": 32,
+                "ShiftPtrElemA": 8,
+                "ShiftPtrElemB": 0
+              }
+            },
+            {
+              "type": "BufferLoadOffsetLimitCheck_Beta",
+              "value": 32
+            },
+            {
+              "type": "BufferStoreOffsetLimitCheck",
+              "value": 32
+            },
+            {
+              "type": "GlobalSplitUCheckMinK",
+              "value": [
+                32,
+                1
+              ]
+            },
+            {
+              "type": "WorkgroupMappingXCCCheck",
+              "value": [
+                1,
+                -1
+              ]
+            }
+          ]
+        },
+        "problemType": {
+          "aType": "Half",
+          "activationArgLength": 2,
+          "activationComputeDataType": "Float",
+          "activationNoGuard": false,
+          "activationType": "Hipblaslt_all",
+          "bType": "Half",
+          "biasDataTypeWhiteList": [
+            "Float",
+            "Half"
+          ],
+          "biasSrcWhiteList": [
+            3
+          ],
+          "cType": "Half",
+          "computeInputTypeA": "Half",
+          "computeInputTypeB": "Half",
+          "computeType": "Float",
+          "dType": "Half",
+          "eType": "Half",
+          "f32XdlMathOp": "Float",
+          "gateResidualDataTypeWhiteList": [],
+          "groupedGemm": false,
+          "highPrecisionAccumulate": true,
+          "metadataLayout": 0,
+          "mxBlockA": 0,
+          "mxBlockB": 0,
+          "mxScaleFormat": 0,
+          "mxTypeA": "E8",
+          "mxTypeB": "E8",
+          "operationIdentifier": "Contraction_l_Ailk_Bljk_Cijk_Dijk",
+          "outputAmaxD": false,
+          "sparse": 0,
+          "stridedBatched": true,
+          "supportDeviceUserArguments": true,
+          "swizzleTensorA": false,
+          "swizzleTensorB": false,
+          "transA": false,
+          "transB": false,
+          "useBeta": true,
+          "useBias": 0,
+          "useE": false,
+          "useGateResidual": false,
+          "useGradient": false,
+          "useInitialStridesAB": false,
+          "useInitialStridesCD": false,
+          "useScaleAB": "",
+          "useScaleAlphaVec": 0,
+          "useScaleCD": false
+        },
+        "sizeMapping": {
+          "CUOccupancy": 2,
+          "CustomKernelName": "",
+          "DirectToLdsA": false,
+          "DirectToLdsB": false,
+          "DirectToVgprA": false,
+          "DirectToVgprB": false,
+          "ExpertSchedulingMode": 2,
+          "LocalSplitU": 1,
+          "MathClocksUnrolledLoop": 266,
+          "NonTemporalD": 0,
+          "NumLoadsCoalescedA": 1,
+          "NumLoadsCoalescedB": 1,
+          "PrefetchGlobalRead": 2,
+          "UnrollLoopSwapGlobalReadOrder": 0,
+          "VectorWidthA": 1,
+          "VectorWidthB": 1,
+          "WaveGroup": [
+            4,
+            1
+          ],
+          "WaveSeparateGlobalReadA": 0,
+          "WaveSeparateGlobalReadB": 0,
+          "activationFused": true,
+          "adaptiveGemmGSUA": 0,
+          "adaptiveGemmNTAB": 0,
+          "clusterDim": [
+            1,
+            1
+          ],
+          "customMainLoopScheduling": 0,
+          "depthU": 64,
+          "globalAccumulation": 2,
+          "globalSplitU": 1,
+          "globalSplitUCoalesced": false,
+          "globalSplitUPGR": 16,
+          "globalSplitUWorkGroupMappingRoundRobin": false,
+          "grvwA": 8,
+          "grvwB": 8,
+          "gwvwC": 8,
+          "gwvwD": 8,
+          "macroTile": [
+            64,
+            32,
+            1
+          ],
+          "magicDivAlg": 2,
+          "matrixInstruction": [
+            16,
+            16,
+            16,
+            1
+          ],
+          "nonTemporalA": 0,
+          "nonTemporalB": 0,
+          "packBatchDims": 0,
+          "prefetchAcrossPersistent": 0,
+          "sourceKernel": false,
+          "staggerStrideShift": 1,
+          "staggerU": 32,
+          "staggerUMapping": 1,
+          "streamK": 0,
+          "streamKAtomic": 0,
+          "streamKForceDPOnly": 0,
+          "synchronizerSizePerWG": 128,
+          "threadTile": [
+            1,
+            1
+          ],
+          "useSubtileImpl": false,
+          "waveNum": 4,
+          "workGroup": [
+            64,
+            2,
+            1
+          ],
+          "workGroupMapping": 8,
+          "workGroupMappingXCC": 1,
+          "workGroupMappingXCCGroup": -1,
+          "workspaceSizePerElemBias": 0,
+          "workspaceSizePerElemC": 4
+        },
+        "taskPredicate": {
+          "type": "And",
+          "value": [
+            {
+              "type": "WorkspaceCheck"
+            },
+            {
+              "type": "LaunchLimits"
+            }
+          ]
+        }
+      }
+    },
+    "solution_count": 30,
+    "solution_index_max": 133777,
+    "solution_index_min": 133748
+  }
+}

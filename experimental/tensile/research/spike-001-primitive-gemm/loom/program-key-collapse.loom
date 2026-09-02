@@ -1,0 +1,13 @@
+// A minimal pre-emission cache-identity experiment.
+//
+// Exact request values 32 and 48 occupy the same intrinsic modulo-16 class and
+// must canonicalize to the same program. Value 33 must not alias with them.
+// This isolates program-derived identity from GPU artifact emission.
+config.decl @program_key.m : %value: index where [range(%value, 1, 65535)]
+
+func.def public @intrinsic_partition() -> (index) {
+  %m = config.get @program_key.m : index
+  %mma_m = index.constant 16 : index
+  %partition = index.rem %m, %mma_m : index
+  func.return %partition : index
+}

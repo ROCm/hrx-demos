@@ -1,0 +1,18 @@
+{
+  "schema": "loom-blas.timing-summary.v1",
+  "source": "research/spike-003-native-upward/results/gfx1100-native-k32-wgm8-swapped-native-epilogue-vs-1675-paired.json",
+  "sample_count": 80,
+  "loom_median_us": 36.446,
+  "incumbent_median_us": 43.247,
+  "median_ratio": 0.8427405369158554,
+  "bootstrap": {
+    "method": "independent resampling of alternating same-process samples",
+    "resamples": 20000,
+    "seed": 1100,
+    "confidence": 0.95,
+    "ratio_ci": [
+      0.8392474727703962,
+      0.8452289943706998
+    ]
+  }
+}

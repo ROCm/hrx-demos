@@ -1,0 +1,22 @@
+// Minimal first packet required by the gfx906 GEMM reconstruction. This is
+// deliberately target-family generic: gfx906 is the physical witness, not an
+// authored one-off target.
+// `gfx90-generic` is the intended authored family. It is deliberately
+// distinct from the Instinct `gfx9-4-generic` family and is not present in the
+// current target-kind table; this source is the parser/target-bundle repro.
+amdgpu.target<gfx90-generic> @gfx9 {subgroup_size = 64}
+
+kernel.def target(@gfx9) @gfx9_dot2_f16_witness() {
+  %one = index.constant 1 : index
+  %wave = index.constant 64 : index
+  kernel.launch.config workgroups(%one, %one, %one) workgroup_size(%wave, %one, %one) : index
+} launch(%output: buffer) {
+  %base = index.constant 0 : offset
+  %view = buffer.view %output[%base] : buffer -> view<4xf32>
+  %lhs = vector.constant 1.0 : vector<8xf16>
+  %rhs = vector.constant 1.0 : vector<8xf16>
+  %zero = vector.constant 0.0 : vector<4xf32>
+  %result = vector.dot2f %lhs, %rhs, %zero : vector<8xf16>, vector<8xf16>, vector<4xf32>
+  vector.store %result, %view[0] : vector<4xf32>, view<4xf32>
+  kernel.return
+}

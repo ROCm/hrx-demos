@@ -1,0 +1,8 @@
+{
+  "schema":"loom-blas.paired-probe.v1",
+  "backend":"compare",
+  "device":{"ordinal":0,"name":"AMD Radeon RX 9070 XT","arch":"gfx1201"},
+  "request":{"m":1024,"n":1024,"k":1024,"type":"f16"},
+  "loom":{"hsaco":"research/spike-003-native-upward/artifacts/gfx12-gemm-double-buffer-pgr2-ring-native-split-exact-fenced-svw4-buffer-uniform-bpad-wmma-l3-first-no-authored-delay/gemm.hsaco","kernel":"gemm_f16_f32_mt128x128x32_gfx12_scalar_acc","time_us":[34.800,31.840,31.680,31.720,31.601,31.480,31.560,31.560,31.400,31.720,31.400,31.520,31.640,31.800,31.480,31.281,31.360,31.320,31.440,31.320,31.201,31.281,31.200,30.960,31.080,31.040,31.081,31.041,31.240,31.080,31.120,31.240,31.441,31.081,30.800,31.040,30.880,31.040,30.960,31.080],"correctness":{"mismatches":0,"max_absolute":0.000}},
+  "incumbent":{"solution_index":133309,"time_us":[31.920,30.401,29.321,28.800,28.520,28.760,28.520,28.920,28.720,28.640,28.800,28.680,28.720,28.880,28.480,28.800,28.560,28.521,28.321,28.440,28.680,28.360,28.600,28.641,28.561,28.440,28.720,28.480,28.200,28.601,28.281,28.200,28.240,28.240,28.320,28.241,28.161,28.160,28.440,28.240],"correctness":{"mismatches":0,"max_absolute":0.000}}
+}

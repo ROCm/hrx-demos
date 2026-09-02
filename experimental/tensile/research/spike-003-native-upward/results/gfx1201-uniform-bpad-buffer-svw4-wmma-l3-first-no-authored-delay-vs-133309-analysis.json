@@ -1,0 +1,18 @@
+{
+  "schema": "loom-blas.timing-summary.v1",
+  "source": "research/spike-003-native-upward/results/gfx1201-uniform-bpad-buffer-svw4-wmma-l3-first-no-authored-delay-vs-133309-paired.json",
+  "sample_count": 40,
+  "loom_median_us": 31.3005,
+  "incumbent_median_us": 28.5405,
+  "median_ratio": 1.0967046828191516,
+  "bootstrap": {
+    "method": "independent resampling of alternating same-process samples",
+    "resamples": 20000,
+    "seed": 2,
+    "confidence": 0.95,
+    "ratio_ci": [
+      1.090063196117454,
+      1.1028169014084508
+    ]
+  }
+}

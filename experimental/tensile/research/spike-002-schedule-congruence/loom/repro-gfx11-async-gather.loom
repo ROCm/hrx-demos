@@ -1,0 +1,38 @@
+// End-to-end witness for the Radeon global_load_lds source contract.
+// One wave gathers eight contiguous f16 values per lane into LDS, waits for
+// completion, rendezvous, and copies the 256 values back to global memory.
+amdgpu.target<gfx11-generic> @gfx11 {subgroup_size = 32}
+
+kernel.def target(@gfx11) @repro_gfx11_async_gather() {
+  %one = index.constant 1 : index
+  %wave = index.constant 32 : index
+  kernel.launch.config workgroups(%one, %one, %one) workgroup_size(%wave, %one, %one) : index
+} launch(%input_buffer: buffer, %output_buffer: buffer) {
+  %base = index.constant 0 : offset
+  %zero = index.constant 0 : index
+  %two = index.constant 2 : index
+  %eight = index.constant 8 : index
+  %bytes = index.constant 512 : offset
+  %lane = kernel.workitem.id<x> : index
+
+  %input_global = buffer.assume.memory_space<global> %input_buffer : buffer
+  %output_global = buffer.assume.memory_space<global> %output_buffer : buffer
+  %input_aligned = buffer.assume.alignment %input_global {minimum_alignment = 16} : buffer
+  %output_aligned = buffer.assume.alignment %output_global {minimum_alignment = 16} : buffer
+  %scratch = buffer.alloca<workgroup> align(16) %bytes : buffer
+
+  %lane_element = index.mul %lane, %eight : index
+  %lane_byte_index = index.mul %lane_element, %two : index
+  %lane_byte_offset = index.cast %lane_byte_index : index to offset
+  %source = buffer.view %input_aligned[%lane_byte_offset] : buffer -> view<8xf16>
+  %destination = buffer.view %scratch[%base] : buffer -> view<32x8xf16>
+  %copy = kernel.async.gather %source to %destination {cache_scope = cu, cache_temporal = regular} : view<8xf16> to view<32x8xf16> -> kernel.async.token
+  %group = kernel.async.group %copy : kernel.async.token -> kernel.async.group
+  kernel.async.wait %group {newer_groups = 0} : kernel.async.group
+  kernel.barrier<workgroup> scope(workgroup) ordering(acq_rel)
+
+  %scratch_values = vector.load %destination[%lane, %zero] : view<32x8xf16> -> vector<8xf16>
+  %output = buffer.view %output_aligned[%lane_byte_offset] : buffer -> view<8xf16>
+  vector.store %scratch_values, %output[%zero] : vector<8xf16>, view<8xf16>
+  kernel.return
+}

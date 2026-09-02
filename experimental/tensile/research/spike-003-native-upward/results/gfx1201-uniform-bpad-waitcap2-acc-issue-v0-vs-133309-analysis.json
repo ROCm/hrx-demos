@@ -1,0 +1,18 @@
+{
+  "schema": "loom-blas.timing-summary.v1",
+  "source": "research/spike-003-native-upward/results/gfx1201-uniform-bpad-waitcap2-acc-issue-v0-vs-133309-paired.json",
+  "sample_count": 60,
+  "loom_median_us": 31.96,
+  "incumbent_median_us": 28.92,
+  "median_ratio": 1.1051175656984786,
+  "bootstrap": {
+    "method": "independent resampling of alternating same-process samples",
+    "resamples": 20000,
+    "seed": 2,
+    "confidence": 0.95,
+    "ratio_ci": [
+      1.1013094417643006,
+      1.1097222222222223
+    ]
+  }
+}

@@ -1,0 +1,1 @@
+{"finding_count":0,"findings":[],"kind":"loom.compile_report.suggest","provider":"amdgpu","schema_version":0,"source":"research/spike-003-native-upward/artifacts/gfx12-gemm-double-buffer-pgr2-ring-native-split-exact-fenced-svw4-buffer-uniform-bpad/report.json","status":"available","target":{"family":"AMDGPU","key":"gfx1201"}}

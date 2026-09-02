@@ -1,0 +1,101 @@
+{
+  "schema": "loom-blas.vertical-slice.v1",
+  "target": "gfx1201",
+  "authored_target": "gfx12-generic",
+  "source": "research/spike-001-primitive-gemm/loom/gemm-f16-f32-direct-gfx12.loom",
+  "source_sha256": "1a87bfeb06262ae737aef8719625c633d2b075fa0bbaa00c21366cc15232bcbc",
+  "kernel": "gemm_f16_f32_direct_gfx12",
+  "request_contract": {
+    "layout": "column_major",
+    "trans_a": "N",
+    "trans_b": "N",
+    "a_type": "f16",
+    "b_type": "f16",
+    "c_type": "f16",
+    "d_type": "f16",
+    "compute_type": "f32",
+    "alpha": 1.0,
+    "beta": 0.0
+  },
+  "candidate": {
+    "description": "one wave owns one 16x16 output tile and directly loads global fragments",
+    "workgroup": [32, 1, 1],
+    "output_tile": [16, 16],
+    "uses_lds": false
+  },
+  "experiments": [
+    {
+      "shape": [256, 256, 256],
+      "config": {
+        "gemm.m": 256,
+        "gemm.n": 256,
+        "gemm.k": 256
+      },
+      "hsaco_sha256": "6a2b0ee50c6796e784a73d11310d3368a693dd69a06ed5894675041524308980",
+      "compile_report_sha256": "afbef780aad7b0d5a740127364ba89e11e4e4cb013a6ae9e5e97535a8c01133a",
+      "compile_report": {
+        "artifact_size": 9200,
+        "workgroup_count": [16, 16, 1],
+        "dynamic_wmma_per_workgroup": 16,
+        "dispatch_issued_bytes": 4325376,
+        "vgpr_count": 28,
+        "scheduled_vgpr_pressure": 21,
+        "spill_count": 0
+      },
+      "loom": {
+        "time_us": [16.040, 16.080, 16.000, 16.081, 16.000, 16.040, 16.120, 16.040, 16.120, 15.960, 16.160, 16.040, 16.120, 16.040, 16.080, 16.080, 16.041, 16.000, 16.080, 16.080],
+        "median_us": 16.0605,
+        "tflops": 2.0892520158,
+        "mismatches": 0,
+        "max_absolute": 0.0
+      },
+      "best_incumbent": {
+        "backend": "hipblaslt",
+        "solution_index": 133764,
+        "time_us": [15.160, 14.840, 14.920, 14.760, 14.920, 14.760, 14.800, 14.801, 14.720, 14.720, 14.680, 14.800, 14.640, 14.600, 14.600, 14.720, 14.920, 14.760, 14.800, 14.560],
+        "median_us": 14.76,
+        "tflops": 2.2733355014,
+        "mismatches": 0,
+        "max_absolute": 0.0
+      },
+      "loom_over_incumbent_time_ratio": 1.0881097561
+    },
+    {
+      "shape": [1024, 1024, 1024],
+      "config": {
+        "gemm.m": 1024,
+        "gemm.n": 1024,
+        "gemm.k": 1024
+      },
+      "hsaco_sha256": "2c11b4118a0f2b02f80e31c3a72d628bb92383ce2f71c6752d0719b5160272f5",
+      "compile_report_sha256": "789619c059036e3ed2d939a244718c0deeff917110f07fbf8f3df54b742b568e",
+      "compile_report": {
+        "artifact_size": 9200,
+        "workgroup_count": [64, 64, 1],
+        "dynamic_wmma_per_workgroup": 64,
+        "dispatch_issued_bytes": 270532608,
+        "vgpr_count": 28,
+        "scheduled_vgpr_pressure": 21,
+        "spill_count": 0
+      },
+      "loom": {
+        "time_us": [111.960, 114.281, 113.200, 112.480, 112.520, 111.960, 111.361, 114.320, 111.681, 111.920, 110.041, 111.920, 113.121, 112.000, 113.361, 111.960, 113.361, 113.080, 111.841, 112.720],
+        "median_us": 112.24,
+        "tflops": 19.1329619387,
+        "mismatches": 0,
+        "max_absolute": 0.0
+      },
+      "best_incumbent": {
+        "backend": "hipblaslt",
+        "solution_index": 133222,
+        "time_us": [32.921, 32.440, 30.000, 29.480, 29.841, 30.120, 29.760, 29.680, 29.520, 29.520, 29.400, 29.520, 29.680, 29.561, 29.520, 29.640, 28.920, 29.280, 29.121, 29.120],
+        "median_us": 29.5405,
+        "tflops": 72.6962525347,
+        "mismatches": 0,
+        "max_absolute": 0.0
+      },
+      "loom_over_incumbent_time_ratio": 3.7995294596
+    }
+  ],
+  "measurement_note": "Candidate and incumbent were measured in adjacent runs with identical deterministic inputs, warmup 10, and 20 HIP-event samples; this is a spike discriminator, not the final interleaved protocol."
+}

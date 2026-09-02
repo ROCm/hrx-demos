@@ -1,0 +1,516 @@
+{
+  "schema": "loom-blas.att-instruction-summary.v1",
+  "captures": [
+    {
+      "label": "loom-native-lds-high",
+      "source": "<scratch>/loomblas-att-gfx11-current-rYYTvp/stats_ui_output_agent_57143_dispatch_1.csv",
+      "totals": {
+        "static_instructions": 948,
+        "hitcount": 45402,
+        "latency": 615596,
+        "stall": 504694,
+        "idle": 365932
+      },
+      "categories": {
+        "barrier": {
+          "static_instructions": 3,
+          "hitcount": 231,
+          "latency": 58374,
+          "stall": 0,
+          "idle": 0
+        },
+        "branch": {
+          "static_instructions": 2,
+          "hitcount": 231,
+          "latency": 231,
+          "stall": 0,
+          "idle": 970
+        },
+        "delay": {
+          "static_instructions": 119,
+          "hitcount": 0,
+          "latency": 0,
+          "stall": 0,
+          "idle": 0
+        },
+        "global_load": {
+          "static_instructions": 15,
+          "hitcount": 1155,
+          "latency": 1203,
+          "stall": 48,
+          "idle": 13265
+        },
+        "global_store": {
+          "static_instructions": 48,
+          "hitcount": 336,
+          "latency": 673,
+          "stall": 1,
+          "idle": 7709
+        },
+        "lds_read": {
+          "static_instructions": 152,
+          "hitcount": 17024,
+          "latency": 72952,
+          "stall": 55928,
+          "idle": 124520
+        },
+        "lds_write": {
+          "static_instructions": 15,
+          "hitcount": 1155,
+          "latency": 5775,
+          "stall": 0,
+          "idle": 39736
+        },
+        "matrix": {
+          "static_instructions": 24,
+          "hitcount": 2688,
+          "latency": 9604,
+          "stall": 6916,
+          "idle": 25461
+        },
+        "other": {
+          "static_instructions": 48,
+          "hitcount": 336,
+          "latency": 673,
+          "stall": 1,
+          "idle": 301
+        },
+        "scalar_other": {
+          "static_instructions": 100,
+          "hitcount": 6797,
+          "latency": 122585,
+          "stall": 115781,
+          "idle": 15650
+        },
+        "vector_other": {
+          "static_instructions": 376,
+          "hitcount": 12607,
+          "latency": 38124,
+          "stall": 23459,
+          "idle": 138320
+        },
+        "wait": {
+          "static_instructions": 46,
+          "hitcount": 2842,
+          "latency": 305402,
+          "stall": 302560,
+          "idle": 0
+        }
+      },
+      "highest_stall_instructions": [
+        {
+          "address": 7408,
+          "instruction": "s_waitcnt vmcnt(4)",
+          "hitcount": 112,
+          "latency": 118179,
+          "stall": 118067,
+          "idle": 0
+        },
+        {
+          "address": 7468,
+          "instruction": "s_waitcnt lgkmcnt(0)",
+          "hitcount": 112,
+          "latency": 27115,
+          "stall": 27003,
+          "idle": 0
+        },
+        {
+          "address": 6108,
+          "instruction": "s_waitcnt vmcnt(4)",
+          "hitcount": 112,
+          "latency": 24166,
+          "stall": 24054,
+          "idle": 0
+        },
+        {
+          "address": 9032,
+          "instruction": "s_waitcnt_vscnt null, 0x0",
+          "hitcount": 7,
+          "latency": 22287,
+          "stall": 22280,
+          "idle": 0
+        },
+        {
+          "address": 9700,
+          "instruction": "s_waitcnt_vscnt null, 0x0",
+          "hitcount": 7,
+          "latency": 22286,
+          "stall": 22279,
+          "idle": 0
+        },
+        {
+          "address": 9380,
+          "instruction": "s_waitcnt_vscnt null, 0x0",
+          "hitcount": 7,
+          "latency": 22176,
+          "stall": 22169,
+          "idle": 0
+        },
+        {
+          "address": 7996,
+          "instruction": "s_waitcnt_vscnt null, 0x0",
+          "hitcount": 7,
+          "latency": 18611,
+          "stall": 18604,
+          "idle": 0
+        },
+        {
+          "address": 4564,
+          "instruction": "s_waitcnt vmcnt(4)",
+          "hitcount": 7,
+          "latency": 17663,
+          "stall": 17656,
+          "idle": 0
+        },
+        {
+          "address": 8692,
+          "instruction": "s_waitcnt_vscnt null, 0x0",
+          "hitcount": 7,
+          "latency": 15466,
+          "stall": 15459,
+          "idle": 0
+        },
+        {
+          "address": 6184,
+          "instruction": "s_waitcnt lgkmcnt(0)",
+          "hitcount": 112,
+          "latency": 14660,
+          "stall": 14548,
+          "idle": 0
+        },
+        {
+          "address": 7420,
+          "instruction": "s_waitcnt vmcnt(3)",
+          "hitcount": 112,
+          "latency": 14566,
+          "stall": 14454,
+          "idle": 0
+        },
+        {
+          "address": 4156,
+          "instruction": "s_waitcnt lgkmcnt(0)",
+          "hitcount": 7,
+          "latency": 14293,
+          "stall": 14286,
+          "idle": 0
+        },
+        {
+          "address": 8344,
+          "instruction": "s_waitcnt_vscnt null, 0x0",
+          "hitcount": 7,
+          "latency": 12281,
+          "stall": 12274,
+          "idle": 0
+        },
+        {
+          "address": 6592,
+          "instruction": "s_waitcnt lgkmcnt(4)",
+          "hitcount": 112,
+          "latency": 10888,
+          "stall": 10776,
+          "idle": 0
+        },
+        {
+          "address": 5308,
+          "instruction": "s_waitcnt lgkmcnt(4)",
+          "hitcount": 112,
+          "latency": 10729,
+          "stall": 10617,
+          "idle": 0
+        },
+        {
+          "address": 5988,
+          "instruction": "s_waitcnt lgkmcnt(4)",
+          "hitcount": 112,
+          "latency": 10580,
+          "stall": 10468,
+          "idle": 0
+        },
+        {
+          "address": 6996,
+          "instruction": "s_waitcnt lgkmcnt(4)",
+          "hitcount": 112,
+          "latency": 9200,
+          "stall": 9088,
+          "idle": 0
+        },
+        {
+          "address": 6128,
+          "instruction": "s_waitcnt vmcnt(2)",
+          "hitcount": 112,
+          "latency": 4777,
+          "stall": 4665,
+          "idle": 0
+        },
+        {
+          "address": 7444,
+          "instruction": "s_waitcnt vmcnt(1)",
+          "hitcount": 112,
+          "latency": 3218,
+          "stall": 3106,
+          "idle": 0
+        },
+        {
+          "address": 7148,
+          "instruction": "v_and_b32_e32 v33, v3, v4",
+          "hitcount": 112,
+          "latency": 2605,
+          "stall": 2493,
+          "idle": 0
+        }
+      ]
+    },
+    {
+      "label": "incumbent-1675",
+      "source": "<scratch>/loomblas-att-gfx11-native-FuxrAp/stats_ui_output_agent_34782_dispatch_9.csv",
+      "totals": {
+        "static_instructions": 1434,
+        "hitcount": 32250,
+        "latency": 219026,
+        "stall": 141033,
+        "idle": 332645
+      },
+      "categories": {
+        "barrier": {
+          "static_instructions": 5,
+          "hitcount": 204,
+          "latency": 37164,
+          "stall": 4,
+          "idle": 0
+        },
+        "branch": {
+          "static_instructions": 60,
+          "hitcount": 552,
+          "latency": 552,
+          "stall": 0,
+          "idle": 4416
+        },
+        "delay": {
+          "static_instructions": 3,
+          "hitcount": 18,
+          "latency": 36,
+          "stall": 18,
+          "idle": 0
+        },
+        "global_load": {
+          "static_instructions": 17,
+          "hitcount": 972,
+          "latency": 975,
+          "stall": 3,
+          "idle": 42471
+        },
+        "global_store": {
+          "static_instructions": 48,
+          "hitcount": 288,
+          "latency": 576,
+          "stall": 0,
+          "idle": 5649
+        },
+        "lds_read": {
+          "static_instructions": 232,
+          "hitcount": 14616,
+          "latency": 41579,
+          "stall": 26963,
+          "idle": 113312
+        },
+        "lds_write": {
+          "static_instructions": 17,
+          "hitcount": 972,
+          "latency": 4853,
+          "stall": 29,
+          "idle": 6620
+        },
+        "matrix": {
+          "static_instructions": 36,
+          "hitcount": 2304,
+          "latency": 2442,
+          "stall": 138,
+          "idle": 77349
+        },
+        "scalar_other": {
+          "static_instructions": 502,
+          "hitcount": 6804,
+          "latency": 9915,
+          "stall": 1596,
+          "idle": 54919
+        },
+        "vector_other": {
+          "static_instructions": 480,
+          "hitcount": 3576,
+          "latency": 10264,
+          "stall": 3556,
+          "idle": 27909
+        },
+        "wait": {
+          "static_instructions": 34,
+          "hitcount": 1944,
+          "latency": 110670,
+          "stall": 108726,
+          "idle": 0
+        }
+      },
+      "highest_stall_instructions": [
+        {
+          "address": 716348,
+          "instruction": "s_waitcnt vmcnt(0)",
+          "hitcount": 6,
+          "latency": 30999,
+          "stall": 30993,
+          "idle": 0
+        },
+        {
+          "address": 717096,
+          "instruction": "s_waitcnt vmcnt(4)",
+          "hitcount": 180,
+          "latency": 27345,
+          "stall": 27165,
+          "idle": 0
+        },
+        {
+          "address": 717364,
+          "instruction": "s_waitcnt lgkmcnt(0)",
+          "hitcount": 180,
+          "latency": 22329,
+          "stall": 22149,
+          "idle": 0
+        },
+        {
+          "address": 711200,
+          "instruction": "s_waitcnt lgkmcnt(0)",
+          "hitcount": 6,
+          "latency": 13961,
+          "stall": 13955,
+          "idle": 0
+        },
+        {
+          "address": 716800,
+          "instruction": "s_waitcnt lgkmcnt(4)",
+          "hitcount": 180,
+          "latency": 6780,
+          "stall": 6600,
+          "idle": 0
+        },
+        {
+          "address": 719348,
+          "instruction": "s_waitcnt lgkmcnt(0)",
+          "hitcount": 6,
+          "latency": 3221,
+          "stall": 3215,
+          "idle": 0
+        },
+        {
+          "address": 716868,
+          "instruction": "ds_load_u16_d16_hi v75, v190 offset:2976",
+          "hitcount": 180,
+          "latency": 2079,
+          "stall": 1899,
+          "idle": 0
+        },
+        {
+          "address": 716828,
+          "instruction": "ds_load_u16 v73, v190 offset:2336",
+          "hitcount": 180,
+          "latency": 2075,
+          "stall": 1895,
+          "idle": 0
+        },
+        {
+          "address": 716860,
+          "instruction": "ds_load_u16 v75, v190 offset:2848",
+          "hitcount": 180,
+          "latency": 1853,
+          "stall": 1673,
+          "idle": 0
+        },
+        {
+          "address": 717604,
+          "instruction": "ds_load_u16 v67, v190 offset:832",
+          "hitcount": 180,
+          "latency": 1656,
+          "stall": 1476,
+          "idle": 11784
+        },
+        {
+          "address": 717644,
+          "instruction": "ds_load_u16_d16_hi v69, v190 offset:1472",
+          "hitcount": 180,
+          "latency": 1370,
+          "stall": 1190,
+          "idle": 0
+        },
+        {
+          "address": 716844,
+          "instruction": "ds_load_u16 v74, v190 offset:2592",
+          "hitcount": 180,
+          "latency": 1179,
+          "stall": 999,
+          "idle": 0
+        },
+        {
+          "address": 717116,
+          "instruction": "s_waitcnt vmcnt(4)",
+          "hitcount": 180,
+          "latency": 1175,
+          "stall": 995,
+          "idle": 0
+        },
+        {
+          "address": 716852,
+          "instruction": "ds_load_u16_d16_hi v74, v190 offset:2720",
+          "hitcount": 180,
+          "latency": 1167,
+          "stall": 987,
+          "idle": 0
+        },
+        {
+          "address": 716820,
+          "instruction": "ds_load_u16_d16_hi v72, v190 offset:2208",
+          "hitcount": 180,
+          "latency": 1152,
+          "stall": 972,
+          "idle": 0
+        },
+        {
+          "address": 716952,
+          "instruction": "ds_load_u16_d16_hi v79, v190 offset:4000",
+          "hitcount": 180,
+          "latency": 1117,
+          "stall": 937,
+          "idle": 0
+        },
+        {
+          "address": 716812,
+          "instruction": "ds_load_u16 v72, v190 offset:2080",
+          "hitcount": 180,
+          "latency": 969,
+          "stall": 789,
+          "idle": 10249
+        },
+        {
+          "address": 716836,
+          "instruction": "ds_load_u16_d16_hi v73, v190 offset:2464",
+          "hitcount": 180,
+          "latency": 924,
+          "stall": 744,
+          "idle": 0
+        },
+        {
+          "address": 716920,
+          "instruction": "ds_load_u16_d16_hi v77, v190 offset:3488",
+          "hitcount": 180,
+          "latency": 905,
+          "stall": 725,
+          "idle": 0
+        },
+        {
+          "address": 716936,
+          "instruction": "ds_load_u16_d16_hi v78, v190 offset:3744",
+          "hitcount": 180,
+          "latency": 861,
+          "stall": 681,
+          "idle": 0
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,56 @@
+// Execute one wave32 tile for every accelerated gfx12 operand family needed by
+// the basket. Zero packed operands keep this a representation/selection test;
+// full GEMM correctness belongs to the datatype rows in the schedule basket.
+amdgpu.target<gfx12-generic> @gfx12 {subgroup_size = 32}
+
+kernel.def target(@gfx12) @gfx12_accelerated_type_witness() {
+  %one = index.constant 1 : index
+  %wave = index.constant 32 : index
+  kernel.launch.config workgroups(%one, %one, %one) workgroup_size(%wave, %one, %one) : index
+} launch(%bf16_output: buffer, %i8_output: buffer, %i4_output: buffer, %fp8_fp8_output: buffer, %fp8_bf8_output: buffer) {
+  %base = index.constant 0 : offset
+  %tile = index.constant 16 : index
+  %bf16_output_view = buffer.view %bf16_output[%base] : buffer -> view<16x16xf32>
+  %i8_output_view = buffer.view %i8_output[%base] : buffer -> view<16x16xi32>
+  %i4_output_view = buffer.view %i4_output[%base] : buffer -> view<16x16xi32>
+  %fp8_fp8_output_view = buffer.view %fp8_fp8_output[%base] : buffer -> view<16x16xf32>
+  %fp8_bf8_output_view = buffer.view %fp8_bf8_output[%base] : buffer -> view<16x16xf32>
+
+  %zero_f32_payload = vector.constant 0.0 : vector<8xf32>
+  %zero_f32 = vector.fragment<init> %zero_f32_payload shape [%tile, %tile] : vector<8xf32>
+  %bf16_payload = vector.constant 1.0 : vector<8xbf16>
+  %bf16_lhs = vector.fragment<lhs> %bf16_payload shape [%tile, %tile] : vector<8xbf16>
+  %bf16_rhs = vector.fragment<rhs> %bf16_payload shape [%tile, %tile] : vector<8xbf16>
+  %bf16_result = vector.mma %bf16_lhs, %bf16_rhs, %zero_f32 : vector<8xbf16>, vector<8xbf16>, vector<8xf32>
+  vector.fragment.store<result> %bf16_result, %bf16_output_view[0, 0] shape [%tile, %tile] : vector<8xf32>, view<16x16xf32>
+
+  %zero_i32_payload = vector.constant 0 : vector<8xi32>
+  %zero_i32 = vector.fragment<init> %zero_i32_payload shape [%tile, %tile] : vector<8xi32>
+  %i8_schema = encoding.define #encoding.operand<element_format=i8, payload_elements=8, payload_registers=2> : encoding<schema>
+  %i8_words = vector.constant 0 : vector<2xi32>
+  %i8_lhs = vector.fragment<lhs> %i8_words shape [%tile, %tile] using {schema = %i8_schema : encoding<schema>} : vector<2xi32>
+  %i8_rhs = vector.fragment<rhs> %i8_words shape [%tile, %tile] using {schema = %i8_schema : encoding<schema>} : vector<2xi32>
+  %i8_result = vector.mma %i8_lhs, %i8_rhs, %zero_i32 : vector<2xi32>, vector<2xi32>, vector<8xi32>
+  vector.fragment.store<result> %i8_result, %i8_output_view[0, 0] shape [%tile, %tile] : vector<8xi32>, view<16x16xi32>
+
+  %i4_schema = encoding.define #encoding.operand<element_format=i4, payload_elements=8, payload_registers=1> : encoding<schema>
+  %i4_words = vector.constant 0 : vector<1xi32>
+  %i4_lhs = vector.fragment<lhs> %i4_words shape [%tile, %tile] using {schema = %i4_schema : encoding<schema>} : vector<1xi32>
+  %i4_rhs = vector.fragment<rhs> %i4_words shape [%tile, %tile] using {schema = %i4_schema : encoding<schema>} : vector<1xi32>
+  %i4_result = vector.mma %i4_lhs, %i4_rhs, %zero_i32 : vector<1xi32>, vector<1xi32>, vector<8xi32>
+  vector.fragment.store<result> %i4_result, %i4_output_view[0, 0] shape [%tile, %tile] : vector<8xi32>, view<16x16xi32>
+
+  // These are the OCP encodings exposed by HIP_R_8F_E4M3/E5M2 in the
+  // installed hipBLASLt API, not the distinct FNUZ storage encodings.
+  %fp8_schema = encoding.define #encoding.operand<element_format=f8e4m3, payload_elements=8, payload_registers=2, rounding=finite_only> : encoding<schema>
+  %bf8_schema = encoding.define #encoding.operand<element_format=f8e5m2, payload_elements=8, payload_registers=2, rounding=finite_only> : encoding<schema>
+  %packed8_words = vector.constant 0 : vector<2xi32>
+  %fp8_lhs = vector.fragment<lhs> %packed8_words shape [%tile, %tile] using {schema = %fp8_schema : encoding<schema>} : vector<2xi32>
+  %fp8_rhs = vector.fragment<rhs> %packed8_words shape [%tile, %tile] using {schema = %fp8_schema : encoding<schema>} : vector<2xi32>
+  %bf8_rhs = vector.fragment<rhs> %packed8_words shape [%tile, %tile] using {schema = %bf8_schema : encoding<schema>} : vector<2xi32>
+  %fp8_fp8_result = vector.mma %fp8_lhs, %fp8_rhs, %zero_f32 : vector<2xi32>, vector<2xi32>, vector<8xf32>
+  %fp8_bf8_result = vector.mma %fp8_lhs, %bf8_rhs, %zero_f32 : vector<2xi32>, vector<2xi32>, vector<8xf32>
+  vector.fragment.store<result> %fp8_fp8_result, %fp8_fp8_output_view[0, 0] shape [%tile, %tile] : vector<8xf32>, view<16x16xf32>
+  vector.fragment.store<result> %fp8_bf8_result, %fp8_bf8_output_view[0, 0] shape [%tile, %tile] : vector<8xf32>, view<16x16xf32>
+  kernel.return
+}

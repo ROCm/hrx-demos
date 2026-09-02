@@ -1,0 +1,32 @@
+W0902 08:38:26.758912 1366199 registration.cpp:742] initialized tool configure for rocprofv3 :: 0x7f603d598910 :: 0x55db65fe31b0 :: 0x7f603d59cd90 :: 0x7f603d5b0a90
+W0902 08:38:26.758957 1366199 registration.cpp:792] invoking tool initialize for rocprofv3 :: 0x7f603d598910 :: 0x55db65fe31b0 :: 0x7f603d59cd90 :: 0x7f603d5b0a90
+W0902 08:38:26.833810 1366199 simple_timer.cpp:55] [rocprofv3] tool initialization ::     0.074835 sec
+W0902 08:38:26.838465 1366199 simple_timer.cpp:55] [rocprofv3] 'build/blas-probe --backend loom --device 0 --m 1024 --n 960 --k 1024 --warmup 0 --iterations 3 --reference-samples 1 --hsaco research/spike-003-native-upward/artifacts/gfx11-native-k32-wgm8-swapped-native-epilogue/kernel.hsaco --kernel gemm_f16_f32_mt64x96x32_gfx11_pgr2 --tile-m 64 --tile-n 96 --workgroup-x 32 --workgroup-y 4 --flatten-grid' ::     0.000000 sec
+W0902 08:38:26.898126 1366199 tool.cpp:3328] HSA version 1.21.0 initialized (instance=0)
+device=0 name=AMD Radeon Pro W7900 arch=gfx1100 backend=loom shape=1024x960x1024
+E0902 08:38:26.940291 1366199 output_stream.cpp:110] Opened result file: <scratch>/loomblas-gfx11-native-epilogue-att-wiVLSx/native_epilogue_gfx1100_code_object_id_1.out
+E0902 08:38:26.954210 1366199 output_stream.cpp:110] Opened result file: <scratch>/loomblas-gfx11-native-epilogue-att-wiVLSx/native_epilogue_gfx1100_code_object_id_2.out
+E0902 08:38:26.956287 1366206 output_stream.cpp:110] Opened result file: <scratch>/loomblas-gfx11-native-epilogue-att-wiVLSx/native_epilogue_46617_shader_engine_0_1.att
+W0902 08:38:26.958962 1366199 simple_timer.cpp:55] [rocprofv3] 'build/blas-probe --backend loom --device 0 --m 1024 --n 960 --k 1024 --warmup 0 --iterations 3 --reference-samples 1 --hsaco research/spike-003-native-upward/artifacts/gfx11-native-k32-wgm8-swapped-native-epilogue/kernel.hsaco --kernel gemm_f16_f32_mt64x96x32_gfx11_pgr2 --tile-m 64 --tile-n 96 --workgroup-x 32 --workgroup-y 4 --flatten-grid' ::     0.120497 sec
+W0902 08:38:26.962537 1366199 registration.cpp:947] invoking tool finalize for rocprofv3 :: 0x7f603d598910 :: 0x55db65fe31b0 :: 0x0 :: 0x7f603d5b0a90
+W0902 08:38:26.970715 1366199 generateRocpd.cpp:1050] writing SQL database for process 1366199 on node 1087771480
+E0902 08:38:26.971226 1366199 generateRocpd.cpp:1074] Opened result file: <scratch>/loomblas-gfx11-native-epilogue-att-wiVLSx/native_epilogue_results.db (UUID=<capture-uuid>)
+W0902 08:38:27.849130 1366199 simple_timer.cpp:55] SQLite3 generation :: rocpd_string             ::     0.015795 sec
+W0902 08:38:27.849151 1366199 simple_timer.cpp:55] SQLite3 generation :: rocpd_info_node          ::     0.000003 sec
+W0902 08:38:27.849553 1366199 simple_timer.cpp:55] SQLite3 generation :: rocpd_info_process       ::     0.000396 sec
+W0902 08:38:27.850165 1366199 simple_timer.cpp:55] SQLite3 generation :: rocpd_info_agent         ::     0.000602 sec
+W0902 08:38:27.850174 1366199 simple_timer.cpp:55] SQLite3 generation :: rocpd_info_pmc           ::     0.000002 sec
+W0902 08:38:27.866499 1366199 simple_timer.cpp:55] SQLite3 generation :: rocpd kernel info        ::     0.016320 sec
+W0902 08:38:27.866537 1366199 simple_timer.cpp:55] SQLite3 generation :: rocpd_region             ::     0.000025 sec
+W0902 08:38:27.866544 1366199 simple_timer.cpp:55] SQLite3 generation :: rocpd_kernel_dispatch    ::     0.000001 sec
+W0902 08:38:27.866552 1366199 simple_timer.cpp:55] SQLite3 generation :: rocpd_pmc_event          ::     0.000003 sec
+W0902 08:38:27.866558 1366199 simple_timer.cpp:55] SQLite3 generation :: rocpd_memory_copy        ::     0.000001 sec
+W0902 08:38:27.866564 1366199 simple_timer.cpp:55] SQLite3 generation :: rocpd_graph_launch       ::     0.000001 sec
+W0902 08:38:27.866572 1366199 simple_timer.cpp:55] SQLite3 generation :: rocpd_memory_allocate    ::     0.000003 sec
+W0902 08:38:27.879860 1366199 simple_timer.cpp:55] SQLite3 generation :: rocpd_info_pmc: kfd      ::     0.013283 sec
+W0902 08:38:27.879871 1366199 simple_timer.cpp:55] SQLite3 generation :: rocpd_pmc_event: kfd     ::     0.000000 sec
+W0902 08:38:27.880329 1366199 simple_timer.cpp:55] SQLite3 generation :: rocpd_flush_pending      ::     0.000449 sec
+W0902 08:38:27.880691 1366199 simple_timer.cpp:55] SQLite3 generation :: SQL indexing             ::     0.000349 sec
+W0902 08:38:27.894643 1366199 simple_timer.cpp:55] SQLite3 generation :: total                    ::     0.923933 sec
+W0902 08:38:28.005886 1366199 simple_timer.cpp:55] [rocprofv3] output generation ::     1.043328 sec
+W0902 08:38:28.005926 1366199 simple_timer.cpp:55] [rocprofv3] tool finalization ::     1.043370 sec

@@ -1,0 +1,6 @@
+/build/
+/.rocprofv3/
+/research/**/artifacts/
+__pycache__/
+*.bin
+*.hsaco

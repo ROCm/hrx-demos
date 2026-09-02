@@ -1,0 +1,18 @@
+{
+  "schema": "loom-blas.timing-summary.v1",
+  "source": "research/spike-003-native-upward/results/gfx1201-uniform-bpad-scalar-saddr-native-rhs-default-waits-vs-133309-paired.json",
+  "sample_count": 60,
+  "loom_median_us": 30.4005,
+  "incumbent_median_us": 28.86,
+  "median_ratio": 1.0533783783783783,
+  "bootstrap": {
+    "method": "independent resampling of alternating same-process samples",
+    "resamples": 20000,
+    "seed": 2,
+    "confidence": 0.95,
+    "ratio_ci": [
+      1.0484094052558783,
+      1.0613668061366808
+    ]
+  }
+}

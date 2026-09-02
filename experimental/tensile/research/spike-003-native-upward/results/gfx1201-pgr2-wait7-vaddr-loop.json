@@ -1,0 +1,1234 @@
+{
+  "bounds": {
+    "start": "0x15ec",
+    "stop": "0x1db4"
+  },
+  "category_counts": {
+    "barrier": 4,
+    "branch": 2,
+    "global_load": 16,
+    "lds_load": 48,
+    "lds_store": 16,
+    "matrix": 64,
+    "other": 95,
+    "wait": 23
+  },
+  "instruction_count": 268,
+  "label": "gfx1201-loom-pgr2-pair-loop",
+  "schema": "loom-blas.amdgpu-interval.v1",
+  "significant_schedule": [
+    {
+      "byte_offset": 8,
+      "category": "branch",
+      "mnemonic": "s_cbranch_scc0",
+      "operands": "495",
+      "ordinal": 2
+    },
+    {
+      "byte_offset": 12,
+      "category": "wait",
+      "mnemonic": "s_wait_dscnt",
+      "operands": "0x0",
+      "ordinal": 3
+    },
+    {
+      "byte_offset": 16,
+      "category": "lds_load",
+      "mnemonic": "ds_load_b64",
+      "operands": "v[14:15], v47",
+      "ordinal": 4
+    },
+    {
+      "byte_offset": 24,
+      "category": "lds_load",
+      "mnemonic": "ds_load_b64",
+      "operands": "v[180:181], v47 offset:256",
+      "ordinal": 5
+    },
+    {
+      "byte_offset": 32,
+      "category": "lds_load",
+      "mnemonic": "ds_load_b64",
+      "operands": "v[182:183], v47 offset:512",
+      "ordinal": 6
+    },
+    {
+      "byte_offset": 40,
+      "category": "lds_load",
+      "mnemonic": "ds_load_b64",
+      "operands": "v[184:185], v47 offset:768",
+      "ordinal": 7
+    },
+    {
+      "byte_offset": 52,
+      "category": "lds_load",
+      "mnemonic": "ds_load_b64",
+      "operands": "v[186:187], v47 offset:1024",
+      "ordinal": 9
+    },
+    {
+      "byte_offset": 68,
+      "category": "lds_load",
+      "mnemonic": "ds_load_b64",
+      "operands": "v[190:191], v47 offset:1280",
+      "ordinal": 12
+    },
+    {
+      "byte_offset": 84,
+      "category": "lds_load",
+      "mnemonic": "ds_load_b64",
+      "operands": "v[194:195], v47 offset:1536",
+      "ordinal": 15
+    },
+    {
+      "byte_offset": 100,
+      "category": "lds_load",
+      "mnemonic": "ds_load_b64",
+      "operands": "v[198:199], v47 offset:1792",
+      "ordinal": 18
+    },
+    {
+      "byte_offset": 112,
+      "category": "lds_load",
+      "mnemonic": "ds_load_b128",
+      "operands": "v[200:203], v3 offset:8192",
+      "ordinal": 20
+    },
+    {
+      "byte_offset": 120,
+      "category": "lds_load",
+      "mnemonic": "ds_load_b128",
+      "operands": "v[204:207], v3 offset:9216",
+      "ordinal": 21
+    },
+    {
+      "byte_offset": 128,
+      "category": "lds_load",
+      "mnemonic": "ds_load_b128",
+      "operands": "v[208:211], v3 offset:10240",
+      "ordinal": 22
+    },
+    {
+      "byte_offset": 136,
+      "category": "lds_load",
+      "mnemonic": "ds_load_b128",
+      "operands": "v[212:215], v3 offset:11264",
+      "ordinal": 23
+    },
+    {
+      "byte_offset": 144,
+      "category": "wait",
+      "mnemonic": "s_wait_dscnt",
+      "operands": "0x0",
+      "ordinal": 24
+    },
+    {
+      "byte_offset": 280,
+      "category": "matrix",
+      "mnemonic": "v_wmma_f32_16x16x16_f16",
+      "operands": "v[16:23], v[200:203], v[216:219], v[16:23]",
+      "ordinal": 42
+    },
+    {
+      "byte_offset": 288,
+      "category": "matrix",
+      "mnemonic": "v_wmma_f32_16x16x16_f16",
+      "operands": "v[24:31], v[200:203], v[220:223], v[24:31]",
+      "ordinal": 43
+    },
+    {
+      "byte_offset": 296,
+      "category": "matrix",
+      "mnemonic": "v_wmma_f32_16x16x16_f16",
+      "operands": "v[32:39], v[200:203], v[224:227], v[32:39]",
+      "ordinal": 44
+    },
+    {
+      "byte_offset": 308,
+      "category": "matrix",
+      "mnemonic": "v_wmma_f32_16x16x16_f16",
+      "operands": "v[48:55], v[200:203], v[180:183], v[48:55]",
+      "ordinal": 46
+    },
+    {
+      "byte_offset": 316,
+      "category": "matrix",
+      "mnemonic": "v_wmma_f32_16x16x16_f16",
+      "operands": "v[56:63], v[204:207], v[216:219], v[56:63]",
+      "ordinal": 47
+    },
+    {
+      "byte_offset": 324,
+      "category": "matrix",
+      "mnemonic": "v_wmma_f32_16x16x16_f16",
+      "operands": "v[64:71], v[204:207], v[220:223], v[64:71]",
+      "ordinal": 48
+    },
+    {
+      "byte_offset": 332,
+      "category": "matrix",
+      "mnemonic": "v_wmma_f32_16x16x16_f16",
+      "operands": "v[72:79], v[204:207], v[224:227], v[72:79]",
+      "ordinal": 49
+    },
+    {
+      "byte_offset": 340,
+      "category": "matrix",
+      "mnemonic": "v_wmma_f32_16x16x16_f16",
+      "operands": "v[80:87], v[204:207], v[180:183], v[80:87]",
+      "ordinal": 50
+    },
+    {
+      "byte_offset": 348,
+      "category": "matrix",
+      "mnemonic": "v_wmma_f32_16x16x16_f16",
+      "operands": "v[88:95], v[208:211], v[216:219], v[88:95]",
+      "ordinal": 51
+    },
+    {
+      "byte_offset": 356,
+      "category": "matrix",
+      "mnemonic": "v_wmma_f32_16x16x16_f16",
+      "operands": "v[96:103], v[208:211], v[220:223], v[96:103]",
+      "ordinal": 52
+    },
+    {
+      "byte_offset": 364,
+      "category": "matrix",
+      "mnemonic": "v_wmma_f32_16x16x16_f16",
+      "operands": "v[104:111], v[208:211], v[224:227], v[104:111]",
+      "ordinal": 53
+    },
+    {
+      "byte_offset": 372,
+      "category": "matrix",
+      "mnemonic": "v_wmma_f32_16x16x16_f16",
+      "operands": "v[112:119], v[208:211], v[180:183], v[112:119]",
+      "ordinal": 54
+    },
+    {
+      "byte_offset": 380,
+      "category": "matrix",
+      "mnemonic": "v_wmma_f32_16x16x16_f16",
+      "operands": "v[120:127], v[212:215], v[216:219], v[120:127]",
+      "ordinal": 55
+    },
+    {
+      "byte_offset": 388,
+      "category": "matrix",
+      "mnemonic": "v_wmma_f32_16x16x16_f16",
+      "operands": "v[128:135], v[212:215], v[220:223], v[128:135]",
+      "ordinal": 56
+    },
+    {
+      "byte_offset": 396,
+      "category": "matrix",
+      "mnemonic": "v_wmma_f32_16x16x16_f16",
+      "operands": "v[136:143], v[212:215], v[224:227], v[136:143]",
+      "ordinal": 57
+    },
+    {
+      "byte_offset": 404,
+      "category": "matrix",
+      "mnemonic": "v_wmma_f32_16x16x16_f16",
+      "operands": "v[144:151], v[212:215], v[180:183], v[144:151]",
+      "ordinal": 58
+    },
+    {
+      "byte_offset": 412,
+      "category": "lds_load",
+      "mnemonic": "ds_load_b128",
+      "operands": "v[180:183], v3 offset:8224",
+      "ordinal": 59
+    },
+    {
+      "byte_offset": 420,
+      "category": "lds_load",
+      "mnemonic": "ds_load_b128",
+      "operands": "v[184:187], v3 offset:9248",
+      "ordinal": 60
+    },
+    {
+      "byte_offset": 428,
+      "category": "lds_load",
+      "mnemonic": "ds_load_b128",
+      "operands": "v[200:203], v3 offset:10272",
+      "ordinal": 61
+    },
+    {
+      "byte_offset": 436,
+      "category": "lds_load",
+      "mnemonic": "ds_load_b128",
+      "operands": "v[204:207], v3 offset:11296",
+      "ordinal": 62
+    },
+    {
+      "byte_offset": 444,
+      "category": "lds_load",
+      "mnemonic": "ds_load_b64",
+      "operands": "v[14:15], v47 offset:4096",
+      "ordinal": 63
+    },
+    {
+      "byte_offset": 452,
+      "category": "lds_load",
+      "mnemonic": "ds_load_b64",
+      "operands": "v[190:191], v47 offset:4352",
+      "ordinal": 64
+    },
+    {
+      "byte_offset": 460,
+      "category": "lds_load",
+      "mnemonic": "ds_load_b64",
+      "operands": "v[194:195], v47 offset:4608",
+      "ordinal": 65
+    },
+    {
+      "byte_offset": 468,
+      "category": "lds_load",
+      "mnemonic": "ds_load_b64",
+      "operands": "v[198:199], v47 offset:4864",
+      "ordinal": 66
+    },
+    {
+      "byte_offset": 476,
+      "category": "lds_load",
+      "mnemonic": "ds_load_b64",
+      "operands": "v[208:209], v47 offset:5120",
+      "ordinal": 67
+    },
+    {
+      "byte_offset": 484,
+      "category": "lds_load",
+      "mnemonic": "ds_load_b64",
+      "operands": "v[210:211], v47 offset:5376",
+      "ordinal": 68
+    },
+    {
+      "byte_offset": 492,
+      "category": "lds_load",
+      "mnemonic": "ds_load_b64",
+      "operands": "v[212:213], v47 offset:5632",
+      "ordinal": 69
+    },
+    {
+      "byte_offset": 500,
+      "category": "lds_load",
+      "mnemonic": "ds_load_b64",
+      "operands": "v[214:215], v47 offset:5888",
+      "ordinal": 70
+    },
+    {
+      "byte_offset": 508,
+      "category": "wait",
+      "mnemonic": "s_wait_dscnt",
+      "operands": "0x0",
+      "ordinal": 71
+    },
+    {
+      "byte_offset": 652,
+      "category": "matrix",
+      "mnemonic": "v_wmma_f32_16x16x16_f16",
+      "operands": "v[16:23], v[180:183], v[216:219], v[16:23]",
+      "ordinal": 91
+    },
+    {
+      "byte_offset": 660,
+      "category": "matrix",
+      "mnemonic": "v_wmma_f32_16x16x16_f16",
+      "operands": "v[24:31], v[180:183], v[220:223], v[24:31]",
+      "ordinal": 92
+    },
+    {
+      "byte_offset": 668,
+      "category": "matrix",
+      "mnemonic": "v_wmma_f32_16x16x16_f16",
+      "operands": "v[32:39], v[180:183], v[224:227], v[32:39]",
+      "ordinal": 93
+    },
+    {
+      "byte_offset": 680,
+      "category": "matrix",
+      "mnemonic": "v_wmma_f32_16x16x16_f16",
+      "operands": "v[48:55], v[180:183], v[208:211], v[48:55]",
+      "ordinal": 95
+    },
+    {
+      "byte_offset": 688,
+      "category": "matrix",
+      "mnemonic": "v_wmma_f32_16x16x16_f16",
+      "operands": "v[56:63], v[184:187], v[216:219], v[56:63]",
+      "ordinal": 96
+    },
+    {
+      "byte_offset": 696,
+      "category": "matrix",
+      "mnemonic": "v_wmma_f32_16x16x16_f16",
+      "operands": "v[64:71], v[184:187], v[220:223], v[64:71]",
+      "ordinal": 97
+    },
+    {
+      "byte_offset": 704,
+      "category": "matrix",
+      "mnemonic": "v_wmma_f32_16x16x16_f16",
+      "operands": "v[72:79], v[184:187], v[224:227], v[72:79]",
+      "ordinal": 98
+    },
+    {
+      "byte_offset": 712,
+      "category": "matrix",
+      "mnemonic": "v_wmma_f32_16x16x16_f16",
+      "operands": "v[80:87], v[184:187], v[208:211], v[80:87]",
+      "ordinal": 99
+    },
+    {
+      "byte_offset": 720,
+      "category": "matrix",
+      "mnemonic": "v_wmma_f32_16x16x16_f16",
+      "operands": "v[88:95], v[200:203], v[216:219], v[88:95]",
+      "ordinal": 100
+    },
+    {
+      "byte_offset": 728,
+      "category": "matrix",
+      "mnemonic": "v_wmma_f32_16x16x16_f16",
+      "operands": "v[96:103], v[200:203], v[220:223], v[96:103]",
+      "ordinal": 101
+    },
+    {
+      "byte_offset": 736,
+      "category": "matrix",
+      "mnemonic": "v_wmma_f32_16x16x16_f16",
+      "operands": "v[104:111], v[200:203], v[224:227], v[104:111]",
+      "ordinal": 102
+    },
+    {
+      "byte_offset": 744,
+      "category": "matrix",
+      "mnemonic": "v_wmma_f32_16x16x16_f16",
+      "operands": "v[112:119], v[200:203], v[208:211], v[112:119]",
+      "ordinal": 103
+    },
+    {
+      "byte_offset": 752,
+      "category": "matrix",
+      "mnemonic": "v_wmma_f32_16x16x16_f16",
+      "operands": "v[120:127], v[204:207], v[216:219], v[120:127]",
+      "ordinal": 104
+    },
+    {
+      "byte_offset": 760,
+      "category": "matrix",
+      "mnemonic": "v_wmma_f32_16x16x16_f16",
+      "operands": "v[128:135], v[204:207], v[220:223], v[128:135]",
+      "ordinal": 105
+    },
+    {
+      "byte_offset": 768,
+      "category": "matrix",
+      "mnemonic": "v_wmma_f32_16x16x16_f16",
+      "operands": "v[136:143], v[204:207], v[224:227], v[136:143]",
+      "ordinal": 106
+    },
+    {
+      "byte_offset": 776,
+      "category": "matrix",
+      "mnemonic": "v_wmma_f32_16x16x16_f16",
+      "operands": "v[144:151], v[204:207], v[208:211], v[144:151]",
+      "ordinal": 107
+    },
+    {
+      "byte_offset": 800,
+      "category": "wait",
+      "mnemonic": "s_wait_loadcnt",
+      "operands": "0x7",
+      "ordinal": 111
+    },
+    {
+      "byte_offset": 804,
+      "category": "lds_store",
+      "mnemonic": "ds_store_b128",
+      "operands": "v14, v[40:43] offset:32768",
+      "ordinal": 112
+    },
+    {
+      "byte_offset": 812,
+      "category": "global_load",
+      "mnemonic": "global_load_b128",
+      "operands": "v[40:43], v13, s[6:7] offset:131072",
+      "ordinal": 113
+    },
+    {
+      "byte_offset": 824,
+      "category": "wait",
+      "mnemonic": "s_wait_loadcnt",
+      "operands": "0x7",
+      "ordinal": 114
+    },
+    {
+      "byte_offset": 828,
+      "category": "lds_store",
+      "mnemonic": "ds_store_b128",
+      "operands": "v14, v[152:155] offset:40960",
+      "ordinal": 115
+    },
+    {
+      "byte_offset": 836,
+      "category": "global_load",
+      "mnemonic": "global_load_b128",
+      "operands": "v[152:155], v46, s[12:13] offset:128",
+      "ordinal": 116
+    },
+    {
+      "byte_offset": 848,
+      "category": "wait",
+      "mnemonic": "s_wait_loadcnt",
+      "operands": "0x7",
+      "ordinal": 117
+    },
+    {
+      "byte_offset": 852,
+      "category": "lds_store",
+      "mnemonic": "ds_store_b128",
+      "operands": "v14, v[156:159] offset:34816",
+      "ordinal": 118
+    },
+    {
+      "byte_offset": 860,
+      "category": "global_load",
+      "mnemonic": "global_load_b128",
+      "operands": "v[156:159], v188, s[6:7] offset:131072",
+      "ordinal": 119
+    },
+    {
+      "byte_offset": 872,
+      "category": "wait",
+      "mnemonic": "s_wait_loadcnt",
+      "operands": "0x7",
+      "ordinal": 120
+    },
+    {
+      "byte_offset": 876,
+      "category": "lds_store",
+      "mnemonic": "ds_store_b128",
+      "operands": "v14, v[160:163] offset:43008",
+      "ordinal": 121
+    },
+    {
+      "byte_offset": 884,
+      "category": "global_load",
+      "mnemonic": "global_load_b128",
+      "operands": "v[160:163], v189, s[12:13] offset:128",
+      "ordinal": 122
+    },
+    {
+      "byte_offset": 896,
+      "category": "wait",
+      "mnemonic": "s_wait_loadcnt",
+      "operands": "0x7",
+      "ordinal": 123
+    },
+    {
+      "byte_offset": 900,
+      "category": "lds_store",
+      "mnemonic": "ds_store_b128",
+      "operands": "v14, v[164:167] offset:36864",
+      "ordinal": 124
+    },
+    {
+      "byte_offset": 908,
+      "category": "global_load",
+      "mnemonic": "global_load_b128",
+      "operands": "v[164:167], v192, s[6:7] offset:131072",
+      "ordinal": 125
+    },
+    {
+      "byte_offset": 920,
+      "category": "wait",
+      "mnemonic": "s_wait_loadcnt",
+      "operands": "0x7",
+      "ordinal": 126
+    },
+    {
+      "byte_offset": 924,
+      "category": "lds_store",
+      "mnemonic": "ds_store_b128",
+      "operands": "v14, v[168:171] offset:45056",
+      "ordinal": 127
+    },
+    {
+      "byte_offset": 932,
+      "category": "global_load",
+      "mnemonic": "global_load_b128",
+      "operands": "v[168:171], v193, s[12:13] offset:128",
+      "ordinal": 128
+    },
+    {
+      "byte_offset": 944,
+      "category": "wait",
+      "mnemonic": "s_wait_loadcnt",
+      "operands": "0x7",
+      "ordinal": 129
+    },
+    {
+      "byte_offset": 948,
+      "category": "lds_store",
+      "mnemonic": "ds_store_b128",
+      "operands": "v14, v[172:175] offset:38912",
+      "ordinal": 130
+    },
+    {
+      "byte_offset": 956,
+      "category": "global_load",
+      "mnemonic": "global_load_b128",
+      "operands": "v[172:175], v196, s[6:7] offset:131072",
+      "ordinal": 131
+    },
+    {
+      "byte_offset": 968,
+      "category": "wait",
+      "mnemonic": "s_wait_loadcnt",
+      "operands": "0x7",
+      "ordinal": 132
+    },
+    {
+      "byte_offset": 972,
+      "category": "lds_store",
+      "mnemonic": "ds_store_b128",
+      "operands": "v14, v[176:179] offset:47104",
+      "ordinal": 133
+    },
+    {
+      "byte_offset": 980,
+      "category": "global_load",
+      "mnemonic": "global_load_b128",
+      "operands": "v[176:179], v197, s[12:13] offset:128",
+      "ordinal": 134
+    },
+    {
+      "byte_offset": 992,
+      "category": "wait",
+      "mnemonic": "s_wait_dscnt",
+      "operands": "0x0",
+      "ordinal": 135
+    },
+    {
+      "byte_offset": 996,
+      "category": "barrier",
+      "mnemonic": "s_barrier_signal",
+      "operands": "-1",
+      "ordinal": 136
+    },
+    {
+      "byte_offset": 1000,
+      "category": "barrier",
+      "mnemonic": "s_barrier_wait",
+      "operands": "0xffff",
+      "ordinal": 137
+    },
+    {
+      "byte_offset": 1020,
+      "category": "lds_load",
+      "mnemonic": "ds_load_b128",
+      "operands": "v[180:183], v15 offset:8192",
+      "ordinal": 140
+    },
+    {
+      "byte_offset": 1028,
+      "category": "lds_load",
+      "mnemonic": "ds_load_b128",
+      "operands": "v[184:187], v15 offset:9216",
+      "ordinal": 141
+    },
+    {
+      "byte_offset": 1036,
+      "category": "lds_load",
+      "mnemonic": "ds_load_b128",
+      "operands": "v[200:203], v15 offset:10240",
+      "ordinal": 142
+    },
+    {
+      "byte_offset": 1044,
+      "category": "lds_load",
+      "mnemonic": "ds_load_b128",
+      "operands": "v[204:207], v15 offset:11264",
+      "ordinal": 143
+    },
+    {
+      "byte_offset": 1052,
+      "category": "lds_load",
+      "mnemonic": "ds_load_b64",
+      "operands": "v[190:191], v14",
+      "ordinal": 144
+    },
+    {
+      "byte_offset": 1060,
+      "category": "lds_load",
+      "mnemonic": "ds_load_b64",
+      "operands": "v[194:195], v14 offset:256",
+      "ordinal": 145
+    },
+    {
+      "byte_offset": 1068,
+      "category": "lds_load",
+      "mnemonic": "ds_load_b64",
+      "operands": "v[198:199], v14 offset:512",
+      "ordinal": 146
+    },
+    {
+      "byte_offset": 1076,
+      "category": "lds_load",
+      "mnemonic": "ds_load_b64",
+      "operands": "v[208:209], v14 offset:768",
+      "ordinal": 147
+    },
+    {
+      "byte_offset": 1084,
+      "category": "lds_load",
+      "mnemonic": "ds_load_b64",
+      "operands": "v[210:211], v14 offset:1024",
+      "ordinal": 148
+    },
+    {
+      "byte_offset": 1092,
+      "category": "lds_load",
+      "mnemonic": "ds_load_b64",
+      "operands": "v[212:213], v14 offset:1280",
+      "ordinal": 149
+    },
+    {
+      "byte_offset": 1100,
+      "category": "lds_load",
+      "mnemonic": "ds_load_b64",
+      "operands": "v[214:215], v14 offset:1536",
+      "ordinal": 150
+    },
+    {
+      "byte_offset": 1108,
+      "category": "lds_load",
+      "mnemonic": "ds_load_b64",
+      "operands": "v[216:217], v14 offset:1792",
+      "ordinal": 151
+    },
+    {
+      "byte_offset": 1116,
+      "category": "wait",
+      "mnemonic": "s_wait_dscnt",
+      "operands": "0x0",
+      "ordinal": 152
+    },
+    {
+      "byte_offset": 1252,
+      "category": "matrix",
+      "mnemonic": "v_wmma_f32_16x16x16_f16",
+      "operands": "v[16:23], v[180:183], v[220:223], v[16:23]",
+      "ordinal": 170
+    },
+    {
+      "byte_offset": 1260,
+      "category": "matrix",
+      "mnemonic": "v_wmma_f32_16x16x16_f16",
+      "operands": "v[24:31], v[180:183], v[224:227], v[24:31]",
+      "ordinal": 171
+    },
+    {
+      "byte_offset": 1268,
+      "category": "matrix",
+      "mnemonic": "v_wmma_f32_16x16x16_f16",
+      "operands": "v[32:39], v[180:183], v[228:231], v[32:39]",
+      "ordinal": 172
+    },
+    {
+      "byte_offset": 1280,
+      "category": "matrix",
+      "mnemonic": "v_wmma_f32_16x16x16_f16",
+      "operands": "v[48:55], v[180:183], v[208:211], v[48:55]",
+      "ordinal": 174
+    },
+    {
+      "byte_offset": 1288,
+      "category": "matrix",
+      "mnemonic": "v_wmma_f32_16x16x16_f16",
+      "operands": "v[56:63], v[184:187], v[220:223], v[56:63]",
+      "ordinal": 175
+    },
+    {
+      "byte_offset": 1296,
+      "category": "matrix",
+      "mnemonic": "v_wmma_f32_16x16x16_f16",
+      "operands": "v[64:71], v[184:187], v[224:227], v[64:71]",
+      "ordinal": 176
+    },
+    {
+      "byte_offset": 1304,
+      "category": "matrix",
+      "mnemonic": "v_wmma_f32_16x16x16_f16",
+      "operands": "v[72:79], v[184:187], v[228:231], v[72:79]",
+      "ordinal": 177
+    },
+    {
+      "byte_offset": 1312,
+      "category": "matrix",
+      "mnemonic": "v_wmma_f32_16x16x16_f16",
+      "operands": "v[80:87], v[184:187], v[208:211], v[80:87]",
+      "ordinal": 178
+    },
+    {
+      "byte_offset": 1320,
+      "category": "matrix",
+      "mnemonic": "v_wmma_f32_16x16x16_f16",
+      "operands": "v[88:95], v[200:203], v[220:223], v[88:95]",
+      "ordinal": 179
+    },
+    {
+      "byte_offset": 1328,
+      "category": "matrix",
+      "mnemonic": "v_wmma_f32_16x16x16_f16",
+      "operands": "v[96:103], v[200:203], v[224:227], v[96:103]",
+      "ordinal": 180
+    },
+    {
+      "byte_offset": 1336,
+      "category": "matrix",
+      "mnemonic": "v_wmma_f32_16x16x16_f16",
+      "operands": "v[104:111], v[200:203], v[228:231], v[104:111]",
+      "ordinal": 181
+    },
+    {
+      "byte_offset": 1344,
+      "category": "matrix",
+      "mnemonic": "v_wmma_f32_16x16x16_f16",
+      "operands": "v[112:119], v[200:203], v[208:211], v[112:119]",
+      "ordinal": 182
+    },
+    {
+      "byte_offset": 1352,
+      "category": "matrix",
+      "mnemonic": "v_wmma_f32_16x16x16_f16",
+      "operands": "v[120:127], v[204:207], v[220:223], v[120:127]",
+      "ordinal": 183
+    },
+    {
+      "byte_offset": 1360,
+      "category": "matrix",
+      "mnemonic": "v_wmma_f32_16x16x16_f16",
+      "operands": "v[128:135], v[204:207], v[224:227], v[128:135]",
+      "ordinal": 184
+    },
+    {
+      "byte_offset": 1368,
+      "category": "matrix",
+      "mnemonic": "v_wmma_f32_16x16x16_f16",
+      "operands": "v[136:143], v[204:207], v[228:231], v[136:143]",
+      "ordinal": 185
+    },
+    {
+      "byte_offset": 1376,
+      "category": "matrix",
+      "mnemonic": "v_wmma_f32_16x16x16_f16",
+      "operands": "v[144:151], v[204:207], v[208:211], v[144:151]",
+      "ordinal": 186
+    },
+    {
+      "byte_offset": 1384,
+      "category": "lds_load",
+      "mnemonic": "ds_load_b128",
+      "operands": "v[180:183], v15 offset:8224",
+      "ordinal": 187
+    },
+    {
+      "byte_offset": 1392,
+      "category": "lds_load",
+      "mnemonic": "ds_load_b128",
+      "operands": "v[184:187], v15 offset:9248",
+      "ordinal": 188
+    },
+    {
+      "byte_offset": 1400,
+      "category": "lds_load",
+      "mnemonic": "ds_load_b128",
+      "operands": "v[200:203], v15 offset:10272",
+      "ordinal": 189
+    },
+    {
+      "byte_offset": 1408,
+      "category": "lds_load",
+      "mnemonic": "ds_load_b128",
+      "operands": "v[204:207], v15 offset:11296",
+      "ordinal": 190
+    },
+    {
+      "byte_offset": 1416,
+      "category": "lds_load",
+      "mnemonic": "ds_load_b64",
+      "operands": "v[190:191], v14 offset:4096",
+      "ordinal": 191
+    },
+    {
+      "byte_offset": 1424,
+      "category": "lds_load",
+      "mnemonic": "ds_load_b64",
+      "operands": "v[194:195], v14 offset:4352",
+      "ordinal": 192
+    },
+    {
+      "byte_offset": 1432,
+      "category": "lds_load",
+      "mnemonic": "ds_load_b64",
+      "operands": "v[198:199], v14 offset:4608",
+      "ordinal": 193
+    },
+    {
+      "byte_offset": 1440,
+      "category": "lds_load",
+      "mnemonic": "ds_load_b64",
+      "operands": "v[208:209], v14 offset:4864",
+      "ordinal": 194
+    },
+    {
+      "byte_offset": 1448,
+      "category": "lds_load",
+      "mnemonic": "ds_load_b64",
+      "operands": "v[210:211], v14 offset:5120",
+      "ordinal": 195
+    },
+    {
+      "byte_offset": 1456,
+      "category": "lds_load",
+      "mnemonic": "ds_load_b64",
+      "operands": "v[212:213], v14 offset:5376",
+      "ordinal": 196
+    },
+    {
+      "byte_offset": 1464,
+      "category": "lds_load",
+      "mnemonic": "ds_load_b64",
+      "operands": "v[214:215], v14 offset:5632",
+      "ordinal": 197
+    },
+    {
+      "byte_offset": 1472,
+      "category": "lds_load",
+      "mnemonic": "ds_load_b64",
+      "operands": "v[14:15], v14 offset:5888",
+      "ordinal": 198
+    },
+    {
+      "byte_offset": 1480,
+      "category": "wait",
+      "mnemonic": "s_wait_dscnt",
+      "operands": "0x0",
+      "ordinal": 199
+    },
+    {
+      "byte_offset": 1616,
+      "category": "matrix",
+      "mnemonic": "v_wmma_f32_16x16x16_f16",
+      "operands": "v[16:23], v[180:183], v[216:219], v[16:23]",
+      "ordinal": 217
+    },
+    {
+      "byte_offset": 1624,
+      "category": "matrix",
+      "mnemonic": "v_wmma_f32_16x16x16_f16",
+      "operands": "v[24:31], v[180:183], v[220:223], v[24:31]",
+      "ordinal": 218
+    },
+    {
+      "byte_offset": 1632,
+      "category": "matrix",
+      "mnemonic": "v_wmma_f32_16x16x16_f16",
+      "operands": "v[32:39], v[180:183], v[224:227], v[32:39]",
+      "ordinal": 219
+    },
+    {
+      "byte_offset": 1644,
+      "category": "matrix",
+      "mnemonic": "v_wmma_f32_16x16x16_f16",
+      "operands": "v[48:55], v[180:183], v[208:211], v[48:55]",
+      "ordinal": 221
+    },
+    {
+      "byte_offset": 1652,
+      "category": "matrix",
+      "mnemonic": "v_wmma_f32_16x16x16_f16",
+      "operands": "v[56:63], v[184:187], v[216:219], v[56:63]",
+      "ordinal": 222
+    },
+    {
+      "byte_offset": 1660,
+      "category": "matrix",
+      "mnemonic": "v_wmma_f32_16x16x16_f16",
+      "operands": "v[64:71], v[184:187], v[220:223], v[64:71]",
+      "ordinal": 223
+    },
+    {
+      "byte_offset": 1668,
+      "category": "matrix",
+      "mnemonic": "v_wmma_f32_16x16x16_f16",
+      "operands": "v[72:79], v[184:187], v[224:227], v[72:79]",
+      "ordinal": 224
+    },
+    {
+      "byte_offset": 1676,
+      "category": "matrix",
+      "mnemonic": "v_wmma_f32_16x16x16_f16",
+      "operands": "v[80:87], v[184:187], v[208:211], v[80:87]",
+      "ordinal": 225
+    },
+    {
+      "byte_offset": 1684,
+      "category": "matrix",
+      "mnemonic": "v_wmma_f32_16x16x16_f16",
+      "operands": "v[88:95], v[200:203], v[216:219], v[88:95]",
+      "ordinal": 226
+    },
+    {
+      "byte_offset": 1692,
+      "category": "matrix",
+      "mnemonic": "v_wmma_f32_16x16x16_f16",
+      "operands": "v[96:103], v[200:203], v[220:223], v[96:103]",
+      "ordinal": 227
+    },
+    {
+      "byte_offset": 1700,
+      "category": "matrix",
+      "mnemonic": "v_wmma_f32_16x16x16_f16",
+      "operands": "v[104:111], v[200:203], v[224:227], v[104:111]",
+      "ordinal": 228
+    },
+    {
+      "byte_offset": 1708,
+      "category": "matrix",
+      "mnemonic": "v_wmma_f32_16x16x16_f16",
+      "operands": "v[112:119], v[200:203], v[208:211], v[112:119]",
+      "ordinal": 229
+    },
+    {
+      "byte_offset": 1716,
+      "category": "matrix",
+      "mnemonic": "v_wmma_f32_16x16x16_f16",
+      "operands": "v[120:127], v[204:207], v[216:219], v[120:127]",
+      "ordinal": 230
+    },
+    {
+      "byte_offset": 1724,
+      "category": "matrix",
+      "mnemonic": "v_wmma_f32_16x16x16_f16",
+      "operands": "v[128:135], v[204:207], v[220:223], v[128:135]",
+      "ordinal": 231
+    },
+    {
+      "byte_offset": 1732,
+      "category": "matrix",
+      "mnemonic": "v_wmma_f32_16x16x16_f16",
+      "operands": "v[136:143], v[204:207], v[224:227], v[136:143]",
+      "ordinal": 232
+    },
+    {
+      "byte_offset": 1740,
+      "category": "matrix",
+      "mnemonic": "v_wmma_f32_16x16x16_f16",
+      "operands": "v[144:151], v[204:207], v[208:211], v[144:151]",
+      "ordinal": 233
+    },
+    {
+      "byte_offset": 1764,
+      "category": "wait",
+      "mnemonic": "s_wait_loadcnt",
+      "operands": "0x7",
+      "ordinal": 237
+    },
+    {
+      "byte_offset": 1768,
+      "category": "lds_store",
+      "mnemonic": "ds_store_b128",
+      "operands": "v14, v[40:43]",
+      "ordinal": 238
+    },
+    {
+      "byte_offset": 1776,
+      "category": "global_load",
+      "mnemonic": "global_load_b128",
+      "operands": "v[40:43], v13, s[6:7] offset:196608",
+      "ordinal": 239
+    },
+    {
+      "byte_offset": 1788,
+      "category": "wait",
+      "mnemonic": "s_wait_loadcnt",
+      "operands": "0x7",
+      "ordinal": 240
+    },
+    {
+      "byte_offset": 1792,
+      "category": "lds_store",
+      "mnemonic": "ds_store_b128",
+      "operands": "v14, v[152:155] offset:8192",
+      "ordinal": 241
+    },
+    {
+      "byte_offset": 1800,
+      "category": "global_load",
+      "mnemonic": "global_load_b128",
+      "operands": "v[152:155], v46, s[12:13] offset:192",
+      "ordinal": 242
+    },
+    {
+      "byte_offset": 1812,
+      "category": "wait",
+      "mnemonic": "s_wait_loadcnt",
+      "operands": "0x7",
+      "ordinal": 243
+    },
+    {
+      "byte_offset": 1816,
+      "category": "lds_store",
+      "mnemonic": "ds_store_b128",
+      "operands": "v14, v[156:159] offset:2048",
+      "ordinal": 244
+    },
+    {
+      "byte_offset": 1824,
+      "category": "global_load",
+      "mnemonic": "global_load_b128",
+      "operands": "v[156:159], v188, s[6:7] offset:196608",
+      "ordinal": 245
+    },
+    {
+      "byte_offset": 1836,
+      "category": "wait",
+      "mnemonic": "s_wait_loadcnt",
+      "operands": "0x7",
+      "ordinal": 246
+    },
+    {
+      "byte_offset": 1840,
+      "category": "lds_store",
+      "mnemonic": "ds_store_b128",
+      "operands": "v14, v[160:163] offset:10240",
+      "ordinal": 247
+    },
+    {
+      "byte_offset": 1848,
+      "category": "global_load",
+      "mnemonic": "global_load_b128",
+      "operands": "v[160:163], v189, s[12:13] offset:192",
+      "ordinal": 248
+    },
+    {
+      "byte_offset": 1860,
+      "category": "wait",
+      "mnemonic": "s_wait_loadcnt",
+      "operands": "0x7",
+      "ordinal": 249
+    },
+    {
+      "byte_offset": 1864,
+      "category": "lds_store",
+      "mnemonic": "ds_store_b128",
+      "operands": "v14, v[164:167] offset:4096",
+      "ordinal": 250
+    },
+    {
+      "byte_offset": 1872,
+      "category": "global_load",
+      "mnemonic": "global_load_b128",
+      "operands": "v[164:167], v192, s[6:7] offset:196608",
+      "ordinal": 251
+    },
+    {
+      "byte_offset": 1884,
+      "category": "wait",
+      "mnemonic": "s_wait_loadcnt",
+      "operands": "0x7",
+      "ordinal": 252
+    },
+    {
+      "byte_offset": 1888,
+      "category": "lds_store",
+      "mnemonic": "ds_store_b128",
+      "operands": "v14, v[168:171] offset:12288",
+      "ordinal": 253
+    },
+    {
+      "byte_offset": 1896,
+      "category": "global_load",
+      "mnemonic": "global_load_b128",
+      "operands": "v[168:171], v193, s[12:13] offset:192",
+      "ordinal": 254
+    },
+    {
+      "byte_offset": 1908,
+      "category": "wait",
+      "mnemonic": "s_wait_loadcnt",
+      "operands": "0x7",
+      "ordinal": 255
+    },
+    {
+      "byte_offset": 1912,
+      "category": "lds_store",
+      "mnemonic": "ds_store_b128",
+      "operands": "v14, v[172:175] offset:6144",
+      "ordinal": 256
+    },
+    {
+      "byte_offset": 1920,
+      "category": "global_load",
+      "mnemonic": "global_load_b128",
+      "operands": "v[172:175], v196, s[6:7] offset:196608",
+      "ordinal": 257
+    },
+    {
+      "byte_offset": 1932,
+      "category": "wait",
+      "mnemonic": "s_wait_loadcnt",
+      "operands": "0x7",
+      "ordinal": 258
+    },
+    {
+      "byte_offset": 1936,
+      "category": "lds_store",
+      "mnemonic": "ds_store_b128",
+      "operands": "v14, v[176:179] offset:14336",
+      "ordinal": 259
+    },
+    {
+      "byte_offset": 1944,
+      "category": "global_load",
+      "mnemonic": "global_load_b128",
+      "operands": "v[176:179], v197, s[12:13] offset:192",
+      "ordinal": 260
+    },
+    {
+      "byte_offset": 1956,
+      "category": "wait",
+      "mnemonic": "s_wait_dscnt",
+      "operands": "0x0",
+      "ordinal": 261
+    },
+    {
+      "byte_offset": 1960,
+      "category": "barrier",
+      "mnemonic": "s_barrier_signal",
+      "operands": "-1",
+      "ordinal": 262
+    },
+    {
+      "byte_offset": 1964,
+      "category": "barrier",
+      "mnemonic": "s_barrier_wait",
+      "operands": "0xffff",
+      "ordinal": 263
+    },
+    {
+      "byte_offset": 1988,
+      "category": "branch",
+      "mnemonic": "s_branch",
+      "operands": "65038",
+      "ordinal": 267
+    }
+  ],
+  "source": "<tensile-root>/research/spike-003-native-upward/artifacts/gfx12-double-buffer-pgr2-ring-wait7-vaddr/gemm.hsaco",
+  "source_sha256": "c8a95772f42d0e9e79b288b873b3425a5e097c107157985f2e38b4bc771dfb66"
+}

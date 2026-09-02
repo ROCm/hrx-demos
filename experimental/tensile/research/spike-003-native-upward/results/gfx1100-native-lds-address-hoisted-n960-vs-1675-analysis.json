@@ -1,0 +1,18 @@
+{
+  "schema": "loom-blas.timing-summary.v1",
+  "source": "research/spike-003-native-upward/results/gfx1100-native-lds-address-hoisted-n960-vs-1675-paired.json",
+  "sample_count": 60,
+  "loom_median_us": 58.019999999999996,
+  "incumbent_median_us": 42.96,
+  "median_ratio": 1.3505586592178769,
+  "bootstrap": {
+    "method": "independent resampling of alternating same-process samples",
+    "resamples": 20000,
+    "seed": 2,
+    "confidence": 0.95,
+    "ratio_ci": [
+      1.3452885062819915,
+      1.3559911586784552
+    ]
+  }
+}

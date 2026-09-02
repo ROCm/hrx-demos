@@ -1,0 +1,54 @@
+{
+  "schema": "loom-blas.program-key-collapse.v1",
+  "loom_revision": "bc59ef458288987a0ee03456e6337ba2b338fd1a",
+  "source": "research/spike-001-primitive-gemm/loom/program-key-collapse.loom",
+  "source_sha256": "b021fb460fc57144bcaf5a8ee9a0f8b554bc1d1ef43fc7364116c188fab1422d",
+  "purpose": "test whether exact request configs can collapse to intrinsic program partitions before native emission",
+  "pipeline_observations": [
+    {
+      "passes": ["canonicalize", "dce"],
+      "result": "insufficient for a derived key",
+      "reason": "the resolved config.def remains serialized after its uses fold",
+      "outputs": [
+        {
+          "m": 32,
+          "specialized_result": 0,
+          "sha256": "85e300c9fc36d5ed12107f2e935191f56b738f5884bc954eb3fdf4fbf849959e"
+        },
+        {
+          "m": 48,
+          "specialized_result": 0,
+          "sha256": "f2290060865048d87bb0ac407a48db281935c384bd95d7ada09ea49bf4d5337a"
+        },
+        {
+          "m": 33,
+          "specialized_result": 1,
+          "sha256": "08be842fb1adadf50fdd440a90f68cc6822034c35d62d91f5d403cd0a9cd3cab"
+        }
+      ]
+    },
+    {
+      "passes": ["canonicalize", "dce", "symbol-dce"],
+      "result": "desired semantic collapse",
+      "reason": "dead resolved config symbols are removed after their effects fold",
+      "outputs": [
+        {
+          "m": 32,
+          "intrinsic_partition": 0,
+          "sha256": "56c98484c700efa637fba458709f550de09cb2caf8d630af120b63483e57f922"
+        },
+        {
+          "m": 48,
+          "intrinsic_partition": 0,
+          "sha256": "56c98484c700efa637fba458709f550de09cb2caf8d630af120b63483e57f922"
+        },
+        {
+          "m": 33,
+          "intrinsic_partition": 1,
+          "sha256": "7268c2014e9a29c92376772a34344b3635fa4bcb69fa85e5814c0c395bc83102"
+        }
+      ]
+    }
+  ],
+  "scope": "canonical text proxy; repeat through loomc with bytecode, target specialization, and the production pre-emission pipeline"
+}

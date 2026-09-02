@@ -1,0 +1,10 @@
+{
+  "schema":"loom-blas.probe.v1",
+  "backend":"loom",
+  "device":{"ordinal":0,"name":"AMD Radeon RX 9070 XT","arch":"gfx1201"},
+  "request":{"m":1024,"n":1024,"k":1024,"trans_a":"N","trans_b":"N","a_type":"f16","b_type":"f16","c_type":"f16","d_type":"f16","compute_type":"f32","alpha":1.0,"beta":0.0},
+  "artifact":{"hsaco":"research/spike-003-native-upward/artifacts/gfx12-gemm-double-buffer-pgr2-ring-native-split-exact-fenced-no-output/gemm.hsaco","kernel":"gemm_f16_f32_mt128x128x32_gfx12_scalar_acc"},
+  "launch":{"grid":[8,8,1],"workgroup":[32,4,1]},
+  "time_us":[33.520,33.161,33.200,33.280,33.400,33.161,33.400,33.600,33.240,33.400,33.600,33.520,33.481,33.280,33.360,33.161,33.520,33.160,33.121,33.720,33.320,33.521,33.160,33.440,33.360,33.400,33.480,33.640,33.241,33.400,33.440,33.320,32.880,33.040,33.120,33.080,33.120,33.360,33.161,33.200],
+  "correctness":{"mismatches":1048576,"max_absolute":22.125,"max_relative":1.000}
+}

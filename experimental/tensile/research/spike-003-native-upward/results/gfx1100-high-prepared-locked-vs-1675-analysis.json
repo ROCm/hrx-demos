@@ -1,0 +1,18 @@
+{
+  "schema": "loom-blas.timing-summary.v1",
+  "source": "research/spike-003-native-upward/results/gfx1100-high-prepared-locked-vs-1675-paired.json",
+  "sample_count": 60,
+  "loom_median_us": 80.4205,
+  "incumbent_median_us": 44.200500000000005,
+  "median_ratio": 1.819447743803803,
+  "bootstrap": {
+    "method": "independent resampling of alternating same-process samples",
+    "resamples": 20000,
+    "seed": 2,
+    "confidence": 0.95,
+    "ratio_ci": [
+      1.8086234516369215,
+      1.8311857716476485
+    ]
+  }
+}
