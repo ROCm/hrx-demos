@@ -1,0 +1,45 @@
+{
+  "schema": "loom-blas.spike5.performance.v1",
+  "device": {
+    "name": "AMD Radeon Pro W7900",
+    "arch": "gfx1100"
+  },
+  "problem": {
+    "m": 1024,
+    "n": 960,
+    "k": 1024,
+    "a_type": "f16",
+    "b_type": "f16",
+    "d_type": "f16",
+    "accumulator": "f32"
+  },
+  "loom": {
+    "source": "loom/gemm-f16-f32-mt64x96x32-gfx11-k32-unrolled-locked-native-pub.loom",
+    "execution": "iree-benchmark-loom default pipeline, dispatch-complete device timestamps, batch 64",
+    "run_p50_us": [45.430, 44.731, 45.341, 45.205, 45.465],
+    "median_of_run_p50_us": 45.341
+  },
+  "vendor": {
+    "backend": "hipBLASLt",
+    "solution_index": 1675,
+    "execution": "blas-probe public API, 20 warmups, 40 timed launches per run",
+    "run_p50_us": [45.3005, 44.601, 44.480, 44.720, 44.360],
+    "median_of_run_p50_us": 44.601,
+    "separate_full_reference": {
+      "checked_outputs": 983040,
+      "mismatches": 0,
+      "max_absolute": 0.004,
+      "max_relative": 0.001
+    }
+  },
+  "ratio": {
+    "loom_over_vendor": 1.0165915562,
+    "independent_block_bootstrap_95_percent": [1.0002459750, 1.0221447842],
+    "resamples": 100000,
+    "seed": 23063
+  },
+  "gate": {
+    "maximum_upper_ratio": 1.05,
+    "passed": true
+  }
+}

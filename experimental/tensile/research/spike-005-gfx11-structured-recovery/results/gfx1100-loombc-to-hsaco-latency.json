@@ -1,0 +1,22 @@
+{
+  "schema": "loom-blas.loomc-jit-benchmark.v1",
+  "target": "gfx1100",
+  "symbol": "gemm_f16_f32_mt64x96x32_gfx11_pgr2",
+  "loombc_bytes": 18550,
+  "config_loombc_bytes": 597,
+  "hsaco_bytes": 46080,
+  "iterations": 30,
+  "warmup_iterations": 1,
+  "setup_us": 617.616,
+  "phases": {
+    "link": {"min_us": 257.717, "median_us": 280.178, "mean_us": 328.057, "p95_us": 679.248, "max_us": 695.518},
+    "compile": {"min_us": 15032.094, "median_us": 16308.112, "mean_us": 17728.157, "p95_us": 22540.407, "max_us": 22726.161},
+    "emit": {"min_us": 22446.354, "median_us": 24149.878, "mean_us": 26379.206, "p95_us": 31513.795, "max_us": 36001.310},
+    "total": {"min_us": 38013.102, "median_us": 40706.880, "mean_us": 44435.868, "p95_us": 54936.044, "max_us": 58896.456}
+  },
+  "notes": [
+    "Input is Loom bytecode plus a bytecode config module, not Loom text.",
+    "The optimized host benchmark reuses compiler setup and measures link, default compile, and in-memory HSACO emission for each sample.",
+    "The fully unrolled artifact is intentionally large; artifact cardinality is the provider-level requirement, not this latency in isolation."
+  ]
+}

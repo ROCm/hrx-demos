@@ -1,0 +1,252 @@
+// gfx11-family FP16 full-tile schedule anchor.
+// Two LDS stages implement PGR2/PLR1: global loads for the next K32
+// tile overlap the current stage's twelve WMMAs, followed by five LDS
+// writes and one barrier. N must be a multiple of 96; tails are routed
+// to a separate JIT specialization so this hot loop has no edge paths.
+amdgpu.target<gfx11-generic> @gfx11 {subgroup_size = 32}
+
+config.decl @gemm.m : %value: index where [range(%value, 64, 65536), mul(%value, 64)]
+
+config.decl @gemm.n : %value: index where [range(%value, 96, 65472), mul(%value, 96)]
+
+config.decl @gemm.k : %value: index where [range(%value, 64, 65536), mul(%value, 64)]
+
+kernel.def target(@gfx11) @gemm_f16_f32_mt64x96x32_gfx11_pgr2() {
+  %m = config.get @gemm.m : index
+  %n = config.get @gemm.n : index
+  %macro_m = index.constant 64 : index
+  %macro_n = index.constant 96 : index
+  %wg_m = index.div %m, %macro_m : index
+  %wg_n = index.div %n, %macro_n : index
+  %wave_size = index.constant 32 : index
+  %waves = index.constant 4 : index
+  %one = index.constant 1 : index
+  kernel.launch.config workgroups(%wg_n, %wg_m, %one) workgroup_size(%wave_size, %waves, %one) : index
+} launch(%a_buffer: buffer, %b_buffer: buffer, %c_buffer: buffer, %d_buffer: buffer) {
+  %m = config.get @gemm.m : index
+  %n = config.get @gemm.n : index
+  %k = config.get @gemm.k : index
+  %base = index.constant 0 : offset
+  %zero = index.constant 0 : index
+  %one = index.constant 1 : index
+  %two = index.constant 2 : index
+  %four = index.constant 4 : index
+  %eight = index.constant 8 : index
+  %sixteen = index.constant 16 : index
+  %thirty_two = index.constant 32 : index
+  %sixty_four = index.constant 64 : index
+  %load_stride = index.constant 128 : index
+  %macro_m = index.constant 64 : index
+  %macro_n = index.constant 96 : index
+  %wave_m_extent = index.constant 32 : index
+  %wave_n_extent = index.constant 16 : index
+  %lds_bytes = index.constant 28288 : offset
+  %workgroup_n = kernel.workgroup.id<x> : index
+  %workgroup_m = kernel.workgroup.id<y> : index
+  %lane = kernel.workitem.id<x> : index
+  %wave = kernel.workitem.id<y> : index
+  %wave_thread = index.mul %wave, %thirty_two : index
+  %thread = index.add %wave_thread, %lane : index
+  %wave_m_id = index.rem %wave, %two : index
+  %wave_n_id = index.div %wave, %two : index
+  %workgroup_m_base = index.mul %workgroup_m, %macro_m : index
+  %workgroup_n_base = index.mul %workgroup_n, %macro_n : index
+  %wave_m_delta = index.mul %wave_m_id, %wave_m_extent : index
+  %wave_n_delta = index.mul %wave_n_id, %wave_n_extent : index
+  %wave_m_base = index.add %workgroup_m_base, %wave_m_delta : index
+  %wave_n_base = index.add %workgroup_n_base, %wave_n_delta : index
+  %a_global = buffer.assume.memory_space<global> %a_buffer : buffer
+  %b_global = buffer.assume.memory_space<global> %b_buffer : buffer
+  %d_global = buffer.assume.memory_space<global> %d_buffer : buffer
+  %a_aligned = buffer.assume.alignment %a_global {minimum_alignment = 16} : buffer
+  %b_aligned = buffer.assume.alignment %b_global {minimum_alignment = 16} : buffer
+  %d_aligned = buffer.assume.alignment %d_global {minimum_alignment = 16} : buffer
+  %a_load = buffer.view %a_aligned[%base] : buffer -> view<[%k]x[%m]xf16>
+  %b_load = buffer.view %b_aligned[%base] : buffer -> view<[%n]x[%k]xf16>
+  %d_layout = encoding.layout.strided [1, %m] : encoding<layout>
+  %d = buffer.view %d_aligned[%base] : buffer -> view<[%m]x[%n]xf16, %d_layout>
+  %a_lds_layout = encoding.layout.strided [1, 65] : encoding<layout>
+  %b_lds_layout = encoding.layout.strided [1, 40] : encoding<layout>
+  %lds = buffer.alloca<workgroup> align(16) %lds_bytes : buffer
+  %a_lds = buffer.view %lds[%base] : buffer -> view<64x32xf16, %a_lds_layout>
+  %a_lds_store = buffer.view %lds[%base] : buffer -> view<32x65xf16>
+  %b0_offset = index.constant 4224 : offset
+  %b_lds = buffer.view %lds[%b0_offset] : buffer -> view<32x96xf16, %b_lds_layout>
+  %b_lds_store = buffer.view %lds[%b0_offset] : buffer -> view<96x40xf16>
+  %stage_stride = index.constant 16384 : offset
+  %zero_payload = vector.constant 0.0 : vector<8xf32>
+  %zero_acc = vector.fragment<init> %zero_payload shape [%sixteen, %sixteen] : vector<8xf32>
+  %pro_a_row_vec0 = index.rem %thread, %eight : index
+  %pro_a_row0_0 = index.mul %pro_a_row_vec0, %eight : index
+  %pro_a_row0 = index.assume %pro_a_row0_0 [range(%pro_a_row0_0, 0, 56)] : index
+  %pro_a_k0_0 = index.div %thread, %eight : index
+  %pro_a_kl0 = index.assume %pro_a_k0_0 [range(%pro_a_k0_0, 0, 31)] : index
+  %pro_a_gr0 = index.add %workgroup_m_base, %pro_a_row0 : index
+  %pro_a_gk0 = index.add %zero, %pro_a_kl0 : index
+  %pro_av0 = vector.load %a_load[%pro_a_gk0, %pro_a_gr0] : view<[%k]x[%m]xf16> -> vector<8xf16>
+  %pro_b_k_vec0 = index.rem %thread, %four : index
+  %pro_b_k0_0 = index.mul %pro_b_k_vec0, %eight : index
+  %pro_b_kl0 = index.assume %pro_b_k0_0 [range(%pro_b_k0_0, 0, 24)] : index
+  %pro_b_n0_0 = index.div %thread, %four : index
+  %pro_b_nl0 = index.assume %pro_b_n0_0 [range(%pro_b_n0_0, 0, 95)] : index
+  %pro_b_gn0 = index.add %workgroup_n_base, %pro_b_nl0 : index
+  %pro_b_gk0 = index.add %zero, %pro_b_kl0 : index
+  %pro_bv0 = vector.load %b_load[%pro_b_gn0, %pro_b_gk0] : view<[%n]x[%k]xf16> -> vector<8xf16>
+  %pro_delta1 = index.mul %one, %load_stride : index
+  %pro_linear1 = index.add %thread, %pro_delta1 : index
+  %pro_a_row_vec1 = index.rem %pro_linear1, %eight : index
+  %pro_a_row0_1 = index.mul %pro_a_row_vec1, %eight : index
+  %pro_a_row1 = index.assume %pro_a_row0_1 [range(%pro_a_row0_1, 0, 56)] : index
+  %pro_a_k0_1 = index.div %pro_linear1, %eight : index
+  %pro_a_kl1 = index.assume %pro_a_k0_1 [range(%pro_a_k0_1, 0, 31)] : index
+  %pro_a_gr1 = index.add %workgroup_m_base, %pro_a_row1 : index
+  %pro_a_gk1 = index.add %zero, %pro_a_kl1 : index
+  %pro_av1 = vector.load %a_load[%pro_a_gk1, %pro_a_gr1] : view<[%k]x[%m]xf16> -> vector<8xf16>
+  %pro_b_k_vec1 = index.rem %pro_linear1, %four : index
+  %pro_b_k0_1 = index.mul %pro_b_k_vec1, %eight : index
+  %pro_b_kl1 = index.assume %pro_b_k0_1 [range(%pro_b_k0_1, 0, 24)] : index
+  %pro_b_n0_1 = index.div %pro_linear1, %four : index
+  %pro_b_nl1 = index.assume %pro_b_n0_1 [range(%pro_b_n0_1, 0, 95)] : index
+  %pro_b_gn1 = index.add %workgroup_n_base, %pro_b_nl1 : index
+  %pro_b_gk1 = index.add %zero, %pro_b_kl1 : index
+  %pro_bv1 = vector.load %b_load[%pro_b_gn1, %pro_b_gk1] : view<[%n]x[%k]xf16> -> vector<8xf16>
+  %pro_delta2 = index.mul %two, %load_stride : index
+  %pro_linear2 = index.add %thread, %pro_delta2 : index
+  %pro_b_k_vec2 = index.rem %pro_linear2, %four : index
+  %pro_b_k0_2 = index.mul %pro_b_k_vec2, %eight : index
+  %pro_b_kl2 = index.assume %pro_b_k0_2 [range(%pro_b_k0_2, 0, 24)] : index
+  %pro_b_n0_2 = index.div %pro_linear2, %four : index
+  %pro_b_nl2 = index.assume %pro_b_n0_2 [range(%pro_b_n0_2, 0, 95)] : index
+  %pro_b_gn2 = index.add %workgroup_n_base, %pro_b_nl2 : index
+  %pro_b_gk2 = index.add %zero, %pro_b_kl2 : index
+  %pro_bv2 = vector.load %b_load[%pro_b_gn2, %pro_b_gk2] : view<[%n]x[%k]xf16> -> vector<8xf16>
+  vector.store %pro_av0, %a_lds_store[%pro_a_kl0, %pro_a_row0] : vector<8xf16>, view<32x65xf16>
+  vector.store %pro_av1, %a_lds_store[%pro_a_kl1, %pro_a_row1] : vector<8xf16>, view<32x65xf16>
+  vector.store %pro_bv0, %b_lds_store[%pro_b_nl0, %pro_b_kl0] : vector<8xf16>, view<96x40xf16>
+  vector.store %pro_bv1, %b_lds_store[%pro_b_nl1, %pro_b_kl1] : vector<8xf16>, view<96x40xf16>
+  vector.store %pro_bv2, %b_lds_store[%pro_b_nl2, %pro_b_kl2] : vector<8xf16>, view<96x40xf16>
+  kernel.barrier<workgroup> scope(workgroup) ordering(acq_rel)
+  %frag_m1 = index.add %wave_m_delta, %sixteen : index
+  %frag_n1 = index.add %wave_n_delta, %thirty_two : index
+  %frag_n2 = index.add %wave_n_delta, %sixty_four : index
+  %initial_lhs0 = vector.fragment.load<lhs> %a_lds[%wave_m_delta, %zero] shape [%sixteen, %sixteen] : view<64x32xf16, %a_lds_layout> -> vector<16xf16>
+  %initial_lhs1 = vector.fragment.load<lhs> %a_lds[%frag_m1, %zero] shape [%sixteen, %sixteen] : view<64x32xf16, %a_lds_layout> -> vector<16xf16>
+  %initial_rhs0 = vector.fragment.load<rhs> %b_lds[%zero, %wave_n_delta] shape [%sixteen, %sixteen] : view<32x96xf16, %b_lds_layout> -> vector<16xf16>
+  %initial_rhs1 = vector.fragment.load<rhs> %b_lds[%zero, %frag_n1] shape [%sixteen, %sixteen] : view<32x96xf16, %b_lds_layout> -> vector<16xf16>
+  %initial_rhs2 = vector.fragment.load<rhs> %b_lds[%zero, %frag_n2] shape [%sixteen, %sixteen] : view<32x96xf16, %b_lds_layout> -> vector<16xf16>
+  %last_k = index.sub %k, %thirty_two : index
+  %loop_r0, %loop_r1, %loop_r2, %loop_r3, %loop_r4, %loop_r5, %final_lhs0, %final_lhs1, %final_rhs0, %final_rhs1, %final_rhs2 = scf.for %k_base = [%zero to %last_k step %thirty_two](%a0 = %zero_acc : vector<8xf32>, %a1 = %zero_acc : vector<8xf32>, %a2 = %zero_acc : vector<8xf32>, %a3 = %zero_acc : vector<8xf32>, %a4 = %zero_acc : vector<8xf32>, %a5 = %zero_acc : vector<8xf32>, %cur_lhs0 = %initial_lhs0 : vector<16xf16>, %cur_lhs1 = %initial_lhs1 : vector<16xf16>, %cur_rhs0 = %initial_rhs0 : vector<16xf16>, %cur_rhs1 = %initial_rhs1 : vector<16xf16>, %cur_rhs2 = %initial_rhs2 : vector<16xf16>) -> (vector<8xf32>, vector<8xf32>, vector<8xf32>, vector<8xf32>, vector<8xf32>, vector<8xf32>, vector<16xf16>, vector<16xf16>, vector<16xf16>, vector<16xf16>, vector<16xf16>) unroll(%thirty_two) {
+    %current_stage_quotient = index.div %k_base, %thirty_two : index
+    %current_stage = index.rem %current_stage_quotient, %two : index
+    %current_stage_offset = index.scale %current_stage, %stage_stride : index, offset -> offset
+    %current_b_stage_offset = index.add %current_stage_offset, %b0_offset : offset
+    %current_a_lds = buffer.view %lds[%current_stage_offset] : buffer -> view<64x32xf16, %a_lds_layout>
+    %current_b_lds = buffer.view %lds[%current_b_stage_offset] : buffer -> view<32x96xf16, %b_lds_layout>
+    %candidate_next = index.add %k_base, %thirty_two : index
+    %has_next = index.cmp ult, %candidate_next, %k : index
+    %next_k = scf.select %has_next, %candidate_next, %k_base : index
+    %next_stage_quotient = index.div %candidate_next, %thirty_two : index
+    %next_stage = index.rem %next_stage_quotient, %two : index
+    %next_stage_offset = index.scale %next_stage, %stage_stride : index, offset -> offset
+    %next_b_stage_offset = index.add %next_stage_offset, %b0_offset : offset
+    %next_a_lds = buffer.view %lds[%next_stage_offset] : buffer -> view<64x32xf16, %a_lds_layout>
+    %next_a_lds_store = buffer.view %lds[%next_stage_offset] : buffer -> view<32x65xf16>
+    %next_b_lds = buffer.view %lds[%next_b_stage_offset] : buffer -> view<32x96xf16, %b_lds_layout>
+    %next_b_lds_store = buffer.view %lds[%next_b_stage_offset] : buffer -> view<96x40xf16>
+    %next_a_gk0 = index.add %next_k, %pro_a_kl0 : index
+    %next_av0 = vector.load %a_load[%next_a_gk0, %pro_a_gr0] : view<[%k]x[%m]xf16> -> vector<8xf16>
+    %next_b_gk0 = index.add %next_k, %pro_b_kl0 : index
+    %next_bv0 = vector.load %b_load[%pro_b_gn0, %next_b_gk0] : view<[%n]x[%k]xf16> -> vector<8xf16>
+    %next_a_gk1 = index.add %next_k, %pro_a_kl1 : index
+    %next_av1 = vector.load %a_load[%next_a_gk1, %pro_a_gr1] : view<[%k]x[%m]xf16> -> vector<8xf16>
+    %next_b_gk1 = index.add %next_k, %pro_b_kl1 : index
+    %next_bv1 = vector.load %b_load[%pro_b_gn1, %next_b_gk1] : view<[%n]x[%k]xf16> -> vector<8xf16>
+    %next_b_gk2 = index.add %next_k, %pro_b_kl2 : index
+    %next_bv2 = vector.load %b_load[%pro_b_gn2, %next_b_gk2] : view<[%n]x[%k]xf16> -> vector<8xf16>
+    %first_acc0 = vector.mma %cur_lhs0, %cur_rhs0, %a0 : vector<16xf16>, vector<16xf16>, vector<8xf32>
+    %second_lhs0 = vector.fragment.load<lhs> %current_a_lds[%wave_m_delta, %sixteen] shape [%sixteen, %sixteen] : view<64x32xf16, %a_lds_layout> -> vector<16xf16>
+    %first_acc3 = vector.mma %cur_lhs1, %cur_rhs0, %a3 : vector<16xf16>, vector<16xf16>, vector<8xf32>
+    %second_lhs1 = vector.fragment.load<lhs> %current_a_lds[%frag_m1, %sixteen] shape [%sixteen, %sixteen] : view<64x32xf16, %a_lds_layout> -> vector<16xf16>
+    %first_acc1 = vector.mma %cur_lhs0, %cur_rhs1, %a1 : vector<16xf16>, vector<16xf16>, vector<8xf32>
+    %second_rhs0 = vector.fragment.load<rhs> %current_b_lds[%sixteen, %wave_n_delta] shape [%sixteen, %sixteen] : view<32x96xf16, %b_lds_layout> -> vector<16xf16>
+    %first_acc4 = vector.mma %cur_lhs1, %cur_rhs1, %a4 : vector<16xf16>, vector<16xf16>, vector<8xf32>
+    %second_rhs1 = vector.fragment.load<rhs> %current_b_lds[%sixteen, %frag_n1] shape [%sixteen, %sixteen] : view<32x96xf16, %b_lds_layout> -> vector<16xf16>
+    %first_acc2 = vector.mma %cur_lhs0, %cur_rhs2, %a2 : vector<16xf16>, vector<16xf16>, vector<8xf32>
+    %second_rhs2 = vector.fragment.load<rhs> %current_b_lds[%sixteen, %frag_n2] shape [%sixteen, %sixteen] : view<32x96xf16, %b_lds_layout> -> vector<16xf16>
+    %first_acc5 = vector.mma %cur_lhs1, %cur_rhs2, %a5 : vector<16xf16>, vector<16xf16>, vector<8xf32>
+    vector.store %next_av0, %next_a_lds_store[%pro_a_kl0, %pro_a_row0] : vector<8xf16>, view<32x65xf16>
+    vector.store %next_av1, %next_a_lds_store[%pro_a_kl1, %pro_a_row1] : vector<8xf16>, view<32x65xf16>
+    vector.store %next_bv0, %next_b_lds_store[%pro_b_nl0, %pro_b_kl0] : vector<8xf16>, view<96x40xf16>
+    vector.store %next_bv1, %next_b_lds_store[%pro_b_nl1, %pro_b_kl1] : vector<8xf16>, view<96x40xf16>
+    vector.store %next_bv2, %next_b_lds_store[%pro_b_nl2, %pro_b_kl2] : vector<8xf16>, view<96x40xf16>
+    kernel.barrier<workgroup> scope(workgroup) ordering(acq_rel)
+    %second_acc0 = vector.mma %second_lhs0, %second_rhs0, %first_acc0 : vector<16xf16>, vector<16xf16>, vector<8xf32>
+    %next_first_lhs0 = vector.fragment.load<lhs> %next_a_lds[%wave_m_delta, %zero] shape [%sixteen, %sixteen] : view<64x32xf16, %a_lds_layout> -> vector<16xf16>
+    %second_acc3 = vector.mma %second_lhs1, %second_rhs0, %first_acc3 : vector<16xf16>, vector<16xf16>, vector<8xf32>
+    %next_first_lhs1 = vector.fragment.load<lhs> %next_a_lds[%frag_m1, %zero] shape [%sixteen, %sixteen] : view<64x32xf16, %a_lds_layout> -> vector<16xf16>
+    %second_acc1 = vector.mma %second_lhs0, %second_rhs1, %first_acc1 : vector<16xf16>, vector<16xf16>, vector<8xf32>
+    %next_first_rhs0 = vector.fragment.load<rhs> %next_b_lds[%zero, %wave_n_delta] shape [%sixteen, %sixteen] : view<32x96xf16, %b_lds_layout> -> vector<16xf16>
+    %second_acc4 = vector.mma %second_lhs1, %second_rhs1, %first_acc4 : vector<16xf16>, vector<16xf16>, vector<8xf32>
+    %next_first_rhs1 = vector.fragment.load<rhs> %next_b_lds[%zero, %frag_n1] shape [%sixteen, %sixteen] : view<32x96xf16, %b_lds_layout> -> vector<16xf16>
+    %second_acc2 = vector.mma %second_lhs0, %second_rhs2, %first_acc2 : vector<16xf16>, vector<16xf16>, vector<8xf32>
+    %next_first_rhs2 = vector.fragment.load<rhs> %next_b_lds[%zero, %frag_n2] shape [%sixteen, %sixteen] : view<32x96xf16, %b_lds_layout> -> vector<16xf16>
+    %second_acc5 = vector.mma %second_lhs1, %second_rhs2, %first_acc5 : vector<16xf16>, vector<16xf16>, vector<8xf32>
+    scf.yield %second_acc0, %second_acc1, %second_acc2, %second_acc3, %second_acc4, %second_acc5, %next_first_lhs0, %next_first_lhs1, %next_first_rhs0, %next_first_rhs1, %next_first_rhs2 : vector<8xf32>, vector<8xf32>, vector<8xf32>, vector<8xf32>, vector<8xf32>, vector<8xf32>, vector<16xf16>, vector<16xf16>, vector<16xf16>, vector<16xf16>, vector<16xf16>
+  }
+  %final_stage_quotient = index.div %last_k, %thirty_two : index
+  %final_stage = index.rem %final_stage_quotient, %two : index
+  %final_stage_offset = index.scale %final_stage, %stage_stride : index, offset -> offset
+  %final_b_stage_offset = index.add %final_stage_offset, %b0_offset : offset
+  %final_a_lds = buffer.view %lds[%final_stage_offset] : buffer -> view<64x32xf16, %a_lds_layout>
+  %final_b_lds = buffer.view %lds[%final_b_stage_offset] : buffer -> view<32x96xf16, %b_lds_layout>
+  %tail_first_acc0 = vector.mma %final_lhs0, %final_rhs0, %loop_r0 : vector<16xf16>, vector<16xf16>, vector<8xf32>
+  %tail_second_lhs0 = vector.fragment.load<lhs> %final_a_lds[%wave_m_delta, %sixteen] shape [%sixteen, %sixteen] : view<64x32xf16, %a_lds_layout> -> vector<16xf16>
+  %tail_first_acc1 = vector.mma %final_lhs0, %final_rhs1, %loop_r1 : vector<16xf16>, vector<16xf16>, vector<8xf32>
+  %tail_second_lhs1 = vector.fragment.load<lhs> %final_a_lds[%frag_m1, %sixteen] shape [%sixteen, %sixteen] : view<64x32xf16, %a_lds_layout> -> vector<16xf16>
+  %tail_first_acc2 = vector.mma %final_lhs0, %final_rhs2, %loop_r2 : vector<16xf16>, vector<16xf16>, vector<8xf32>
+  %tail_second_rhs0 = vector.fragment.load<rhs> %final_b_lds[%sixteen, %wave_n_delta] shape [%sixteen, %sixteen] : view<32x96xf16, %b_lds_layout> -> vector<16xf16>
+  %tail_first_acc3 = vector.mma %final_lhs1, %final_rhs0, %loop_r3 : vector<16xf16>, vector<16xf16>, vector<8xf32>
+  %tail_second_rhs1 = vector.fragment.load<rhs> %final_b_lds[%sixteen, %frag_n1] shape [%sixteen, %sixteen] : view<32x96xf16, %b_lds_layout> -> vector<16xf16>
+  %tail_first_acc4 = vector.mma %final_lhs1, %final_rhs1, %loop_r4 : vector<16xf16>, vector<16xf16>, vector<8xf32>
+  %tail_second_rhs2 = vector.fragment.load<rhs> %final_b_lds[%sixteen, %frag_n2] shape [%sixteen, %sixteen] : view<32x96xf16, %b_lds_layout> -> vector<16xf16>
+  %tail_first_acc5 = vector.mma %final_lhs1, %final_rhs2, %loop_r5 : vector<16xf16>, vector<16xf16>, vector<8xf32>
+  %r0 = vector.mma %tail_second_lhs0, %tail_second_rhs0, %tail_first_acc0 : vector<16xf16>, vector<16xf16>, vector<8xf32>
+  %r1 = vector.mma %tail_second_lhs0, %tail_second_rhs1, %tail_first_acc1 : vector<16xf16>, vector<16xf16>, vector<8xf32>
+  %r2 = vector.mma %tail_second_lhs0, %tail_second_rhs2, %tail_first_acc2 : vector<16xf16>, vector<16xf16>, vector<8xf32>
+  %r3 = vector.mma %tail_second_lhs1, %tail_second_rhs0, %tail_first_acc3 : vector<16xf16>, vector<16xf16>, vector<8xf32>
+  %r4 = vector.mma %tail_second_lhs1, %tail_second_rhs1, %tail_first_acc4 : vector<16xf16>, vector<16xf16>, vector<8xf32>
+  %r5 = vector.mma %tail_second_lhs1, %tail_second_rhs2, %tail_first_acc5 : vector<16xf16>, vector<16xf16>, vector<8xf32>
+  %out0 = vector.fragment<result> %r0 shape [%sixteen, %sixteen] : vector<8xf32>
+  vector.fragment.store<result> %out0, %d[%wave_m_base, %wave_n_base] shape [%sixteen, %sixteen] : vector<8xf32>, view<[%m]x[%n]xf16, %d_layout>
+  %store_n0_1 = index.add %wave_n_base, %thirty_two : index
+  %out1 = vector.fragment<result> %r1 shape [%sixteen, %sixteen] : vector<8xf32>
+  vector.fragment.store<result> %out1, %d[%wave_m_base, %store_n0_1] shape [%sixteen, %sixteen] : vector<8xf32>, view<[%m]x[%n]xf16, %d_layout>
+  %store_n0_2 = index.add %wave_n_base, %sixty_four : index
+  %out2 = vector.fragment<result> %r2 shape [%sixteen, %sixteen] : vector<8xf32>
+  vector.fragment.store<result> %out2, %d[%wave_m_base, %store_n0_2] shape [%sixteen, %sixteen] : vector<8xf32>, view<[%m]x[%n]xf16, %d_layout>
+  %store_m1 = index.add %wave_m_base, %sixteen : index
+  %out3 = vector.fragment<result> %r3 shape [%sixteen, %sixteen] : vector<8xf32>
+  vector.fragment.store<result> %out3, %d[%store_m1, %wave_n_base] shape [%sixteen, %sixteen] : vector<8xf32>, view<[%m]x[%n]xf16, %d_layout>
+  %store_n1_1 = index.add %wave_n_base, %thirty_two : index
+  %out4 = vector.fragment<result> %r4 shape [%sixteen, %sixteen] : vector<8xf32>
+  vector.fragment.store<result> %out4, %d[%store_m1, %store_n1_1] shape [%sixteen, %sixteen] : vector<8xf32>, view<[%m]x[%n]xf16, %d_layout>
+  %store_n1_2 = index.add %wave_n_base, %sixty_four : index
+  %out5 = vector.fragment<result> %r5 shape [%sixteen, %sixteen] : vector<8xf32>
+  vector.fragment.store<result> %out5, %d[%store_m1, %store_n1_2] shape [%sixteen, %sixteen] : vector<8xf32>, view<[%m]x[%n]xf16, %d_layout>
+  kernel.return
+}
+
+// Uniform inputs exercise every production address without depending on the
+// host tensor-major convention. 1024 * (1/32) * (1/32) = 1 exactly.
+check.case public @gemm_f16_f32_mt64x96x32_gfx11_pgr2_case {
+  %a = check.generate.fill value(0.03125) : tensor<1024x1024xf16>
+  %b = check.generate.fill value(0.03125) : tensor<960x1024xf16>
+  %c = check.generate.fill value(0.0) : tensor<1024x960xf16>
+  %d = check.generate.fill value(0.0) : tensor<1024x960xf16>
+  %expected = check.generate.fill value(1.0) : tensor<1024x960xf16>
+  kernel.launch @gemm_f16_f32_mt64x96x32_gfx11_pgr2(%a, %b, %c, %d) : (tensor<1024x1024xf16>, tensor<960x1024xf16>, tensor<1024x960xf16>, tensor<1024x960xf16>)
+  check.expect.close actual(%d) expected(%expected) atol(0.0) rtol(0.0) nan(same) : tensor<1024x960xf16>
+  check.return
+}
+
+check.benchmark<@gemm_f16_f32_mt64x96x32_gfx11_pgr2_case> @gemm_f16_f32_mt64x96x32_gfx11_pgr2_1024x960x1024

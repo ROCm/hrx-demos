@@ -1,0 +1,36 @@
+{
+  "schema": "loom-blas.spike5.validation.v1",
+  "pipeline": "default",
+  "runner": "iree-test-loom",
+  "cases": [
+    {
+      "name": "minimum nonuniform CPU-reference differential",
+      "shape": [64, 96, 64],
+      "status": "pass"
+    },
+    {
+      "name": "minimum exact row-address witness",
+      "shape": [64, 96, 64],
+      "status": "pass"
+    },
+    {
+      "name": "complete nonuniform CPU-reference differential",
+      "shape": [1024, 960, 1024],
+      "checked_outputs": 983040,
+      "status": "pass"
+    },
+    {
+      "name": "native access sanitizer, minimum nonuniform tile",
+      "shape": [64, 96, 64],
+      "sanitizer": "asan",
+      "status": "pass",
+      "notes": "All memory operations are High Loom. Sanitizer instrumentation introduced seven SGPR spill-storage warnings but no access violation."
+    }
+  ],
+  "rejected_candidate": {
+    "description": "prepared-Low publication row map copied verbatim into the High fragment motif",
+    "status": "failed",
+    "first_row_witness_error": "output physical index 16 contained row 32 value 0.5 instead of row 16 value 0.25",
+    "resolution": "High fragment roles require wave_m*32 + accumulator_group*16; the prepared-Low oracle used wave_m*16 + accumulator_group*32."
+  }
+}

@@ -18,6 +18,11 @@ retains enough state to reproduce or invalidate its findings.
   `low.invoke`; retain the accepted gfx12 performance witness, upstream #513
   validation of family-generic locked fragments, and exact packets for the
   unsupported or still-unverified boundaries.
+- [`spike-005-gfx11-structured-recovery/`](spike-005-gfx11-structured-recovery/)
+  — recover the gfx11 FP16 cell through structured High memory/control flow
+  plus one register-only locked WMMA helper; retain the loop-wait smoking gun,
+  publication-map correction, full nonuniform and access-sanitizer evidence,
+  and a default-pipeline 1.0166x result versus hipBLASLt solution 1675.
 - [`tools/`](tools/) — small explicit probes used by the spikes.
 
 Generated binaries and bulky raw artifacts live in ignored `artifacts/`

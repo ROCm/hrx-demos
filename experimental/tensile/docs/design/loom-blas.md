@@ -2,7 +2,7 @@
 
 **Date:** 2026-09-02
 
-**Status:** Working design with Spike 4 checkpoint
+**Status:** Working design with Spike 5 checkpoint
 
 **Initial physical witnesses:** `gfx906`, `gfx1100`, `gfx1201`
 
@@ -153,6 +153,38 @@ The accelerated-datatype basket remains open. A gfx11 BF16 retarget of the
 terminal schedule compiles with native BF16 WMMA and an explicit VALU
 round-to-nearest-even output conversion. BF16 runtime parity, I8, and gfx12
 FP8/BF8 are the next schedule conclusions; gfx906 enablement follows those.
+
+Spike 005 closes the bounded gfx11 FP16 interior cell through a maintained
+default-pipeline form. The source targets `gfx11-generic`, retains all global
+and LDS memory and structured control flow in High Loom, and uses one locked,
+register-only Low WMMA helper. Exact-K full unrolling removes a concretely
+identified loop-entry full-drain policy; a peeled tail, the recovered
+`0,3,1,4,2,5` WMMA wavefront, and direct all-lane FP16 publication complete the
+motif. Five Loom runs measure 45.341 us at `1024x960x1024`; five public
+hipBLASLt solution-1675 runs measure 44.601 us. The ratio is 1.0166 with a 95%
+independent block-bootstrap interval `[1.0002, 1.0221]`, passing the 1.05 upper
+gate.
+
+The acceptance evidence includes a minimum nonuniform CPU-reference case, an
+exact row-address witness, a complete 983,040-output nonuniform differential,
+and Loom's native access sanitizer. These checks caught a fast invalid
+candidate: the prepared-Low oracle's row map used `wave*16 + group*32`, while
+High fragment ownership requires `wave*32 + group*16`. Uniform values had
+hidden that permutation. The corrected artifact has 144 VGPRs, 22 SGPRs,
+28,288 bytes LDS, no private memory or spills, and the intended 384 WMMAs, 160
+global loads, 48 global stores, and 32 barriers.
+
+The remaining compiler issue is narrowly root-caused. The wait planner
+relocates loop-carried SSA dependencies to loop entry and emits a zero-target
+wait, which drains all 38 outstanding LDS reads for this ring. Full unrolling
+turns these into useful partial waits and improves the High-only kernel from
+about 61.6 to 53.8 us before the publication change. Full unrolling is legal
+for an exact-shape JIT, but it grows the code body to 39,104 bytes. The retained
+compiler packet asks for safe partial loop-entry waits so less specialized or
+larger schedules need not pay that expansion.
+
+The complete Spike 005 evidence and blind alleys are under
+[`research/spike-005-gfx11-structured-recovery/`](../../research/spike-005-gfx11-structured-recovery/README.md).
 
 ## Scope
 
@@ -436,6 +468,18 @@ ms, so host build mode is part of the measurement contract. The
 earlier 4.67--8.47 ms prepared-Low measurements bypass the default pipeline
 and are only HSACO-emission floors. Detailed current measurements are in
 [`results/loombc-to-hsaco-latency.json`](../../research/spike-004-default-pipeline-microkernels/results/loombc-to-hsaco-latency.json).
+
+Spike 005 repeats this production-shaped measurement for the accepted gfx11
+source. Its 18.55 KiB Loom bytecode links in 0.280 ms median, compiles through
+the default source-to-prepared-Low pipeline in 16.308 ms, and emits HSACO in
+24.150 ms, for 40.707 ms total. The emitted object is 46,080 bytes and contains
+a 39,104-byte fully unrolled code body. This is materially slower than the
+compact Spike 004 gfx11 experiment and confirms that code expansion, not text
+parsing, is the relevant JIT cost. It remains tolerable only if the
+post-specialization program key collapses real MNK traffic to a small artifact
+set, and it strengthens the case for the structured-loop wait-planner fix.
+The retained distribution is
+[`gfx1100-loombc-to-hsaco-latency.json`](../../research/spike-005-gfx11-structured-recovery/results/gfx1100-loombc-to-hsaco-latency.json).
 
 Artifact cardinality, rather than single-object emission latency, is the
 integration gate. The synchronous path must derive the post-specialization
@@ -1201,11 +1245,15 @@ Both rocBLAS and hipBLASLt source logic exist, while this installation packages
 hipBLASLt target artifacts. The laboratory must determine the actual public API
 coverage rather than encode the original rocBLAS-only assumption. Compare
 recipe families with `gfx1201` to decide which Loom motifs are genuinely shared
-and which require RDNA3 specialization. The all-High FP16 anchor is correct but
-1.34x slower and spills four values; the prepared-Low oracle proves the target
-schedule. The next experiment reconstructs it with structured source control
-flow and straight-line locked Low fragments, since arbitrary multi-block
-locked helpers are outside #513's deliberate contract.
+and which require RDNA3 specialization. Spike 005 reconstructs the first
+`1024x960x1024` FP16 cell with structured High memory/control flow and a
+straight-line register-only locked helper. It passes the 1.05 parity gate with
+no spill/private traffic and full nonuniform/sanitizer evidence. The key
+RDNA3-specific facts are K32 ring staging, WMMA issue wavefront, and direct
+publication mapping; they remain configuration/mechanism facts under the
+generic family target rather than an exact-ISA source name. Broader cells and
+accelerated data types remain open, as does removing exact-K full unrolling by
+improving loop-entry wait planning.
 
 ### `gfx906`
 
@@ -1231,10 +1279,10 @@ rather than guessed calendar duration.
 | --- | --- | --- |
 | Laboratory and schemas | One request enumerates, forces, checks, and measures each installed incumbent; a loaded Loom kernel runs on each supported target | Public API comparison harness forces hipBLASLt/rocBLAS solutions, launches Loom HSACOs, performs sampled or full CPU differentials, and records paired timings; BF16 support is in progress |
 | Source/runtime extractor and router explainer | Sampled Equality/GridBased/classic Tensile routes agree with runtime/dispatch and emit normalized packets | Runtime shards, source recipes, code objects, and bounded native symbol summaries joined for sampled winners; broader route replay and dynamic schedule extraction remain |
-| Derived-key experiment | Config and exact shape facts specialize a `.loombc`; equal resulting programs alias before HSACO emission and unequal programs do not | Optimized-host bytecode link/default-compile/emit latency is 11.77--22.09 ms median; pre-emission key stability, demand-corpus cardinality, parallel startup behavior, and code-object load remain open |
+| Derived-key experiment | Config and exact shape facts specialize a `.loombc`; equal resulting programs alias before HSACO emission and unequal programs do not | Optimized-host bytecode link/default-compile/emit latency is 11.77--22.09 ms for compact Spike 4 motifs and 40.71 ms for the fully unrolled accepted gfx11 motif; pre-emission key stability, demand-corpus cardinality, parallel startup behavior, and code-object load remain open |
 | `gfx906` Loom enablement | Compile/load/correctness/resource-report smoke tests pass | Blocked on missing physical target support, isolated from GEMM work |
 | First `gfx1201` vertical slice | Primitive FP16-to-FP32 WMMA GEMM reaches parity across a bounded cell through the default pipeline | The 1024-cubed point is accepted: 25.04 us versus 28.78 us, correct and spill-free. #513 validates its family-generic helper and locked ordering with a byte-identical artifact; broader-cell validation remains open. |
-| gfx11 family specialization | The shared family passes on the RDNA3 witness with structural variants only where justified | Not complete: default-pipeline High is 61.0 us versus 45.46 us and spills; exact prepared-Low schedule remains an oracle for reconstruction as structured source control flow plus straight-line Low fragments. |
+| gfx11 family specialization | The shared family passes on the RDNA3 witness with structural variants only where justified | First bounded cell passes: default-pipeline `gfx11-generic` source is 45.341 us versus 44.601 us for solution 1675, upper ratio CI 1.0221, fully nonuniform-correct, access-sanitized, and spill-free. Broader MNK/type coverage and a non-expanded structured loop remain open. |
 | `gfx906` VALU family | One useful family reaches parity across a bounded cell | Incumbent schedule recovered; Loom target enablement precedes implementation |
 | Accelerated arithmetic expansion | Every provider-visible native matrix signature has a correct primitive and measured representative cells | Instruction inventory and compile witnesses exist; gfx11 BF16 schedule port compiles, while BF16/I8/FP8 timing conclusions remain open |
 | Layout/epilogue expansion | Agreed key demand corpus is covered with provider fallback elsewhere | Standalone bias/no-bias specialization witness passes and removes the bias load; composed GEMM row/column differential remains open. |
@@ -1277,6 +1325,7 @@ project multiplies authored algorithms.
 | Algorithm indices drift | Treat index as build-relative and retain names, paths, versions, and hashes. |
 | Benchmark tools hide favorable state | Own allocations, data, workspace, selection, launch sequence, and timing in `blas-lab`. |
 | Cache-hot inputs or zero data inflate results | Deterministic nonzero inputs and explicit rotating/cold versus resident policies. |
+| Uniform inputs hide fragment/publication permutations | Require a nonuniform row/column witness and CPU-reference differential before accepting a native publication transform. |
 | Tuning overfits YAML points | Test cell interiors, boundaries, tails, alignments, and a separately weighted demand corpus. |
 | Loom lacks a required target or schedule control | Reduce to a standalone compiler packet; land the capability independently. |
 | JIT latency erases kernel gains | Separate compile/load/steady-state budgets, cache by exact identity, and retain incumbent fallback. |

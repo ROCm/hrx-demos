@@ -1,0 +1,38 @@
+{
+  "schema": "loom-blas.spike5.compile-summary.v1",
+  "target_source": "gfx11-generic",
+  "target_artifact": "gfx1100",
+  "pipeline": "default",
+  "artifact": {
+    "hsaco_bytes": 46080,
+    "code_bytes": 39104,
+    "instruction_count": 5796,
+    "schedule_node_count": 6685
+  },
+  "resources": {
+    "vgpr_count": 144,
+    "vgpr_scheduled_pressure": 139,
+    "sgpr_count": 22,
+    "sgpr_scheduled_pressure": 20,
+    "lds_bytes": 28288,
+    "private_memory_bytes": 0,
+    "occupancy_percent": 25,
+    "limiting_resource": "amdgpu.lds"
+  },
+  "instructions": {
+    "wmma": 384,
+    "global_load": 160,
+    "global_store": 48,
+    "local_memory": 2592,
+    "barrier": 32,
+    "branch": 1,
+    "conversion": 48
+  },
+  "wait_plan": {
+    "action_count": 340,
+    "full_drain_count": 145,
+    "partial_wait_count": 195,
+    "max_outstanding_before": 38,
+    "max_full_drain_outstanding_before": 38
+  }
+}
