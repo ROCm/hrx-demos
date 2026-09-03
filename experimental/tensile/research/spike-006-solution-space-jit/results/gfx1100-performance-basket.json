@@ -1,0 +1,648 @@
+{
+  "bands": {
+    "gt_1.25": 2,
+    "le_1.05": 1,
+    "le_1.10": 0,
+    "le_1.25": 3
+  },
+  "failed_count": 2,
+  "loom_policy": "correctness-gated iree-benchmark-loom execution through the default pipeline",
+  "records": [
+    {
+      "band": "le_1.25",
+      "best_vendor": "rocblas",
+      "loom": {
+        "artifact_size": 46080,
+        "correctness": {
+          "failed_sample_count": 0,
+          "sample_count": 1
+        },
+        "median_us": 43.815,
+        "pipeline": "default",
+        "private_memory_bytes": 0,
+        "runner": "iree-benchmark-loom"
+      },
+      "ordinal": 0,
+      "ratio": 1.1771896829661472,
+      "reasons": [
+        "anchor"
+      ],
+      "request": {
+        "k": 1024,
+        "m": 1024,
+        "n": 960
+      },
+      "vendors": [
+        {
+          "backend": "hipblaslt",
+          "correctness": {
+            "max_absolute": 0.004,
+            "max_relative": 0.001,
+            "mismatches": 0
+          },
+          "eligible_count": 70,
+          "enumerated_count": 140,
+          "kernel_name": "Cijk_Ailk_Bljk_HHS_BH_Bias_HA_S_SAV_UserArgs_MT128x48x32_MI16x16x1_SN_LDSB0_AFC1_AG0_AGGSUA0_AGNTAB0_AFEM1_AFEM1_ASEM1_BL1_BS1_CD1_1_CLR1_CLS0_CADS0_DTLA0_DTLB0_DTLM0_DTVA0_DTVB0_DTVMXSA0_DTVMXSB0_DTVSM0_DPLB0_EPS0_ELFLR0_EMLLn1_FDSI0_GRPM1_GRVWA8_GRVWB4_GSUAMB_GLS0_HPLR0_ISA1100_ICIW0_IU1_K1_LDSSI0_LDSTI0_LBSPPA4096_LBSPPB128_LBSPPMXSA0_LBSPPMXSB0_LBSPPM0_LPA16_LPB16_LPMXSA0_LPMXSB0_LPM0_LRVW16_LWPMn1_MIAV1_MIWT2_3_MXLIBL_MXSFNS_MO40_MGRIPM1_NTn1_NTA0_NTB0_NTC0_NTD0_NTE0_NTMXSA0_NTMXSB0_NTM0_NTWS0_NVn1_NVA0_NVB0_NVC0_NVD0_NVE0_NVMXSA0_NVMXSB0_NVM0_NVWS0_NEPBS0_NLCA1_NLCB1_ONLL1_PAP0_PGL0_PGR2_PLR1_PKA0_SGROB0_SIA3_SS1_SPO0_SRVW0_SSO0_SVW1_SK0_SKFTR0_SKFDPO0_SKWS0_SKXCCM0_SNLL0_SIP1_SGRO0_TDMI0_TDMIM0_TDMLWS0_TDMPLB0_TDMS0_TIN0_THn1_THA0_THB0_THC0_THD0_THE0_THMXSA0_THMXSB0_THM0_THWS0_TLDS1_TLDSM1_ULSGRO0_USL1_USLMX0_UDFMAC0_UIOFGRO0_UPLRP0_USFGROn1_USI0_VSn1_VWA1_VWB1_WSGRA0_WSGRB0_WS32_WG64_2_1_WGMXCC1",
+          "median_us": 41.78,
+          "samples_us": [
+            41.76,
+            41.801,
+            41.48,
+            41.801,
+            41.96,
+            42.32,
+            41.52,
+            41.8,
+            41.801,
+            41.88,
+            41.521,
+            41.92,
+            41.36,
+            41.76,
+            41.52,
+            41.801,
+            41.4,
+            41.681,
+            41.52,
+            41.92
+          ],
+          "solution_index": 1667,
+          "solution_name": "Cijk_Ailk_Bljk_HHS_BH_Bias_HA_S_SAV_UserArgs_MT128x48x32_MI16x16x1_SN_LDSB0_AFC1_AG0_AGGSUA0_AGNTAB0_AFEM1_AFEM1_ASEM1_BL1_BS1_CD1_1_CLR1_CLS0_CADS0_DTLA0_DTLB0_DTLM0_DTVA0_DTVB0_DTVMXSA0_DTVMXSB0_DTVSM0_DPLB0_EPS0_ELFLR0_EMLLn1_FDSI0_GRPM1_GRVWA8_GRVWB4_GSU1_GSUAMB_GSUC0_GSUWGMRR0_GLS0_HPLR0_ISA1100_ICIW0_IU1_K1_LDSSI0_LDSTI0_LBSPPA4096_LBSPPB128_LBSPPMXSA0_LBSPPMXSB0_LBSPPM0_LPA16_LPB16_LPMXSA0_LPMXSB0_LPM0_LRVW16_LWPMn1_MIAV1_MIWT2_3_MXLIBL_MXSFNS_MO40_MGRIPM1_NTn1_NTA0_NTB0_NTC0_NTD0_NTE0_NTMXSA0_NTMXSB0_NTM0_NTWS0_NVn1_NVA0_NVB0_NVC0_NVD0_NVE0_NVMXSA0_NVMXSB0_NVM0_NVWS0_NEPBS0_NLCA1_NLCB1_ONLL1_PAP0_PGL0_PGR2_PLR1_PKA0_SGROB0_SIA3_SS1_SU32_SUM1_SUS256_SPO0_SRVW0_SSO0_SVW1_SK0_SKFTR0_SKFDPO0_SKWS0_SKXCCM0_SNLL0_SIP1_SGRO0_TDMI0_TDMIM0_TDMLWS0_TDMPLB0_TDMS0_TIN0_THn1_THA0_THB0_THC0_THD0_THE0_THMXSA0_THMXSB0_THM0_THWS0_TLDS1_TLDSM1_ULSGRO0_USL1_USLMX0_UDFMAC0_UIOFGRO0_UPLRP0_USFGROn1_USI0_VSn1_VWA1_VWB1_WSGRA0_WSGRB0_WS32_WG64_2_1_WGM8_WGMXCC1_WGMXCCGn1",
+          "workspace_bytes": 0
+        },
+        {
+          "backend": "rocblas",
+          "correctness": {
+            "max_absolute": 0.002,
+            "max_relative": 0.001,
+            "mismatches": 0
+          },
+          "eligible_count": 159,
+          "enumerated_count": 159,
+          "kernel_name": null,
+          "median_us": 37.22,
+          "samples_us": [
+            37.64,
+            47.16,
+            37.44,
+            36.92,
+            37.281,
+            37.24,
+            37.16,
+            37.081,
+            37.32,
+            37.08,
+            37.241,
+            37.04,
+            37.28,
+            37.16,
+            37.28,
+            36.921,
+            37.2,
+            37.04,
+            37.521,
+            37.0
+          ],
+          "solution_index": -1140853270,
+          "solution_name": null,
+          "workspace_bytes": 0
+        }
+      ]
+    },
+    {
+      "band": "gt_1.25",
+      "best_vendor": "hipblaslt",
+      "loom": {
+        "artifact_size": 46080,
+        "correctness": {
+          "failed_sample_count": 0,
+          "sample_count": 1
+        },
+        "median_us": 25.931,
+        "pipeline": "default",
+        "private_memory_bytes": 0,
+        "runner": "iree-benchmark-loom"
+      },
+      "ordinal": 1,
+      "ratio": 1.2952547452547454,
+      "reasons": [
+        "dominant_family_median",
+        "geometry_n_wide"
+      ],
+      "request": {
+        "k": 1024,
+        "m": 64,
+        "n": 2112
+      },
+      "vendors": [
+        {
+          "backend": "hipblaslt",
+          "correctness": {
+            "max_absolute": 0.004,
+            "max_relative": 0.001,
+            "mismatches": 0
+          },
+          "eligible_count": 70,
+          "enumerated_count": 140,
+          "kernel_name": "Cijk_Ailk_Bljk_HHS_BH_Bias_HA_S_SAV_UserArgs_MT64x48x64_MI16x16x1_SN_LDSB0_AFC1_AG0_AGGSUA0_AGNTAB0_AFEM1_AFEM1_ASEM1_BL1_BS1_CD1_1_CLR1_CLS0_CADS0_DTLA0_DTLB0_DTLM0_DTVA0_DTVB0_DTVMXSA0_DTVMXSB0_DTVSM0_DPLB0_EPS0_ELFLR0_EMLLn1_FDSI0_GRPM1_GRVWA8_GRVWB8_GSUAMB_GLS0_HPLR0_ISA1100_ICIW0_IU1_K1_LDSSI0_LDSTI0_LBSPPA2048_LBSPPB128_LBSPPMXSA0_LBSPPMXSB0_LBSPPM0_LPA16_LPB16_LPMXSA0_LPMXSB0_LPM0_LRVW16_LWPMn1_MIAV1_MIWT1_3_MXLIBL_MXSFNS_MO40_MGRIPM1_NTn1_NTA0_NTB0_NTC0_NTD0_NTE0_NTMXSA0_NTMXSB0_NTM0_NTWS0_NVn1_NVA0_NVB0_NVC0_NVD0_NVE0_NVMXSA0_NVMXSB0_NVM0_NVWS0_NEPBS0_NLCA1_NLCB1_ONLL1_PAP0_PGL0_PGR2_PLR1_PKA0_SGROB0_SIA3_SS1_SPO0_SRVW0_SSO0_SVW1_SK0_SKFTR0_SKFDPO0_SKWS0_SKXCCM0_SNLL0_SIP1_SGRO0_TDMI0_TDMIM0_TDMLWS0_TDMPLB0_TDMS0_TIN0_THn1_THA0_THB0_THC0_THD0_THE0_THMXSA0_THMXSB0_THM0_THWS0_TLDS1_TLDSM1_ULSGRO0_USL1_USLMX0_UDFMAC0_UIOFGRO0_UPLRP0_USFGROn1_USI0_VSn1_VWA1_VWB1_WSGRA0_WSGRB0_WS32_WG64_2_1_WGMXCC1",
+          "median_us": 20.02,
+          "samples_us": [
+            19.88,
+            20.0,
+            19.96,
+            20.08,
+            19.76,
+            20.12,
+            19.92,
+            20.2,
+            19.84,
+            20.2,
+            20.04,
+            20.24,
+            19.68,
+            20.08,
+            20.0,
+            20.16,
+            19.681,
+            20.24,
+            19.84,
+            20.28
+          ],
+          "solution_index": 1701,
+          "solution_name": "Cijk_Ailk_Bljk_HHS_BH_Bias_HA_S_SAV_UserArgs_MT64x48x64_MI16x16x1_SN_LDSB0_AFC1_AG0_AGGSUA0_AGNTAB0_AFEM1_AFEM1_ASEM1_BL1_BS1_CD1_1_CLR1_CLS0_CADS0_DTLA0_DTLB0_DTLM0_DTVA0_DTVB0_DTVMXSA0_DTVMXSB0_DTVSM0_DPLB0_EPS0_ELFLR0_EMLLn1_FDSI0_GRPM1_GRVWA8_GRVWB8_GSU1_GSUAMB_GSUC0_GSUWGMRR0_GLS0_HPLR0_ISA1100_ICIW0_IU1_K1_LDSSI0_LDSTI0_LBSPPA2048_LBSPPB128_LBSPPMXSA0_LBSPPMXSB0_LBSPPM0_LPA16_LPB16_LPMXSA0_LPMXSB0_LPM0_LRVW16_LWPMn1_MIAV1_MIWT1_3_MXLIBL_MXSFNS_MO40_MGRIPM1_NTn1_NTA0_NTB0_NTC0_NTD0_NTE0_NTMXSA0_NTMXSB0_NTM0_NTWS0_NVn1_NVA0_NVB0_NVC0_NVD0_NVE0_NVMXSA0_NVMXSB0_NVM0_NVWS0_NEPBS0_NLCA1_NLCB1_ONLL1_PAP0_PGL0_PGR2_PLR1_PKA0_SGROB0_SIA3_SS1_SU32_SUM1_SUS256_SPO0_SRVW0_SSO0_SVW1_SK0_SKFTR0_SKFDPO0_SKWS0_SKXCCM0_SNLL0_SIP1_SGRO0_TDMI0_TDMIM0_TDMLWS0_TDMPLB0_TDMS0_TIN0_THn1_THA0_THB0_THC0_THD0_THE0_THMXSA0_THMXSB0_THM0_THWS0_TLDS1_TLDSM1_ULSGRO0_USL1_USLMX0_UDFMAC0_UIOFGRO0_UPLRP0_USFGROn1_USI0_VSn1_VWA1_VWB1_WSGRA0_WSGRB0_WS32_WG64_2_1_WGM8_WGMXCC1_WGMXCCGn1",
+          "workspace_bytes": 0
+        },
+        {
+          "backend": "rocblas",
+          "correctness": {
+            "max_absolute": 0.004,
+            "max_relative": 0.001,
+            "mismatches": 0
+          },
+          "eligible_count": 159,
+          "enumerated_count": 159,
+          "kernel_name": null,
+          "median_us": 25.1,
+          "samples_us": [
+            25.641,
+            32.88,
+            24.88,
+            24.401,
+            25.48,
+            25.2,
+            24.48,
+            24.72,
+            24.96,
+            25.2,
+            25.481,
+            25.0,
+            25.28,
+            24.681,
+            25.24,
+            24.56,
+            25.6,
+            24.681,
+            25.48,
+            24.32
+          ],
+          "solution_index": -1140853368,
+          "solution_name": null,
+          "workspace_bytes": 0
+        }
+      ]
+    },
+    {
+      "band": "le_1.05",
+      "best_vendor": "rocblas",
+      "loom": {
+        "artifact_size": 13312,
+        "correctness": {
+          "failed_sample_count": 0,
+          "sample_count": 1
+        },
+        "median_us": 7.674,
+        "pipeline": "default",
+        "private_memory_bytes": 0,
+        "runner": "iree-benchmark-loom"
+      },
+      "ordinal": 2,
+      "ratio": 0.7053308823529412,
+      "reasons": [
+        "dominant_family_small"
+      ],
+      "request": {
+        "k": 64,
+        "m": 64,
+        "n": 96
+      },
+      "vendors": [
+        {
+          "backend": "hipblaslt",
+          "correctness": {
+            "max_absolute": 0.0,
+            "max_relative": 0.0,
+            "mismatches": 0
+          },
+          "eligible_count": 55,
+          "enumerated_count": 140,
+          "kernel_name": "Cijk_Ailk_Bljk_HHS_BH_Bias_HA_S_SAV_UserArgs_MT32x32x32_MI16x16x1_SN_LDSB0_AFC1_AG0_AGGSUA0_AGNTAB0_AFEM1_AFEM1_ASEM1_BL1_BS1_CD1_1_CLR1_CLS0_CADS0_DTLA0_DTLB0_DTLM0_DTVA0_DTVB0_DTVMXSA0_DTVMXSB0_DTVSM0_DPLB0_EPS0_ELFLR0_EMLLn1_FDSI0_GRPM1_GRVWA8_GRVWB8_GSUAMB_GLS0_HPLR0_ISA1100_ICIW0_IU1_K1_LDSSI0_LDSTI0_LBSPPA1024_LBSPPB128_LBSPPMXSA0_LBSPPMXSB0_LBSPPM0_LPA16_LPB16_LPMXSA0_LPMXSB0_LPM0_LRVW16_LWPMn1_MIAV1_MIWT1_1_MXLIBL_MXSFNS_MO40_MGRIPM1_NTn1_NTA0_NTB0_NTC0_NTD0_NTE0_NTMXSA0_NTMXSB0_NTM0_NTWS0_NVn1_NVA0_NVB0_NVC0_NVD0_NVE0_NVMXSA0_NVMXSB0_NVM0_NVWS0_NEPBS0_NLCA1_NLCB1_ONLL1_PAP0_PGL0_PGR2_PLR1_PKA0_SGROB0_SIA3_SS1_SPO0_SRVW0_SSO0_SVW1_SK0_SKFTR0_SKFDPO0_SKWS0_SKXCCM0_SNLL0_SIP1_SGRO0_TDMI0_TDMIM0_TDMLWS0_TDMPLB0_TDMS0_TIN0_THn1_THA0_THB0_THC0_THD0_THE0_THMXSA0_THMXSB0_THM0_THWS0_TLDS1_TLDSM1_ULSGRO0_USL1_USLMX0_UDFMAC0_UIOFGRO0_UPLRP0_USFGROn1_USI0_VSn1_VWA1_VWB1_WSGRA0_WSGRB0_WS32_WG32_4_1_WGMXCC1",
+          "median_us": 12.68,
+          "samples_us": [
+            15.921,
+            36.06,
+            16.32,
+            12.48,
+            12.72,
+            12.48,
+            12.92,
+            12.48,
+            12.84,
+            12.48,
+            13.001,
+            12.36,
+            12.64,
+            12.52,
+            13.001,
+            12.4,
+            12.88,
+            12.44,
+            12.88,
+            12.44
+          ],
+          "solution_index": 1650,
+          "solution_name": "Cijk_Ailk_Bljk_HHS_BH_Bias_HA_S_SAV_UserArgs_MT32x32x32_MI16x16x1_SN_LDSB0_AFC1_AG0_AGGSUA0_AGNTAB0_AFEM1_AFEM1_ASEM1_BL1_BS1_CD1_1_CLR1_CLS0_CADS0_DTLA0_DTLB0_DTLM0_DTVA0_DTVB0_DTVMXSA0_DTVMXSB0_DTVSM0_DPLB0_EPS0_ELFLR0_EMLLn1_FDSI0_GRPM1_GRVWA8_GRVWB8_GSU1_GSUAMB_GSUC0_GSUWGMRR0_GLS0_HPLR0_ISA1100_ICIW0_IU1_K1_LDSSI0_LDSTI0_LBSPPA1024_LBSPPB128_LBSPPMXSA0_LBSPPMXSB0_LBSPPM0_LPA16_LPB16_LPMXSA0_LPMXSB0_LPM0_LRVW16_LWPMn1_MIAV1_MIWT1_1_MXLIBL_MXSFNS_MO40_MGRIPM1_NTn1_NTA0_NTB0_NTC0_NTD0_NTE0_NTMXSA0_NTMXSB0_NTM0_NTWS0_NVn1_NVA0_NVB0_NVC0_NVD0_NVE0_NVMXSA0_NVMXSB0_NVM0_NVWS0_NEPBS0_NLCA1_NLCB1_ONLL1_PAP0_PGL0_PGR2_PLR1_PKA0_SGROB0_SIA3_SS1_SU32_SUM1_SUS256_SPO0_SRVW0_SSO0_SVW1_SK0_SKFTR0_SKFDPO0_SKWS0_SKXCCM0_SNLL0_SIP1_SGRO0_TDMI0_TDMIM0_TDMLWS0_TDMPLB0_TDMS0_TIN0_THn1_THA0_THB0_THC0_THD0_THE0_THMXSA0_THMXSB0_THM0_THWS0_TLDS1_TLDSM1_ULSGRO0_USL1_USLMX0_UDFMAC0_UIOFGRO0_UPLRP0_USFGROn1_USI0_VSn1_VWA1_VWB1_WSGRA0_WSGRB0_WS32_WG32_4_1_WGM8_WGMXCC1_WGMXCCGn1",
+          "workspace_bytes": 0
+        },
+        {
+          "backend": "rocblas",
+          "correctness": {
+            "max_absolute": 0.0,
+            "max_relative": 0.0,
+            "mismatches": 0
+          },
+          "eligible_count": 159,
+          "enumerated_count": 159,
+          "kernel_name": null,
+          "median_us": 10.88,
+          "samples_us": [
+            12.28,
+            11.88,
+            11.561,
+            21.68,
+            11.16,
+            10.76,
+            19.841,
+            10.8,
+            10.84,
+            11.0,
+            10.801,
+            10.72,
+            10.88,
+            11.0,
+            10.84,
+            10.721,
+            10.92,
+            10.88,
+            10.84,
+            10.72
+          ],
+          "solution_index": -1140853351,
+          "solution_name": null,
+          "workspace_bytes": 0
+        }
+      ]
+    },
+    {
+      "error": "../hrx-system/bazel-bin/loom/src/loom/tools/iree-benchmark-loom/iree-benchmark-loom failed (1):\n",
+      "ordinal": 3,
+      "reasons": [
+        "dominant_family_large"
+      ],
+      "request": {
+        "k": 4096,
+        "m": 3072,
+        "n": 4128
+      }
+    },
+    {
+      "error": "../hrx-system/bazel-bin/loom/src/loom/tools/iree-benchmark-loom/iree-benchmark-loom failed (1):\n",
+      "ordinal": 4,
+      "reasons": [
+        "geometry_deep_k"
+      ],
+      "request": {
+        "k": 2048,
+        "m": 128,
+        "n": 288
+      }
+    },
+    {
+      "band": "gt_1.25",
+      "best_vendor": "rocblas",
+      "loom": {
+        "artifact_size": 46080,
+        "correctness": {
+          "failed_sample_count": 0,
+          "sample_count": 1
+        },
+        "median_us": 26.273,
+        "pipeline": "default",
+        "private_memory_bytes": 0,
+        "runner": "iree-benchmark-loom"
+      },
+      "ordinal": 5,
+      "ratio": 1.3798844537815127,
+      "reasons": [
+        "geometry_m_tall"
+      ],
+      "request": {
+        "k": 1024,
+        "m": 768,
+        "n": 192
+      },
+      "vendors": [
+        {
+          "backend": "hipblaslt",
+          "correctness": {
+            "max_absolute": 0.002,
+            "max_relative": 0.001,
+            "mismatches": 0
+          },
+          "eligible_count": 70,
+          "enumerated_count": 140,
+          "kernel_name": "Cijk_Ailk_Bljk_HHS_BH_Bias_HA_S_SAV_UserArgs_MT64x48x64_MI16x16x1_SN_LDSB0_AFC1_AG0_AGGSUA0_AGNTAB0_AFEM1_AFEM1_ASEM1_BL1_BS1_CD1_1_CLR1_CLS0_CADS0_DTLA0_DTLB0_DTLM0_DTVA0_DTVB0_DTVMXSA0_DTVMXSB0_DTVSM0_DPLB0_EPS0_ELFLR0_EMLLn1_FDSI0_GRPM1_GRVWA8_GRVWB8_GSUAMB_GLS0_HPLR0_ISA1100_ICIW0_IU1_K1_LDSSI0_LDSTI0_LBSPPA2048_LBSPPB128_LBSPPMXSA0_LBSPPMXSB0_LBSPPM0_LPA16_LPB16_LPMXSA0_LPMXSB0_LPM0_LRVW16_LWPMn1_MIAV1_MIWT1_3_MXLIBL_MXSFNS_MO40_MGRIPM1_NTn1_NTA0_NTB0_NTC0_NTD0_NTE0_NTMXSA0_NTMXSB0_NTM0_NTWS0_NVn1_NVA0_NVB0_NVC0_NVD0_NVE0_NVMXSA0_NVMXSB0_NVM0_NVWS0_NEPBS0_NLCA1_NLCB1_ONLL1_PAP0_PGL0_PGR2_PLR1_PKA0_SGROB0_SIA3_SS1_SPO0_SRVW0_SSO0_SVW1_SK0_SKFTR0_SKFDPO0_SKWS0_SKXCCM0_SNLL0_SIP1_SGRO0_TDMI0_TDMIM0_TDMLWS0_TDMPLB0_TDMS0_TIN0_THn1_THA0_THB0_THC0_THD0_THE0_THMXSA0_THMXSB0_THM0_THWS0_TLDS1_TLDSM1_ULSGRO0_USL1_USLMX0_UDFMAC0_UIOFGRO0_UPLRP0_USFGROn1_USI0_VSn1_VWA1_VWB1_WSGRA0_WSGRB0_WS32_WG64_2_1_WGMXCC1",
+          "median_us": 20.24,
+          "samples_us": [
+            20.401,
+            20.24,
+            20.48,
+            20.281,
+            20.2,
+            20.36,
+            20.48,
+            20.36,
+            20.12,
+            20.2,
+            20.241,
+            20.12,
+            20.0,
+            20.161,
+            20.24,
+            20.24,
+            20.04,
+            20.24,
+            20.2,
+            20.16
+          ],
+          "solution_index": 1701,
+          "solution_name": "Cijk_Ailk_Bljk_HHS_BH_Bias_HA_S_SAV_UserArgs_MT64x48x64_MI16x16x1_SN_LDSB0_AFC1_AG0_AGGSUA0_AGNTAB0_AFEM1_AFEM1_ASEM1_BL1_BS1_CD1_1_CLR1_CLS0_CADS0_DTLA0_DTLB0_DTLM0_DTVA0_DTVB0_DTVMXSA0_DTVMXSB0_DTVSM0_DPLB0_EPS0_ELFLR0_EMLLn1_FDSI0_GRPM1_GRVWA8_GRVWB8_GSU1_GSUAMB_GSUC0_GSUWGMRR0_GLS0_HPLR0_ISA1100_ICIW0_IU1_K1_LDSSI0_LDSTI0_LBSPPA2048_LBSPPB128_LBSPPMXSA0_LBSPPMXSB0_LBSPPM0_LPA16_LPB16_LPMXSA0_LPMXSB0_LPM0_LRVW16_LWPMn1_MIAV1_MIWT1_3_MXLIBL_MXSFNS_MO40_MGRIPM1_NTn1_NTA0_NTB0_NTC0_NTD0_NTE0_NTMXSA0_NTMXSB0_NTM0_NTWS0_NVn1_NVA0_NVB0_NVC0_NVD0_NVE0_NVMXSA0_NVMXSB0_NVM0_NVWS0_NEPBS0_NLCA1_NLCB1_ONLL1_PAP0_PGL0_PGR2_PLR1_PKA0_SGROB0_SIA3_SS1_SU32_SUM1_SUS256_SPO0_SRVW0_SSO0_SVW1_SK0_SKFTR0_SKFDPO0_SKWS0_SKXCCM0_SNLL0_SIP1_SGRO0_TDMI0_TDMIM0_TDMLWS0_TDMPLB0_TDMS0_TIN0_THn1_THA0_THB0_THC0_THD0_THE0_THMXSA0_THMXSB0_THM0_THWS0_TLDS1_TLDSM1_ULSGRO0_USL1_USLMX0_UDFMAC0_UIOFGRO0_UPLRP0_USFGROn1_USI0_VSn1_VWA1_VWB1_WSGRA0_WSGRB0_WS32_WG64_2_1_WGM8_WGMXCC1_WGMXCCGn1",
+          "workspace_bytes": 0
+        },
+        {
+          "backend": "rocblas",
+          "correctness": {
+            "max_absolute": 0.002,
+            "max_relative": 0.001,
+            "mismatches": 0
+          },
+          "eligible_count": 159,
+          "enumerated_count": 159,
+          "kernel_name": null,
+          "median_us": 19.04,
+          "samples_us": [
+            19.36,
+            46.34,
+            19.12,
+            18.56,
+            19.08,
+            18.96,
+            19.12,
+            18.88,
+            19.04,
+            19.0,
+            19.04,
+            19.8,
+            19.36,
+            19.0,
+            19.04,
+            18.8,
+            19.08,
+            18.96,
+            19.16,
+            18.72
+          ],
+          "solution_index": -1140853351,
+          "solution_name": null,
+          "workspace_bytes": 0
+        }
+      ]
+    },
+    {
+      "band": "le_1.25",
+      "best_vendor": "rocblas",
+      "loom": {
+        "artifact_size": 17408,
+        "correctness": {
+          "failed_sample_count": 0,
+          "sample_count": 1
+        },
+        "median_us": 15.739,
+        "pipeline": "default",
+        "private_memory_bytes": 0,
+        "runner": "iree-benchmark-loom"
+      },
+      "ordinal": 6,
+      "ratio": 1.165851851851852,
+      "reasons": [
+        "geometry_balanced"
+      ],
+      "request": {
+        "k": 256,
+        "m": 768,
+        "n": 576
+      },
+      "vendors": [
+        {
+          "backend": "hipblaslt",
+          "correctness": {
+            "max_absolute": 0.0,
+            "max_relative": 0.0,
+            "mismatches": 0
+          },
+          "eligible_count": 70,
+          "enumerated_count": 140,
+          "kernel_name": "Cijk_Ailk_Bljk_HHS_BH_Bias_HA_S_SAV_UserArgs_MT64x48x64_MI16x16x1_SN_LDSB0_AFC1_AG0_AGGSUA0_AGNTAB0_AFEM1_AFEM1_ASEM1_BL1_BS1_CD1_1_CLR1_CLS0_CADS0_DTLA0_DTLB0_DTLM0_DTVA0_DTVB0_DTVMXSA0_DTVMXSB0_DTVSM0_DPLB0_EPS0_ELFLR0_EMLLn1_FDSI0_GRPM1_GRVWA8_GRVWB8_GSUAMB_GLS0_HPLR0_ISA1100_ICIW0_IU1_K1_LDSSI0_LDSTI0_LBSPPA2048_LBSPPB128_LBSPPMXSA0_LBSPPMXSB0_LBSPPM0_LPA16_LPB16_LPMXSA0_LPMXSB0_LPM0_LRVW16_LWPMn1_MIAV1_MIWT1_3_MXLIBL_MXSFNS_MO40_MGRIPM1_NTn1_NTA0_NTB0_NTC0_NTD0_NTE0_NTMXSA0_NTMXSB0_NTM0_NTWS0_NVn1_NVA0_NVB0_NVC0_NVD0_NVE0_NVMXSA0_NVMXSB0_NVM0_NVWS0_NEPBS0_NLCA1_NLCB1_ONLL1_PAP0_PGL0_PGR2_PLR1_PKA0_SGROB0_SIA3_SS1_SPO0_SRVW0_SSO0_SVW1_SK0_SKFTR0_SKFDPO0_SKWS0_SKXCCM0_SNLL0_SIP1_SGRO0_TDMI0_TDMIM0_TDMLWS0_TDMPLB0_TDMS0_TIN0_THn1_THA0_THB0_THC0_THD0_THE0_THMXSA0_THMXSB0_THM0_THWS0_TLDS1_TLDSM1_ULSGRO0_USL1_USLMX0_UDFMAC0_UIOFGRO0_UPLRP0_USFGROn1_USI0_VSn1_VWA1_VWB1_WSGRA0_WSGRB0_WS32_WG64_2_1_WGMXCC1",
+          "median_us": 15.6,
+          "samples_us": [
+            15.36,
+            15.92,
+            15.48,
+            15.72,
+            15.44,
+            15.72,
+            15.48,
+            15.721,
+            15.4,
+            15.84,
+            15.64,
+            15.64,
+            15.28,
+            15.64,
+            15.44,
+            15.6,
+            15.24,
+            15.68,
+            15.36,
+            15.6
+          ],
+          "solution_index": 1701,
+          "solution_name": "Cijk_Ailk_Bljk_HHS_BH_Bias_HA_S_SAV_UserArgs_MT64x48x64_MI16x16x1_SN_LDSB0_AFC1_AG0_AGGSUA0_AGNTAB0_AFEM1_AFEM1_ASEM1_BL1_BS1_CD1_1_CLR1_CLS0_CADS0_DTLA0_DTLB0_DTLM0_DTVA0_DTVB0_DTVMXSA0_DTVMXSB0_DTVSM0_DPLB0_EPS0_ELFLR0_EMLLn1_FDSI0_GRPM1_GRVWA8_GRVWB8_GSU1_GSUAMB_GSUC0_GSUWGMRR0_GLS0_HPLR0_ISA1100_ICIW0_IU1_K1_LDSSI0_LDSTI0_LBSPPA2048_LBSPPB128_LBSPPMXSA0_LBSPPMXSB0_LBSPPM0_LPA16_LPB16_LPMXSA0_LPMXSB0_LPM0_LRVW16_LWPMn1_MIAV1_MIWT1_3_MXLIBL_MXSFNS_MO40_MGRIPM1_NTn1_NTA0_NTB0_NTC0_NTD0_NTE0_NTMXSA0_NTMXSB0_NTM0_NTWS0_NVn1_NVA0_NVB0_NVC0_NVD0_NVE0_NVMXSA0_NVMXSB0_NVM0_NVWS0_NEPBS0_NLCA1_NLCB1_ONLL1_PAP0_PGL0_PGR2_PLR1_PKA0_SGROB0_SIA3_SS1_SU32_SUM1_SUS256_SPO0_SRVW0_SSO0_SVW1_SK0_SKFTR0_SKFDPO0_SKWS0_SKXCCM0_SNLL0_SIP1_SGRO0_TDMI0_TDMIM0_TDMLWS0_TDMPLB0_TDMS0_TIN0_THn1_THA0_THB0_THC0_THD0_THE0_THMXSA0_THMXSB0_THM0_THWS0_TLDS1_TLDSM1_ULSGRO0_USL1_USLMX0_UDFMAC0_UIOFGRO0_UPLRP0_USFGROn1_USI0_VSn1_VWA1_VWB1_WSGRA0_WSGRB0_WS32_WG64_2_1_WGM8_WGMXCC1_WGMXCCGn1",
+          "workspace_bytes": 0
+        },
+        {
+          "backend": "rocblas",
+          "correctness": {
+            "max_absolute": 0.0,
+            "max_relative": 0.0,
+            "mismatches": 0
+          },
+          "eligible_count": 159,
+          "enumerated_count": 159,
+          "kernel_name": null,
+          "median_us": 13.5,
+          "samples_us": [
+            13.64,
+            42.63,
+            13.52,
+            13.6,
+            13.48,
+            13.48,
+            13.4,
+            13.521,
+            13.48,
+            13.68,
+            13.52,
+            13.64,
+            13.52,
+            13.56,
+            13.36,
+            13.4,
+            13.36,
+            13.44,
+            13.28,
+            13.44
+          ],
+          "solution_index": -1140853268,
+          "solution_name": null,
+          "workspace_bytes": 0
+        }
+      ]
+    },
+    {
+      "band": "le_1.25",
+      "best_vendor": "hipblaslt",
+      "loom": {
+        "artifact_size": 13312,
+        "correctness": {
+          "failed_sample_count": 0,
+          "sample_count": 1
+        },
+        "median_us": 26.657,
+        "pipeline": "default",
+        "private_memory_bytes": 0,
+        "runner": "iree-benchmark-loom"
+      },
+      "ordinal": 7,
+      "ratio": 1.1238195615514335,
+      "reasons": [
+        "geometry_shallow_k"
+      ],
+      "request": {
+        "k": 64,
+        "m": 3072,
+        "n": 1056
+      },
+      "vendors": [
+        {
+          "backend": "hipblaslt",
+          "correctness": {
+            "max_absolute": 0.0,
+            "max_relative": 0.0,
+            "mismatches": 0
+          },
+          "eligible_count": 55,
+          "enumerated_count": 140,
+          "kernel_name": "Cijk_Ailk_Bljk_HHS_BH_Bias_HA_S_SAV_UserArgs_MT96x96x32_MI16x16x1_SN_LDSB0_AFC1_AG0_AGGSUA0_AGNTAB0_AFEM1_AFEM1_ASEM1_BL1_BS1_CD1_1_CLR1_CLS0_CADS0_DTLA0_DTLB0_DTLM0_DTVA0_DTVB0_DTVMXSA0_DTVMXSB0_DTVSM0_DPLB0_EPS0_ELFLR0_EMLLn1_FDSI0_GRPM1_GRVWA8_GRVWB8_GSUAMB_GLS0_HPLR0_ISA1100_ICIW0_IU1_K1_LDSSI0_LDSTI0_LBSPPA3072_LBSPPB128_LBSPPMXSA0_LBSPPMXSB0_LBSPPM0_LPA16_LPB16_LPMXSA0_LPMXSB0_LPM0_LRVW16_LWPMn1_MIAV1_MIWT3_3_MXLIBL_MXSFNS_MO40_MGRIPM1_NTn1_NTA0_NTB0_NTC0_NTD0_NTE0_NTMXSA0_NTMXSB0_NTM0_NTWS0_NVn1_NVA0_NVB0_NVC0_NVD0_NVE0_NVMXSA0_NVMXSB0_NVM0_NVWS0_NEPBS0_NLCA3_NLCB1_ONLL1_PAP0_PGL0_PGR2_PLR1_PKA0_SGROB0_SIA3_SS1_SPO0_SRVW0_SSO0_SVW1_SK0_SKFTR0_SKFDPO0_SKWS0_SKXCCM0_SNLL0_SIP1_SGRO0_TDMI0_TDMIM0_TDMLWS0_TDMPLB0_TDMS0_TIN0_THn1_THA0_THB0_THC0_THD0_THE0_THMXSA0_THMXSB0_THM0_THWS0_TLDS1_TLDSM1_ULSGRO0_USL1_USLMX0_UDFMAC0_UIOFGRO0_UPLRP0_USFGROn1_USI0_VSn1_VWA1_VWB1_WSGRA0_WSGRB0_WS32_WG32_4_1_WGMXCC1",
+          "median_us": 23.72,
+          "samples_us": [
+            23.721,
+            23.8,
+            23.96,
+            23.64,
+            23.76,
+            23.6,
+            23.72,
+            23.681,
+            23.48,
+            23.72,
+            23.6,
+            23.72,
+            23.36,
+            23.84,
+            23.561,
+            24.04,
+            23.24,
+            24.0,
+            23.441,
+            24.04
+          ],
+          "solution_index": 1681,
+          "solution_name": "Cijk_Ailk_Bljk_HHS_BH_Bias_HA_S_SAV_UserArgs_MT96x96x32_MI16x16x1_SN_LDSB0_AFC1_AG0_AGGSUA0_AGNTAB0_AFEM1_AFEM1_ASEM1_BL1_BS1_CD1_1_CLR1_CLS0_CADS0_DTLA0_DTLB0_DTLM0_DTVA0_DTVB0_DTVMXSA0_DTVMXSB0_DTVSM0_DPLB0_EPS0_ELFLR0_EMLLn1_FDSI0_GRPM1_GRVWA8_GRVWB8_GSU1_GSUAMB_GSUC0_GSUWGMRR0_GLS0_HPLR0_ISA1100_ICIW0_IU1_K1_LDSSI0_LDSTI0_LBSPPA3072_LBSPPB128_LBSPPMXSA0_LBSPPMXSB0_LBSPPM0_LPA16_LPB16_LPMXSA0_LPMXSB0_LPM0_LRVW16_LWPMn1_MIAV1_MIWT3_3_MXLIBL_MXSFNS_MO40_MGRIPM1_NTn1_NTA0_NTB0_NTC0_NTD0_NTE0_NTMXSA0_NTMXSB0_NTM0_NTWS0_NVn1_NVA0_NVB0_NVC0_NVD0_NVE0_NVMXSA0_NVMXSB0_NVM0_NVWS0_NEPBS0_NLCA3_NLCB1_ONLL1_PAP0_PGL0_PGR2_PLR1_PKA0_SGROB0_SIA3_SS1_SU32_SUM1_SUS256_SPO0_SRVW0_SSO0_SVW1_SK0_SKFTR0_SKFDPO0_SKWS0_SKXCCM0_SNLL0_SIP1_SGRO0_TDMI0_TDMIM0_TDMLWS0_TDMPLB0_TDMS0_TIN0_THn1_THA0_THB0_THC0_THD0_THE0_THMXSA0_THMXSB0_THM0_THWS0_TLDS1_TLDSM1_ULSGRO0_USL1_USLMX0_UDFMAC0_UIOFGRO0_UPLRP0_USFGROn1_USI0_VSn1_VWA1_VWB1_WSGRA0_WSGRB0_WS32_WG32_4_1_WGM8_WGMXCC1_WGMXCCGn1",
+          "workspace_bytes": 0
+        },
+        {
+          "backend": "rocblas",
+          "correctness": {
+            "max_absolute": 0.0,
+            "max_relative": 0.0,
+            "mismatches": 0
+          },
+          "eligible_count": 159,
+          "enumerated_count": 159,
+          "kernel_name": null,
+          "median_us": 23.9605,
+          "samples_us": [
+            17.36,
+            44.88,
+            32.961,
+            24.88,
+            17.44,
+            17.201,
+            24.08,
+            24.56,
+            24.72,
+            18.36,
+            17.32,
+            16.96,
+            23.44,
+            24.12,
+            24.64,
+            23.96,
+            23.961,
+            17.76,
+            23.36,
+            24.84
+          ],
+          "solution_index": -1140853269,
+          "solution_name": null,
+          "workspace_bytes": 0
+        }
+      ]
+    }
+  ],
+  "request_count": 8,
+  "schema": "loom-blas.performance-basket.v1",
+  "scope": "FP16 NN, FP32 accumulation, FP16 output, alpha=1, beta=0, no bias; aligned interiors only",
+  "successful_count": 6,
+  "vendor_policy": "exhaustively enumerate eligible public-API solutions with a short sweep, then correctness-check and remeasure the winner"
+}

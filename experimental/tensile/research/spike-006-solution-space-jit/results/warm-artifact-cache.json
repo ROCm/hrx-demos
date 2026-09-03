@@ -1,0 +1,21 @@
+{
+  "iterations": 1000,
+  "operation": "open, read full artifact, and SHA-256 validate; OS page cache warm",
+  "records": [
+    {
+      "artifact_bytes": 46080,
+      "max_us": 43.601,
+      "median_us": 35.231,
+      "p95_us": 36.211,
+      "target": "gfx1100"
+    },
+    {
+      "artifact_bytes": 17424,
+      "max_us": 55.022,
+      "median_us": 18.45,
+      "p95_us": 18.82,
+      "target": "gfx1201"
+    }
+  ],
+  "schema": "loom-blas.warm-artifact-cache.v1"
+}

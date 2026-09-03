@@ -1,0 +1,188 @@
+{
+  "batch": {
+    "wall_us": 120016.064,
+    "workers": 4
+  },
+  "corpus": "gfx1100-f16-nn.json",
+  "determinism": {
+    "hsaco_hash_count": 1,
+    "pass": true,
+    "program_hash_count": 1,
+    "repeats": 2
+  },
+  "distinct_hsaco_count": 3,
+  "distinct_key_count": 3,
+  "distinct_program_count": 3,
+  "equal_key_hsaco_violations": [],
+  "failed_request_count": 1,
+  "hsaco_groups": {
+    "6446ba0cc66586a1b942e82ca32881ea8f83cec15f3c1e4d270a233643ab1ae9": [
+      {
+        "k": 1024,
+        "m": 1024,
+        "n": 960
+      }
+    ],
+    "7a2601f61937e71f461b894c15aaa0ea2523c0cf79aa6c49f540bc89afe24e24": [
+      {
+        "k": 1024,
+        "m": 64,
+        "n": 2112
+      }
+    ],
+    "f565a27d32284b7e9ac097675e6cee6e3e41bad58542c2d8a721d108cc9c586e": [
+      {
+        "k": 64,
+        "m": 64,
+        "n": 96
+      }
+    ]
+  },
+  "key_groups": {
+    "8b11545d93205f484a8e53fb556065f352fdb942596201fb18c9d3a880fb6e6f": [
+      {
+        "k": 64,
+        "m": 64,
+        "n": 96
+      }
+    ],
+    "9d0a1e9d63be20d14661097c430c74bf02ebf0e0f3e76df26a0b29a54a51b0c9": [
+      {
+        "k": 1024,
+        "m": 1024,
+        "n": 960
+      }
+    ],
+    "a8be5081968f36b41fecd959874a4e3464951a17ab90dab4dbe0c140aff533c6": [
+      {
+        "k": 1024,
+        "m": 64,
+        "n": 2112
+      }
+    ]
+  },
+  "latency_us": {
+    "compile": {
+      "max": 18215.316,
+      "median": 18151.195
+    },
+    "emit": {
+      "max": 27533.305,
+      "median": 25902.484
+    },
+    "key": {
+      "max": 6655.07,
+      "median": 6536.007
+    },
+    "link": {
+      "max": 318.178,
+      "median": 311.578
+    },
+    "setup": {
+      "max": 470.742,
+      "median": 401.701
+    },
+    "total": {
+      "max": 52993.077,
+      "median": 51239.053
+    }
+  },
+  "namespace": {
+    "compiler": "hrx-f17f69e82-default-pipeline",
+    "device_abi": "amdgpu-hsa-v1",
+    "emission": {
+      "format": "hsaco",
+      "options": "defaults"
+    },
+    "export": "gemm_f16_f32_mt64x96x32_gfx11_pgr2",
+    "pass_program": "source-to-prepared-low/default",
+    "schema": "loom-blas.program-key-namespace.v1",
+    "source_sha256": "e69672313dee1be9acfb1ed754728f7255cbe55984f9b68062002d7f39b48844",
+    "target_profile": "gfx1100"
+  },
+  "peak_child_rss_kib": 25216,
+  "raw_request_count": 4,
+  "records": [
+    {
+      "derived_key": "9d0a1e9d63be20d14661097c430c74bf02ebf0e0f3e76df26a0b29a54a51b0c9",
+      "hsaco_bytes": 46080,
+      "hsaco_sha256": "6446ba0cc66586a1b942e82ca32881ea8f83cec15f3c1e4d270a233643ab1ae9",
+      "launch_config_bytes": 937,
+      "launch_config_sha256": "3d7483b9cdcc87abab2d41d9e57f3d57a0f0bc9edbdfb84f9d4f1876ff6926c3",
+      "ordinal": 0,
+      "program_bytes": 287386,
+      "program_sha256": "cc9b91c3a2821600b6b4c6be2c33d38826db479dc608556e74ee467f790227b4",
+      "request": {
+        "k": 1024,
+        "m": 1024,
+        "n": 960
+      },
+      "timing_us": {
+        "compile": 18215.316,
+        "emit": 27533.305,
+        "key": 6655.07,
+        "link": 307.908,
+        "setup": 470.742,
+        "total": 52993.077
+      }
+    },
+    {
+      "derived_key": "a8be5081968f36b41fecd959874a4e3464951a17ab90dab4dbe0c140aff533c6",
+      "hsaco_bytes": 46080,
+      "hsaco_sha256": "7a2601f61937e71f461b894c15aaa0ea2523c0cf79aa6c49f540bc89afe24e24",
+      "launch_config_bytes": 909,
+      "launch_config_sha256": "03987f200064a0ef03550b4464c31303e64718252db60e826cd0e35e57d55b90",
+      "ordinal": 1,
+      "program_bytes": 279065,
+      "program_sha256": "a197b3ef51eaab1d15a6489c1a75acfcb35f2d57494f7f3dcd6a268680ac3e1f",
+      "request": {
+        "k": 1024,
+        "m": 64,
+        "n": 2112
+      },
+      "timing_us": {
+        "compile": 18151.195,
+        "emit": 25902.484,
+        "key": 6536.007,
+        "link": 311.578,
+        "setup": 401.701,
+        "total": 51239.053
+      }
+    },
+    {
+      "derived_key": "8b11545d93205f484a8e53fb556065f352fdb942596201fb18c9d3a880fb6e6f",
+      "hsaco_bytes": 13312,
+      "hsaco_sha256": "f565a27d32284b7e9ac097675e6cee6e3e41bad58542c2d8a721d108cc9c586e",
+      "launch_config_bytes": 880,
+      "launch_config_sha256": "16cd11b1ca0a4ebd98b0c4cdd596f8c8169379d05f188932cb3e4e8b0b8d6894",
+      "ordinal": 2,
+      "program_bytes": 30911,
+      "program_sha256": "7d10aa6cd09665c7aa1d56e9745010e751743068664ce6307978029be6070ba1",
+      "request": {
+        "k": 64,
+        "m": 64,
+        "n": 96
+      },
+      "timing_us": {
+        "compile": 2628.987,
+        "emit": 2401.901,
+        "key": 813.191,
+        "link": 318.178,
+        "setup": 394.32,
+        "total": 6271.3
+      }
+    },
+    {
+      "error": "command failed (1): bazel-bin/experimental/tensile/loomc-jit-benchmark\ndefault pipeline compilation produced a failed result\nSUBRANGE/010: vector.load full-vector footprint upper bound is not proven on view axis 0 (vector axis 0); origin %2867 must satisfy origin + vector_extent <= view_bound for view %383; vector_extent is 8, view_bound is 12582912, and the maximum legal origin is 12582904\nSUBRANGE/010: vector.load full-vector footprint upper bound is not proven on view axis 0 (vector axis 0); origin %2874 must satisfy origin + vector_extent <= view_bound for view %383; vector_extent is 8, view_bound is 12582912, and the maximum legal origin is 12582904\nSUBRANGE/010: vector.load full-vector footprint upper bound is not proven on view axis 0 (vector axis 0); origin %2880 must satisfy origin + vector_extent <= view_bound for view %387; vector_extent is 8, view_bound is 16908288, and the maximum legal origin is 16908280\nexperimental/tensile/research/tools/loomc_jit_benchmark.c:343: FAILED_PRECONDITION; default pipeline compilation failed\n",
+      "ordinal": 3,
+      "request": {
+        "k": 4096,
+        "m": 3072,
+        "n": 4128
+      }
+    }
+  ],
+  "request_per_hsaco": 1.0,
+  "schema": "loom-blas.program-key-study.v1",
+  "successful_request_count": 3
+}

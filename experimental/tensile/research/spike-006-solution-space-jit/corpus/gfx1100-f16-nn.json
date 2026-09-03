@@ -1,0 +1,622 @@
+{
+  "cell_count": 8,
+  "cells": [
+    {
+      "configuration": "69a7aefdfe07b57b",
+      "family": "0312e3bea50501f1",
+      "geometry": "balanced",
+      "k": 1024,
+      "m": 1024,
+      "mechanism": {
+        "direct_to_vgpr_a": false,
+        "direct_to_vgpr_b": false,
+        "global_split_algorithm": "SingleBuffer",
+        "instruction": [
+          16,
+          16,
+          16,
+          1
+        ],
+        "kernel_language": "Assembly",
+        "prefetch_global_read": 1,
+        "prefetch_local_read": 1,
+        "split": "none",
+        "store_remap": 0,
+        "wavefront_size": 32
+      },
+      "n": 960,
+      "reasons": [
+        "anchor"
+      ],
+      "row": null,
+      "schedule": {
+        "depth_u": 32,
+        "direct_to_vgpr_a": false,
+        "direct_to_vgpr_b": false,
+        "global_read_vector_width_a": 8,
+        "global_read_vector_width_b": 8,
+        "global_split_algorithm": "SingleBuffer",
+        "global_split_u": 1,
+        "instruction": [
+          16,
+          16,
+          16,
+          1
+        ],
+        "kernel_language": "Assembly",
+        "lds_bytes": 12544,
+        "macro_tile_m": 64,
+        "macro_tile_n": 64,
+        "prefetch_global_read": 1,
+        "prefetch_local_read": 1,
+        "store_remap": 0,
+        "store_vector_width": 2,
+        "vector_width_a": 2,
+        "vector_width_b": 2,
+        "wave_group": [
+          2,
+          2
+        ],
+        "wave_tile": [
+          2,
+          2
+        ],
+        "wavefront_size": 32,
+        "work_group": [
+          32,
+          4,
+          1
+        ],
+        "work_group_mapping": 8
+      },
+      "solution": 135,
+      "source_shape": [
+        768,
+        1024,
+        1024
+      ]
+    },
+    {
+      "configuration": "1db0909db4551257",
+      "family": "0312e3bea50501f1",
+      "geometry": "n_wide",
+      "k": 1024,
+      "m": 64,
+      "mechanism": {
+        "direct_to_vgpr_a": false,
+        "direct_to_vgpr_b": false,
+        "global_split_algorithm": "SingleBuffer",
+        "instruction": [
+          16,
+          16,
+          16,
+          1
+        ],
+        "kernel_language": "Assembly",
+        "prefetch_global_read": 1,
+        "prefetch_local_read": 1,
+        "split": "none",
+        "store_remap": 0,
+        "wavefront_size": 32
+      },
+      "n": 2112,
+      "reasons": [
+        "dominant_family_median",
+        "geometry_n_wide"
+      ],
+      "row": 44,
+      "schedule": {
+        "depth_u": 32,
+        "direct_to_vgpr_a": false,
+        "direct_to_vgpr_b": false,
+        "global_read_vector_width_a": 4,
+        "global_read_vector_width_b": 4,
+        "global_split_algorithm": "SingleBuffer",
+        "global_split_u": 1,
+        "instruction": [
+          16,
+          16,
+          16,
+          1
+        ],
+        "kernel_language": "Assembly",
+        "lds_bytes": 6272,
+        "macro_tile_m": 32,
+        "macro_tile_n": 32,
+        "prefetch_global_read": 1,
+        "prefetch_local_read": 1,
+        "store_remap": 0,
+        "store_vector_width": 1,
+        "vector_width_a": 1,
+        "vector_width_b": 1,
+        "wave_group": [
+          2,
+          2
+        ],
+        "wave_tile": [
+          1,
+          1
+        ],
+        "wavefront_size": 32,
+        "work_group": [
+          32,
+          4,
+          1
+        ],
+        "work_group_mapping": 8
+      },
+      "solution": 99,
+      "source_shape": [
+        64,
+        2048,
+        1024
+      ]
+    },
+    {
+      "configuration": "64f6f9294f193707",
+      "family": "0312e3bea50501f1",
+      "geometry": "balanced",
+      "k": 64,
+      "m": 64,
+      "mechanism": {
+        "direct_to_vgpr_a": false,
+        "direct_to_vgpr_b": false,
+        "global_split_algorithm": "SingleBuffer",
+        "instruction": [
+          16,
+          16,
+          16,
+          1
+        ],
+        "kernel_language": "Assembly",
+        "prefetch_global_read": 1,
+        "prefetch_local_read": 1,
+        "split": "none",
+        "store_remap": 0,
+        "wavefront_size": 32
+      },
+      "n": 96,
+      "reasons": [
+        "dominant_family_small"
+      ],
+      "row": 0,
+      "schedule": {
+        "depth_u": 32,
+        "direct_to_vgpr_a": false,
+        "direct_to_vgpr_b": false,
+        "global_read_vector_width_a": 8,
+        "global_read_vector_width_b": 8,
+        "global_split_algorithm": "SingleBuffer",
+        "global_split_u": 1,
+        "instruction": [
+          16,
+          16,
+          16,
+          1
+        ],
+        "kernel_language": "Assembly",
+        "lds_bytes": 6272,
+        "macro_tile_m": 32,
+        "macro_tile_n": 32,
+        "prefetch_global_read": 1,
+        "prefetch_local_read": 1,
+        "store_remap": 0,
+        "store_vector_width": 1,
+        "vector_width_a": 1,
+        "vector_width_b": 1,
+        "wave_group": [
+          2,
+          2
+        ],
+        "wave_tile": [
+          1,
+          1
+        ],
+        "wavefront_size": 32,
+        "work_group": [
+          32,
+          4,
+          1
+        ],
+        "work_group_mapping": 8
+      },
+      "solution": 100,
+      "source_shape": [
+        64,
+        64,
+        64
+      ]
+    },
+    {
+      "configuration": "0dace77c7c7bad2a",
+      "family": "0312e3bea50501f1",
+      "geometry": "balanced",
+      "k": 4096,
+      "m": 3072,
+      "mechanism": {
+        "direct_to_vgpr_a": false,
+        "direct_to_vgpr_b": false,
+        "global_split_algorithm": "SingleBuffer",
+        "instruction": [
+          16,
+          16,
+          16,
+          1
+        ],
+        "kernel_language": "Assembly",
+        "prefetch_global_read": 1,
+        "prefetch_local_read": 1,
+        "split": "none",
+        "store_remap": 0,
+        "wavefront_size": 32
+      },
+      "n": 4128,
+      "reasons": [
+        "dominant_family_large"
+      ],
+      "row": 438,
+      "schedule": {
+        "depth_u": 16,
+        "direct_to_vgpr_a": false,
+        "direct_to_vgpr_b": false,
+        "global_read_vector_width_a": 8,
+        "global_read_vector_width_b": 8,
+        "global_split_algorithm": "SingleBuffer",
+        "global_split_u": 1,
+        "instruction": [
+          16,
+          16,
+          16,
+          1
+        ],
+        "kernel_language": "Assembly",
+        "lds_bytes": 12544,
+        "macro_tile_m": 128,
+        "macro_tile_n": 128,
+        "prefetch_global_read": 1,
+        "prefetch_local_read": 1,
+        "store_remap": 0,
+        "store_vector_width": 4,
+        "vector_width_a": 4,
+        "vector_width_b": 4,
+        "wave_group": [
+          2,
+          2
+        ],
+        "wave_tile": [
+          4,
+          4
+        ],
+        "wavefront_size": 32,
+        "work_group": [
+          32,
+          4,
+          1
+        ],
+        "work_group_mapping": 8
+      },
+      "solution": 76,
+      "source_shape": [
+        3072,
+        4096,
+        4096
+      ]
+    },
+    {
+      "configuration": "5f5f5dc5984c5704",
+      "family": "0312e3bea50501f1",
+      "geometry": "deep_k",
+      "k": 2048,
+      "m": 128,
+      "mechanism": {
+        "direct_to_vgpr_a": false,
+        "direct_to_vgpr_b": false,
+        "global_split_algorithm": "SingleBuffer",
+        "instruction": [
+          16,
+          16,
+          16,
+          1
+        ],
+        "kernel_language": "Assembly",
+        "prefetch_global_read": 1,
+        "prefetch_local_read": 1,
+        "split": "none",
+        "store_remap": 0,
+        "wavefront_size": 32
+      },
+      "n": 288,
+      "reasons": [
+        "geometry_deep_k"
+      ],
+      "row": 85,
+      "schedule": {
+        "depth_u": 32,
+        "direct_to_vgpr_a": false,
+        "direct_to_vgpr_b": false,
+        "global_read_vector_width_a": 4,
+        "global_read_vector_width_b": 4,
+        "global_split_algorithm": "SingleBuffer",
+        "global_split_u": 1,
+        "instruction": [
+          16,
+          16,
+          16,
+          1
+        ],
+        "kernel_language": "Assembly",
+        "lds_bytes": 2176,
+        "macro_tile_m": 32,
+        "macro_tile_n": 32,
+        "prefetch_global_read": 1,
+        "prefetch_local_read": 1,
+        "store_remap": 0,
+        "store_vector_width": 1,
+        "vector_width_a": 1,
+        "vector_width_b": 1,
+        "wave_group": [
+          2,
+          2
+        ],
+        "wave_tile": [
+          1,
+          1
+        ],
+        "wavefront_size": 32,
+        "work_group": [
+          32,
+          4,
+          1
+        ],
+        "work_group_mapping": 4
+      },
+      "solution": 96,
+      "source_shape": [
+        128,
+        256,
+        2048
+      ]
+    },
+    {
+      "configuration": "438b958946c128ac",
+      "family": "0312e3bea50501f1",
+      "geometry": "m_tall",
+      "k": 1024,
+      "m": 768,
+      "mechanism": {
+        "direct_to_vgpr_a": false,
+        "direct_to_vgpr_b": false,
+        "global_split_algorithm": "SingleBuffer",
+        "instruction": [
+          16,
+          16,
+          16,
+          1
+        ],
+        "kernel_language": "Assembly",
+        "prefetch_global_read": 1,
+        "prefetch_local_read": 1,
+        "split": "none",
+        "store_remap": 0,
+        "wavefront_size": 32
+      },
+      "n": 192,
+      "reasons": [
+        "geometry_m_tall"
+      ],
+      "row": 268,
+      "schedule": {
+        "depth_u": 32,
+        "direct_to_vgpr_a": false,
+        "direct_to_vgpr_b": false,
+        "global_read_vector_width_a": 8,
+        "global_read_vector_width_b": 8,
+        "global_split_algorithm": "SingleBuffer",
+        "global_split_u": 1,
+        "instruction": [
+          16,
+          16,
+          16,
+          1
+        ],
+        "kernel_language": "Assembly",
+        "lds_bytes": 2176,
+        "macro_tile_m": 32,
+        "macro_tile_n": 32,
+        "prefetch_global_read": 1,
+        "prefetch_local_read": 1,
+        "store_remap": 0,
+        "store_vector_width": 1,
+        "vector_width_a": 1,
+        "vector_width_b": 1,
+        "wave_group": [
+          2,
+          2
+        ],
+        "wave_tile": [
+          1,
+          1
+        ],
+        "wavefront_size": 32,
+        "work_group": [
+          32,
+          4,
+          1
+        ],
+        "work_group_mapping": 8
+      },
+      "solution": 109,
+      "source_shape": [
+        768,
+        128,
+        1024
+      ]
+    },
+    {
+      "configuration": "69a7aefdfe07b57b",
+      "family": "0312e3bea50501f1",
+      "geometry": "balanced",
+      "k": 256,
+      "m": 768,
+      "mechanism": {
+        "direct_to_vgpr_a": false,
+        "direct_to_vgpr_b": false,
+        "global_split_algorithm": "SingleBuffer",
+        "instruction": [
+          16,
+          16,
+          16,
+          1
+        ],
+        "kernel_language": "Assembly",
+        "prefetch_global_read": 1,
+        "prefetch_local_read": 1,
+        "split": "none",
+        "store_remap": 0,
+        "wavefront_size": 32
+      },
+      "n": 576,
+      "reasons": [
+        "geometry_balanced"
+      ],
+      "row": 282,
+      "schedule": {
+        "depth_u": 32,
+        "direct_to_vgpr_a": false,
+        "direct_to_vgpr_b": false,
+        "global_read_vector_width_a": 8,
+        "global_read_vector_width_b": 8,
+        "global_split_algorithm": "SingleBuffer",
+        "global_split_u": 1,
+        "instruction": [
+          16,
+          16,
+          16,
+          1
+        ],
+        "kernel_language": "Assembly",
+        "lds_bytes": 12544,
+        "macro_tile_m": 64,
+        "macro_tile_n": 64,
+        "prefetch_global_read": 1,
+        "prefetch_local_read": 1,
+        "store_remap": 0,
+        "store_vector_width": 2,
+        "vector_width_a": 2,
+        "vector_width_b": 2,
+        "wave_group": [
+          2,
+          2
+        ],
+        "wave_tile": [
+          2,
+          2
+        ],
+        "wavefront_size": 32,
+        "work_group": [
+          32,
+          4,
+          1
+        ],
+        "work_group_mapping": 8
+      },
+      "solution": 130,
+      "source_shape": [
+        768,
+        512,
+        256
+      ]
+    },
+    {
+      "configuration": "d9646db34e319f08",
+      "family": "0312e3bea50501f1",
+      "geometry": "shallow_k",
+      "k": 64,
+      "m": 3072,
+      "mechanism": {
+        "direct_to_vgpr_a": false,
+        "direct_to_vgpr_b": false,
+        "global_split_algorithm": "SingleBuffer",
+        "instruction": [
+          16,
+          16,
+          16,
+          1
+        ],
+        "kernel_language": "Assembly",
+        "prefetch_global_read": 1,
+        "prefetch_local_read": 1,
+        "split": "none",
+        "store_remap": 0,
+        "wavefront_size": 32
+      },
+      "n": 1056,
+      "reasons": [
+        "geometry_shallow_k"
+      ],
+      "row": 416,
+      "schedule": {
+        "depth_u": 16,
+        "direct_to_vgpr_a": false,
+        "direct_to_vgpr_b": false,
+        "global_read_vector_width_a": 4,
+        "global_read_vector_width_b": 4,
+        "global_split_algorithm": "SingleBuffer",
+        "global_split_u": 1,
+        "instruction": [
+          16,
+          16,
+          16,
+          1
+        ],
+        "kernel_language": "Assembly",
+        "lds_bytes": 12544,
+        "macro_tile_m": 128,
+        "macro_tile_n": 128,
+        "prefetch_global_read": 1,
+        "prefetch_local_read": 1,
+        "store_remap": 0,
+        "store_vector_width": 4,
+        "vector_width_a": 4,
+        "vector_width_b": 4,
+        "wave_group": [
+          2,
+          2
+        ],
+        "wave_tile": [
+          4,
+          4
+        ],
+        "wavefront_size": 32,
+        "work_group": [
+          32,
+          4,
+          1
+        ],
+        "work_group_mapping": 8
+      },
+      "solution": 54,
+      "source_shape": [
+        3072,
+        1024,
+        64
+      ]
+    }
+  ],
+  "dominant_families": [
+    {
+      "fraction": 1.0,
+      "id": "0312e3bea50501f1",
+      "rows": 343
+    }
+  ],
+  "dominant_family_coverage": 1.0,
+  "legal_aligned_router_rows": 343,
+  "schema": "loom-blas.router-corpus.v1",
+  "semantic_scope": "FP16 NN, FP32 accumulation, FP16 output, alpha=1, beta=0, no bias",
+  "source": "../TheRock/rocm-libraries/projects/rocblas/library/src/blas3/Tensile/Logic/asm_full/navi31/navi31_Cijk_Ailk_Bljk_HHS_BH.yaml",
+  "source_sha256": "36915d4a38a083318651ce0544c28b544efc26009587f0b3cabe54a1d0bcf46c",
+  "target": "gfx1100",
+  "vendor_backend": "rocblas",
+  "weighting": "unweighted; router-row frequency is topology evidence, not demand weight"
+}

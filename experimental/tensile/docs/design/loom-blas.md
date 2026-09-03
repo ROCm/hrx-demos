@@ -493,6 +493,31 @@ Explicit preparation or an asynchronous incumbent fallback is required only
 for deployments whose first-call latency budget cannot absorb that transient;
 code-object load time must be added before setting that policy.
 
+Spike 006 exercises that boundary through LoomC bytecode rather than text.
+Exact target/config compilation followed by `canonicalize,dce,symbol-dce` is
+deterministic over ten repeats, and disabled row/column bias metadata aliases
+to one program and one HSACO as intended. GEMM identity is still over-specific:
+48 gfx1201 transformed-program hashes emit 26 distinct HSACOs. In the largest
+groups, six distinct N requests with fixed M/K emit byte-identical objects.
+The serialized program still carries per-request launch/config identity that
+does not belong in the target executable key. LoomC therefore needs a polished
+executable-identity boundary that separates launch-config identity from target
+module identity while retaining nonserialized target facts. Post-emission
+HSACO hashing confirms the missed reuse but remains an oracle, not the cache
+design. The separately requested launch-config artifacts have 22 identities;
+the pair `(launch config, HSACO)` is unique for all 48 requests. This confirms
+that dispatch diversity is real while executable reuse remains independently
+available. The complete handoff is in
+[`compiler-usability-program-key.md`](../../research/spike-006-solution-space-jit/compiler-usability-program-key.md).
+
+Independent bytecode-to-HSACO jobs scale well enough for eager preparation:
+the 48-request gfx1201 corpus takes 2.035 s with one worker and 0.514 s with
+four; the six legal gfx1100 requests take 0.459 s and 0.135 s. These are upper
+bounds before key collapse and persistent-cache hits. Warm page-cache open,
+read, and SHA-256 validation costs 18.45 us for the 17,424-byte gfx1201 object
+and 35.23 us for the 46,080-byte gfx1100 object. Code-object load remains
+folded into sanctioned runner startup and needs a provider-facing phase timer.
+
 Do not preserve Tensile's adjacency buckets merely to avoid compilation:
 generality belongs in shared source and exactness in the specialization input.
 Exactness need not imply one artifact per request because specialization can
@@ -1279,10 +1304,10 @@ rather than guessed calendar duration.
 | --- | --- | --- |
 | Laboratory and schemas | One request enumerates, forces, checks, and measures each installed incumbent; a loaded Loom kernel runs on each supported target | Public API comparison harness forces hipBLASLt/rocBLAS solutions, launches Loom HSACOs, performs sampled or full CPU differentials, and records paired timings; BF16 support is in progress |
 | Source/runtime extractor and router explainer | Sampled Equality/GridBased/classic Tensile routes agree with runtime/dispatch and emit normalized packets | Runtime shards, source recipes, code objects, and bounded native symbol summaries joined for sampled winners; broader route replay and dynamic schedule extraction remain |
-| Derived-key experiment | Config and exact shape facts specialize a `.loombc`; equal resulting programs alias before HSACO emission and unequal programs do not | Optimized-host bytecode link/default-compile/emit latency is 11.77--22.09 ms for compact Spike 4 motifs and 40.71 ms for the fully unrolled accepted gfx11 motif; pre-emission key stability, demand-corpus cardinality, parallel startup behavior, and code-object load remain open |
+| Derived-key experiment | Config and exact shape facts specialize a `.loombc`; equal resulting programs alias before HSACO emission and unequal programs do not | Spike 006 validates deterministic bytecode specialization and bias aliasing, but 48 gfx1201 program hashes still over-key 26 HSACOs because launch/config identity remains serialized. Four-worker eager compilation and warm artifact lookup are measured; canonical executable identity and separate code-object load remain open. |
 | `gfx906` Loom enablement | Compile/load/correctness/resource-report smoke tests pass | Blocked on missing physical target support, isolated from GEMM work |
-| First `gfx1201` vertical slice | Primitive FP16-to-FP32 WMMA GEMM reaches parity across a bounded cell through the default pipeline | The 1024-cubed point is accepted: 25.04 us versus 28.78 us, correct and spill-free. #513 validates its family-generic helper and locked ordering with a byte-identical artifact; broader-cell validation remains open. |
-| gfx11 family specialization | The shared family passes on the RDNA3 witness with structural variants only where justified | First bounded cell passes: default-pipeline `gfx11-generic` source is 45.341 us versus 44.601 us for solution 1675, upper ratio CI 1.0221, fully nonuniform-correct, access-sanitized, and spill-free. Broader MNK/type coverage and a non-expanded structured loop remain open. |
+| First `gfx1201` vertical slice | Primitive FP16-to-FP32 WMMA GEMM reaches parity across a bounded cell through the default pipeline | The anchor remains about 25.2 us and beats the exhaustively selected eligible hipBLASLt kernel in Spike 006. The same motif is within 1.05x on 10/12 unweighted interior cells; a smaller-tile/DTV policy is required for the skinny and deep-K misses. |
+| gfx11 family specialization | The shared family passes on the RDNA3 witness with structural variants only where justified | The original hipBLASLt anchor remains close, but ecosystem-best comparison exposes rocBLAS at 1.177x on the current run. Across the unweighted Spike 006 basket, 1/6 legal cells is within 1.05x, 3/6 are 1.10--1.25x, 2/6 exceed 1.25x, and 2 cells fail range proof. Small-tile/mapping configurations and reusable address proofs precede expansion. |
 | `gfx906` VALU family | One useful family reaches parity across a bounded cell | Incumbent schedule recovered; Loom target enablement precedes implementation |
 | Accelerated arithmetic expansion | Every provider-visible native matrix signature has a correct primitive and measured representative cells | Instruction inventory and compile witnesses exist; gfx11 BF16 schedule port compiles, while BF16/I8/FP8 timing conclusions remain open |
 | Layout/epilogue expansion | Agreed key demand corpus is covered with provider fallback elsewhere | Standalone bias/no-bias specialization witness passes and removes the bias load; composed GEMM row/column differential remains open. |

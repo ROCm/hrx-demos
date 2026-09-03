@@ -1,0 +1,3758 @@
+{
+  "cell_count": 48,
+  "cells": [
+    {
+      "configuration": "6dd32e91d1683311",
+      "family": "cbb7c9f552b2f0df",
+      "geometry": "balanced",
+      "k": 1024,
+      "m": 1024,
+      "mechanism": {
+        "direct_to_vgpr_a": false,
+        "direct_to_vgpr_b": false,
+        "global_split_algorithm": "MultipleBuffer",
+        "instruction": [
+          16,
+          16,
+          16,
+          1
+        ],
+        "kernel_language": "Assembly",
+        "prefetch_global_read": 2,
+        "prefetch_local_read": 1,
+        "split": "none",
+        "store_remap": 0,
+        "stream_k": 0,
+        "wavefront_size": 32
+      },
+      "n": 1024,
+      "reasons": [
+        "anchor"
+      ],
+      "row": 3,
+      "schedule": {
+        "depth_u": 32,
+        "direct_to_vgpr_a": false,
+        "direct_to_vgpr_b": false,
+        "global_read_vector_width_a": 8,
+        "global_read_vector_width_b": 8,
+        "global_split_algorithm": "MultipleBuffer",
+        "global_split_u": 1,
+        "instruction": [
+          16,
+          16,
+          16,
+          1
+        ],
+        "kernel_language": "Assembly",
+        "lds_bytes": 8192,
+        "macro_tile_m": 128,
+        "macro_tile_n": 128,
+        "prefetch_global_read": 2,
+        "prefetch_local_read": 1,
+        "store_remap": 0,
+        "store_vector_width": 8,
+        "stream_k": 0,
+        "vector_width_a": 4,
+        "vector_width_b": 1,
+        "wave_group": [
+          2,
+          2
+        ],
+        "wave_tile": [
+          4,
+          4
+        ],
+        "wavefront_size": 32,
+        "work_group": [
+          32,
+          4,
+          1
+        ],
+        "work_group_mapping": 8
+      },
+      "solution": 85,
+      "source_shape": [
+        1024,
+        1024,
+        1024
+      ]
+    },
+    {
+      "configuration": "fab82849cd614cd0",
+      "family": "5f300e3e594a6c43",
+      "geometry": "balanced",
+      "k": 512,
+      "m": 384,
+      "mechanism": {
+        "direct_to_vgpr_a": false,
+        "direct_to_vgpr_b": true,
+        "global_split_algorithm": "MultipleBuffer",
+        "instruction": [
+          16,
+          16,
+          16,
+          1
+        ],
+        "kernel_language": "Assembly",
+        "prefetch_global_read": 2,
+        "prefetch_local_read": 1,
+        "split": "none",
+        "store_remap": 0,
+        "stream_k": 0,
+        "wavefront_size": 32
+      },
+      "n": 640,
+      "reasons": [
+        "dominant_family_median"
+      ],
+      "row": 3185,
+      "schedule": {
+        "depth_u": 32,
+        "direct_to_vgpr_a": false,
+        "direct_to_vgpr_b": true,
+        "global_read_vector_width_a": 8,
+        "global_read_vector_width_b": 8,
+        "global_split_algorithm": "MultipleBuffer",
+        "global_split_u": 1,
+        "instruction": [
+          16,
+          16,
+          16,
+          1
+        ],
+        "kernel_language": "Assembly",
+        "lds_bytes": 4224,
+        "macro_tile_m": 64,
+        "macro_tile_n": 64,
+        "prefetch_global_read": 2,
+        "prefetch_local_read": 1,
+        "store_remap": 0,
+        "store_vector_width": 8,
+        "stream_k": 0,
+        "vector_width_a": 1,
+        "vector_width_b": 1,
+        "wave_group": [
+          2,
+          2
+        ],
+        "wave_tile": [
+          2,
+          2
+        ],
+        "wavefront_size": 32,
+        "work_group": [
+          32,
+          4,
+          1
+        ],
+        "work_group_mapping": 8
+      },
+      "solution": 0,
+      "source_shape": [
+        384,
+        640,
+        512
+      ]
+    },
+    {
+      "configuration": "3fbc55d8d0ad6fef",
+      "family": "e057053e7f6b40eb",
+      "geometry": "balanced",
+      "k": 1024,
+      "m": 512,
+      "mechanism": {
+        "direct_to_vgpr_a": false,
+        "direct_to_vgpr_b": false,
+        "global_split_algorithm": "MultipleBuffer",
+        "instruction": [
+          16,
+          16,
+          16,
+          1
+        ],
+        "kernel_language": "Assembly",
+        "prefetch_global_read": 1,
+        "prefetch_local_read": 0,
+        "split": "none",
+        "store_remap": 0,
+        "stream_k": 0,
+        "wavefront_size": 32
+      },
+      "n": 384,
+      "reasons": [
+        "dominant_family_median"
+      ],
+      "row": 3331,
+      "schedule": {
+        "depth_u": 32,
+        "direct_to_vgpr_a": false,
+        "direct_to_vgpr_b": false,
+        "global_read_vector_width_a": 8,
+        "global_read_vector_width_b": 8,
+        "global_split_algorithm": "MultipleBuffer",
+        "global_split_u": 1,
+        "instruction": [
+          16,
+          16,
+          16,
+          1
+        ],
+        "kernel_language": "Assembly",
+        "lds_bytes": 4224,
+        "macro_tile_m": 64,
+        "macro_tile_n": 64,
+        "prefetch_global_read": 1,
+        "prefetch_local_read": 0,
+        "store_remap": 0,
+        "store_vector_width": 8,
+        "stream_k": 0,
+        "vector_width_a": 1,
+        "vector_width_b": 1,
+        "wave_group": [
+          2,
+          2
+        ],
+        "wave_tile": [
+          2,
+          2
+        ],
+        "wavefront_size": 32,
+        "work_group": [
+          32,
+          4,
+          1
+        ],
+        "work_group_mapping": 8
+      },
+      "solution": 169,
+      "source_shape": [
+        512,
+        384,
+        1024
+      ]
+    },
+    {
+      "configuration": "6dc45f7d3b05bcb3",
+      "family": "0ae2cdcb0a88be8b",
+      "geometry": "m_tall",
+      "k": 2048,
+      "m": 640,
+      "mechanism": {
+        "direct_to_vgpr_a": false,
+        "direct_to_vgpr_b": false,
+        "global_split_algorithm": "MultipleBuffer",
+        "instruction": [
+          16,
+          16,
+          16,
+          1
+        ],
+        "kernel_language": "Assembly",
+        "prefetch_global_read": 2,
+        "prefetch_local_read": 0,
+        "split": "none",
+        "store_remap": 0,
+        "stream_k": 0,
+        "wavefront_size": 32
+      },
+      "n": 128,
+      "reasons": [
+        "dominant_family_median"
+      ],
+      "row": 3476,
+      "schedule": {
+        "depth_u": 32,
+        "direct_to_vgpr_a": false,
+        "direct_to_vgpr_b": false,
+        "global_read_vector_width_a": 8,
+        "global_read_vector_width_b": 8,
+        "global_split_algorithm": "MultipleBuffer",
+        "global_split_u": 1,
+        "instruction": [
+          16,
+          16,
+          16,
+          1
+        ],
+        "kernel_language": "Assembly",
+        "lds_bytes": 1152,
+        "macro_tile_m": 16,
+        "macro_tile_n": 16,
+        "prefetch_global_read": 2,
+        "prefetch_local_read": 0,
+        "store_remap": 0,
+        "store_vector_width": 8,
+        "stream_k": 0,
+        "vector_width_a": 1,
+        "vector_width_b": 1,
+        "wave_group": [
+          1,
+          1
+        ],
+        "wave_tile": [
+          1,
+          1
+        ],
+        "wavefront_size": 32,
+        "work_group": [
+          16,
+          2,
+          1
+        ],
+        "work_group_mapping": 8
+      },
+      "solution": 96,
+      "source_shape": [
+        640,
+        128,
+        2048
+      ]
+    },
+    {
+      "configuration": "4f31941900208388",
+      "family": "cbb7c9f552b2f0df",
+      "geometry": "balanced",
+      "k": 256,
+      "m": 896,
+      "mechanism": {
+        "direct_to_vgpr_a": false,
+        "direct_to_vgpr_b": false,
+        "global_split_algorithm": "MultipleBuffer",
+        "instruction": [
+          16,
+          16,
+          16,
+          1
+        ],
+        "kernel_language": "Assembly",
+        "prefetch_global_read": 2,
+        "prefetch_local_read": 1,
+        "split": "none",
+        "store_remap": 0,
+        "stream_k": 0,
+        "wavefront_size": 32
+      },
+      "n": 896,
+      "reasons": [
+        "dominant_family_median"
+      ],
+      "row": 3050,
+      "schedule": {
+        "depth_u": 32,
+        "direct_to_vgpr_a": false,
+        "direct_to_vgpr_b": false,
+        "global_read_vector_width_a": 8,
+        "global_read_vector_width_b": 8,
+        "global_split_algorithm": "MultipleBuffer",
+        "global_split_u": 1,
+        "instruction": [
+          16,
+          16,
+          16,
+          1
+        ],
+        "kernel_language": "Assembly",
+        "lds_bytes": 4224,
+        "macro_tile_m": 64,
+        "macro_tile_n": 64,
+        "prefetch_global_read": 2,
+        "prefetch_local_read": 1,
+        "store_remap": 0,
+        "store_vector_width": 8,
+        "stream_k": 0,
+        "vector_width_a": 1,
+        "vector_width_b": 1,
+        "wave_group": [
+          2,
+          2
+        ],
+        "wave_tile": [
+          2,
+          2
+        ],
+        "wavefront_size": 32,
+        "work_group": [
+          32,
+          4,
+          1
+        ],
+        "work_group_mapping": 8
+      },
+      "solution": 69,
+      "source_shape": [
+        896,
+        896,
+        256
+      ]
+    },
+    {
+      "configuration": "7a2811494e0b306f",
+      "family": "e93d5a9a1b11d47a",
+      "geometry": "shallow_k",
+      "k": 256,
+      "m": 1024,
+      "mechanism": {
+        "direct_to_vgpr_a": false,
+        "direct_to_vgpr_b": false,
+        "global_split_algorithm": "MultipleBuffer",
+        "instruction": [
+          16,
+          16,
+          16,
+          1
+        ],
+        "kernel_language": "Assembly",
+        "prefetch_global_read": 1,
+        "prefetch_local_read": 1,
+        "split": "none",
+        "store_remap": 0,
+        "stream_k": 0,
+        "wavefront_size": 32
+      },
+      "n": 1024,
+      "reasons": [
+        "dominant_family_median"
+      ],
+      "row": 3076,
+      "schedule": {
+        "depth_u": 32,
+        "direct_to_vgpr_a": false,
+        "direct_to_vgpr_b": false,
+        "global_read_vector_width_a": 8,
+        "global_read_vector_width_b": 8,
+        "global_split_algorithm": "MultipleBuffer",
+        "global_split_u": 1,
+        "instruction": [
+          16,
+          16,
+          16,
+          1
+        ],
+        "kernel_language": "Assembly",
+        "lds_bytes": 8192,
+        "macro_tile_m": 128,
+        "macro_tile_n": 128,
+        "prefetch_global_read": 1,
+        "prefetch_local_read": 1,
+        "store_remap": 0,
+        "store_vector_width": 8,
+        "stream_k": 0,
+        "vector_width_a": 4,
+        "vector_width_b": 1,
+        "wave_group": [
+          2,
+          2
+        ],
+        "wave_tile": [
+          4,
+          4
+        ],
+        "wavefront_size": 32,
+        "work_group": [
+          32,
+          4,
+          1
+        ],
+        "work_group_mapping": 8
+      },
+      "solution": 210,
+      "source_shape": [
+        1024,
+        1024,
+        256
+      ]
+    },
+    {
+      "configuration": "c5a23e53972b5e36",
+      "family": "cbb7c9f552b2f0df",
+      "geometry": "balanced",
+      "k": 64,
+      "m": 128,
+      "mechanism": {
+        "direct_to_vgpr_a": false,
+        "direct_to_vgpr_b": false,
+        "global_split_algorithm": "MultipleBuffer",
+        "instruction": [
+          16,
+          16,
+          16,
+          1
+        ],
+        "kernel_language": "Assembly",
+        "prefetch_global_read": 2,
+        "prefetch_local_read": 1,
+        "split": "none",
+        "store_remap": 0,
+        "stream_k": 0,
+        "wavefront_size": 32
+      },
+      "n": 128,
+      "reasons": [
+        "dominant_family_small"
+      ],
+      "row": 2703,
+      "schedule": {
+        "depth_u": 32,
+        "direct_to_vgpr_a": false,
+        "direct_to_vgpr_b": false,
+        "global_read_vector_width_a": 1,
+        "global_read_vector_width_b": 8,
+        "global_split_algorithm": "MultipleBuffer",
+        "global_split_u": 1,
+        "instruction": [
+          16,
+          16,
+          16,
+          1
+        ],
+        "kernel_language": "Assembly",
+        "lds_bytes": 1280,
+        "macro_tile_m": 16,
+        "macro_tile_n": 16,
+        "prefetch_global_read": 2,
+        "prefetch_local_read": 1,
+        "store_remap": 0,
+        "store_vector_width": 8,
+        "stream_k": 0,
+        "vector_width_a": 1,
+        "vector_width_b": 1,
+        "wave_group": [
+          1,
+          1
+        ],
+        "wave_tile": [
+          1,
+          1
+        ],
+        "wavefront_size": 32,
+        "work_group": [
+          16,
+          2,
+          1
+        ],
+        "work_group_mapping": 8
+      },
+      "solution": 145,
+      "source_shape": [
+        128,
+        128,
+        64
+      ]
+    },
+    {
+      "configuration": "6e0284cf9e26f98c",
+      "family": "5f300e3e594a6c43",
+      "geometry": "balanced",
+      "k": 256,
+      "m": 128,
+      "mechanism": {
+        "direct_to_vgpr_a": false,
+        "direct_to_vgpr_b": true,
+        "global_split_algorithm": "MultipleBuffer",
+        "instruction": [
+          16,
+          16,
+          16,
+          1
+        ],
+        "kernel_language": "Assembly",
+        "prefetch_global_read": 2,
+        "prefetch_local_read": 1,
+        "split": "none",
+        "store_remap": 0,
+        "stream_k": 0,
+        "wavefront_size": 32
+      },
+      "n": 256,
+      "reasons": [
+        "dominant_family_small",
+        "router_family_boundary_left",
+        "router_family_boundary_right"
+      ],
+      "row": 2919,
+      "schedule": {
+        "depth_u": 32,
+        "direct_to_vgpr_a": false,
+        "direct_to_vgpr_b": true,
+        "global_read_vector_width_a": 8,
+        "global_read_vector_width_b": 8,
+        "global_split_algorithm": "MultipleBuffer",
+        "global_split_u": 1,
+        "instruction": [
+          16,
+          16,
+          16,
+          1
+        ],
+        "kernel_language": "Assembly",
+        "lds_bytes": 1152,
+        "macro_tile_m": 16,
+        "macro_tile_n": 16,
+        "prefetch_global_read": 2,
+        "prefetch_local_read": 1,
+        "store_remap": 0,
+        "store_vector_width": 8,
+        "stream_k": 0,
+        "vector_width_a": 1,
+        "vector_width_b": 1,
+        "wave_group": [
+          1,
+          1
+        ],
+        "wave_tile": [
+          1,
+          1
+        ],
+        "wavefront_size": 32,
+        "work_group": [
+          16,
+          2,
+          1
+        ],
+        "work_group_mapping": 8
+      },
+      "solution": 23,
+      "source_shape": [
+        128,
+        256,
+        256
+      ]
+    },
+    {
+      "configuration": "3c0913fd47b93e33",
+      "family": "e93d5a9a1b11d47a",
+      "geometry": "shallow_k",
+      "k": 64,
+      "m": 256,
+      "mechanism": {
+        "direct_to_vgpr_a": false,
+        "direct_to_vgpr_b": false,
+        "global_split_algorithm": "MultipleBuffer",
+        "instruction": [
+          16,
+          16,
+          16,
+          1
+        ],
+        "kernel_language": "Assembly",
+        "prefetch_global_read": 1,
+        "prefetch_local_read": 1,
+        "split": "none",
+        "store_remap": 0,
+        "stream_k": 0,
+        "wavefront_size": 32
+      },
+      "n": 256,
+      "reasons": [
+        "dominant_family_small"
+      ],
+      "row": 2729,
+      "schedule": {
+        "depth_u": 32,
+        "direct_to_vgpr_a": false,
+        "direct_to_vgpr_b": false,
+        "global_read_vector_width_a": 8,
+        "global_read_vector_width_b": 8,
+        "global_split_algorithm": "MultipleBuffer",
+        "global_split_u": 1,
+        "instruction": [
+          16,
+          16,
+          16,
+          1
+        ],
+        "kernel_language": "Assembly",
+        "lds_bytes": 5120,
+        "macro_tile_m": 64,
+        "macro_tile_n": 64,
+        "prefetch_global_read": 1,
+        "prefetch_local_read": 1,
+        "store_remap": 0,
+        "store_vector_width": 8,
+        "stream_k": 0,
+        "vector_width_a": 1,
+        "vector_width_b": 1,
+        "wave_group": [
+          2,
+          2
+        ],
+        "wave_tile": [
+          2,
+          2
+        ],
+        "wavefront_size": 32,
+        "work_group": [
+          32,
+          4,
+          1
+        ],
+        "work_group_mapping": 8
+      },
+      "solution": 157,
+      "source_shape": [
+        256,
+        256,
+        64
+      ]
+    },
+    {
+      "configuration": "3fbc55d8d0ad6fef",
+      "family": "e057053e7f6b40eb",
+      "geometry": "shallow_k",
+      "k": 64,
+      "m": 256,
+      "mechanism": {
+        "direct_to_vgpr_a": false,
+        "direct_to_vgpr_b": false,
+        "global_split_algorithm": "MultipleBuffer",
+        "instruction": [
+          16,
+          16,
+          16,
+          1
+        ],
+        "kernel_language": "Assembly",
+        "prefetch_global_read": 1,
+        "prefetch_local_read": 0,
+        "split": "none",
+        "store_remap": 0,
+        "stream_k": 0,
+        "wavefront_size": 32
+      },
+      "n": 512,
+      "reasons": [
+        "dominant_family_small"
+      ],
+      "row": 2777,
+      "schedule": {
+        "depth_u": 32,
+        "direct_to_vgpr_a": false,
+        "direct_to_vgpr_b": false,
+        "global_read_vector_width_a": 8,
+        "global_read_vector_width_b": 8,
+        "global_split_algorithm": "MultipleBuffer",
+        "global_split_u": 1,
+        "instruction": [
+          16,
+          16,
+          16,
+          1
+        ],
+        "kernel_language": "Assembly",
+        "lds_bytes": 4224,
+        "macro_tile_m": 64,
+        "macro_tile_n": 64,
+        "prefetch_global_read": 1,
+        "prefetch_local_read": 0,
+        "store_remap": 0,
+        "store_vector_width": 8,
+        "stream_k": 0,
+        "vector_width_a": 1,
+        "vector_width_b": 1,
+        "wave_group": [
+          2,
+          2
+        ],
+        "wave_tile": [
+          2,
+          2
+        ],
+        "wavefront_size": 32,
+        "work_group": [
+          32,
+          4,
+          1
+        ],
+        "work_group_mapping": 8
+      },
+      "solution": 172,
+      "source_shape": [
+        256,
+        512,
+        64
+      ]
+    },
+    {
+      "configuration": "c8eb3f825d0855e2",
+      "family": "0ae2cdcb0a88be8b",
+      "geometry": "shallow_k",
+      "k": 64,
+      "m": 768,
+      "mechanism": {
+        "direct_to_vgpr_a": false,
+        "direct_to_vgpr_b": false,
+        "global_split_algorithm": "MultipleBuffer",
+        "instruction": [
+          16,
+          16,
+          16,
+          1
+        ],
+        "kernel_language": "Assembly",
+        "prefetch_global_read": 2,
+        "prefetch_local_read": 0,
+        "split": "none",
+        "store_remap": 0,
+        "stream_k": 0,
+        "wavefront_size": 32
+      },
+      "n": 384,
+      "reasons": [
+        "dominant_family_small"
+      ],
+      "row": 2761,
+      "schedule": {
+        "depth_u": 32,
+        "direct_to_vgpr_a": false,
+        "direct_to_vgpr_b": false,
+        "global_read_vector_width_a": 8,
+        "global_read_vector_width_b": 8,
+        "global_split_algorithm": "MultipleBuffer",
+        "global_split_u": 1,
+        "instruction": [
+          16,
+          16,
+          16,
+          1
+        ],
+        "kernel_language": "Assembly",
+        "lds_bytes": 4224,
+        "macro_tile_m": 64,
+        "macro_tile_n": 64,
+        "prefetch_global_read": 2,
+        "prefetch_local_read": 0,
+        "store_remap": 0,
+        "store_vector_width": 8,
+        "stream_k": 0,
+        "vector_width_a": 1,
+        "vector_width_b": 1,
+        "wave_group": [
+          2,
+          2
+        ],
+        "wave_tile": [
+          2,
+          2
+        ],
+        "wavefront_size": 32,
+        "work_group": [
+          32,
+          4,
+          1
+        ],
+        "work_group_mapping": 8
+      },
+      "solution": 153,
+      "source_shape": [
+        768,
+        384,
+        64
+      ]
+    },
+    {
+      "configuration": "660d702b367eccf7",
+      "family": "5f300e3e594a6c43",
+      "geometry": "deep_k",
+      "k": 4096,
+      "m": 896,
+      "mechanism": {
+        "direct_to_vgpr_a": false,
+        "direct_to_vgpr_b": true,
+        "global_split_algorithm": "MultipleBuffer",
+        "instruction": [
+          16,
+          16,
+          16,
+          1
+        ],
+        "kernel_language": "Assembly",
+        "prefetch_global_read": 2,
+        "prefetch_local_read": 1,
+        "split": "none",
+        "store_remap": 0,
+        "stream_k": 0,
+        "wavefront_size": 32
+      },
+      "n": 512,
+      "reasons": [
+        "dominant_family_large"
+      ],
+      "row": 3744,
+      "schedule": {
+        "depth_u": 32,
+        "direct_to_vgpr_a": false,
+        "direct_to_vgpr_b": true,
+        "global_read_vector_width_a": 1,
+        "global_read_vector_width_b": 8,
+        "global_split_algorithm": "MultipleBuffer",
+        "global_split_u": 1,
+        "instruction": [
+          16,
+          16,
+          16,
+          1
+        ],
+        "kernel_language": "Assembly",
+        "lds_bytes": 1280,
+        "macro_tile_m": 16,
+        "macro_tile_n": 128,
+        "prefetch_global_read": 2,
+        "prefetch_local_read": 1,
+        "store_remap": 0,
+        "store_vector_width": 8,
+        "stream_k": 0,
+        "vector_width_a": 1,
+        "vector_width_b": 1,
+        "wave_group": [
+          1,
+          1
+        ],
+        "wave_tile": [
+          1,
+          8
+        ],
+        "wavefront_size": 32,
+        "work_group": [
+          16,
+          2,
+          1
+        ],
+        "work_group_mapping": 8
+      },
+      "solution": 35,
+      "source_shape": [
+        896,
+        512,
+        4096
+      ]
+    },
+    {
+      "configuration": "3fbc55d8d0ad6fef",
+      "family": "e057053e7f6b40eb",
+      "geometry": "deep_k",
+      "k": 4096,
+      "m": 896,
+      "mechanism": {
+        "direct_to_vgpr_a": false,
+        "direct_to_vgpr_b": false,
+        "global_split_algorithm": "MultipleBuffer",
+        "instruction": [
+          16,
+          16,
+          16,
+          1
+        ],
+        "kernel_language": "Assembly",
+        "prefetch_global_read": 1,
+        "prefetch_local_read": 0,
+        "split": "none",
+        "store_remap": 0,
+        "stream_k": 0,
+        "wavefront_size": 32
+      },
+      "n": 1024,
+      "reasons": [
+        "dominant_family_large"
+      ],
+      "row": 3840,
+      "schedule": {
+        "depth_u": 32,
+        "direct_to_vgpr_a": false,
+        "direct_to_vgpr_b": false,
+        "global_read_vector_width_a": 8,
+        "global_read_vector_width_b": 8,
+        "global_split_algorithm": "MultipleBuffer",
+        "global_split_u": 1,
+        "instruction": [
+          16,
+          16,
+          16,
+          1
+        ],
+        "kernel_language": "Assembly",
+        "lds_bytes": 4224,
+        "macro_tile_m": 64,
+        "macro_tile_n": 64,
+        "prefetch_global_read": 1,
+        "prefetch_local_read": 0,
+        "store_remap": 0,
+        "store_vector_width": 8,
+        "stream_k": 0,
+        "vector_width_a": 1,
+        "vector_width_b": 1,
+        "wave_group": [
+          2,
+          2
+        ],
+        "wave_tile": [
+          2,
+          2
+        ],
+        "wavefront_size": 32,
+        "work_group": [
+          32,
+          4,
+          1
+        ],
+        "work_group_mapping": 8
+      },
+      "solution": 190,
+      "source_shape": [
+        896,
+        1024,
+        4096
+      ]
+    },
+    {
+      "configuration": "4f31941900208388",
+      "family": "cbb7c9f552b2f0df",
+      "geometry": "deep_k",
+      "k": 4096,
+      "m": 1024,
+      "mechanism": {
+        "direct_to_vgpr_a": false,
+        "direct_to_vgpr_b": false,
+        "global_split_algorithm": "MultipleBuffer",
+        "instruction": [
+          16,
+          16,
+          16,
+          1
+        ],
+        "kernel_language": "Assembly",
+        "prefetch_global_read": 2,
+        "prefetch_local_read": 1,
+        "split": "none",
+        "store_remap": 0,
+        "stream_k": 0,
+        "wavefront_size": 32
+      },
+      "n": 896,
+      "reasons": [
+        "dominant_family_large"
+      ],
+      "row": 3818,
+      "schedule": {
+        "depth_u": 32,
+        "direct_to_vgpr_a": false,
+        "direct_to_vgpr_b": false,
+        "global_read_vector_width_a": 8,
+        "global_read_vector_width_b": 8,
+        "global_split_algorithm": "MultipleBuffer",
+        "global_split_u": 1,
+        "instruction": [
+          16,
+          16,
+          16,
+          1
+        ],
+        "kernel_language": "Assembly",
+        "lds_bytes": 4224,
+        "macro_tile_m": 64,
+        "macro_tile_n": 64,
+        "prefetch_global_read": 2,
+        "prefetch_local_read": 1,
+        "store_remap": 0,
+        "store_vector_width": 8,
+        "stream_k": 0,
+        "vector_width_a": 1,
+        "vector_width_b": 1,
+        "wave_group": [
+          2,
+          2
+        ],
+        "wave_tile": [
+          2,
+          2
+        ],
+        "wavefront_size": 32,
+        "work_group": [
+          32,
+          4,
+          1
+        ],
+        "work_group_mapping": 8
+      },
+      "solution": 68,
+      "source_shape": [
+        1024,
+        896,
+        4096
+      ]
+    },
+    {
+      "configuration": "f41bf9c158a0db31",
+      "family": "e93d5a9a1b11d47a",
+      "geometry": "deep_k",
+      "k": 4096,
+      "m": 1024,
+      "mechanism": {
+        "direct_to_vgpr_a": false,
+        "direct_to_vgpr_b": false,
+        "global_split_algorithm": "MultipleBuffer",
+        "instruction": [
+          16,
+          16,
+          16,
+          1
+        ],
+        "kernel_language": "Assembly",
+        "prefetch_global_read": 1,
+        "prefetch_local_read": 1,
+        "split": "none",
+        "store_remap": 0,
+        "stream_k": 0,
+        "wavefront_size": 32
+      },
+      "n": 1024,
+      "reasons": [
+        "dominant_family_large"
+      ],
+      "row": 3842,
+      "schedule": {
+        "depth_u": 32,
+        "direct_to_vgpr_a": false,
+        "direct_to_vgpr_b": false,
+        "global_read_vector_width_a": 8,
+        "global_read_vector_width_b": 8,
+        "global_split_algorithm": "MultipleBuffer",
+        "global_split_u": 1,
+        "instruction": [
+          16,
+          16,
+          16,
+          1
+        ],
+        "kernel_language": "Assembly",
+        "lds_bytes": 4224,
+        "macro_tile_m": 64,
+        "macro_tile_n": 64,
+        "prefetch_global_read": 1,
+        "prefetch_local_read": 1,
+        "store_remap": 0,
+        "store_vector_width": 8,
+        "stream_k": 0,
+        "vector_width_a": 1,
+        "vector_width_b": 1,
+        "wave_group": [
+          2,
+          2
+        ],
+        "wave_tile": [
+          2,
+          2
+        ],
+        "wavefront_size": 32,
+        "work_group": [
+          32,
+          4,
+          1
+        ],
+        "work_group_mapping": 8
+      },
+      "solution": 212,
+      "source_shape": [
+        1024,
+        1024,
+        4096
+      ]
+    },
+    {
+      "configuration": "605856e957f9fcff",
+      "family": "0ae2cdcb0a88be8b",
+      "geometry": "balanced",
+      "k": 4096,
+      "m": 4096,
+      "mechanism": {
+        "direct_to_vgpr_a": false,
+        "direct_to_vgpr_b": false,
+        "global_split_algorithm": "MultipleBuffer",
+        "instruction": [
+          16,
+          16,
+          16,
+          1
+        ],
+        "kernel_language": "Assembly",
+        "prefetch_global_read": 2,
+        "prefetch_local_read": 0,
+        "split": "none",
+        "store_remap": 0,
+        "stream_k": 0,
+        "wavefront_size": 32
+      },
+      "n": 4096,
+      "reasons": [
+        "dominant_family_large"
+      ],
+      "row": 6,
+      "schedule": {
+        "depth_u": 32,
+        "direct_to_vgpr_a": false,
+        "direct_to_vgpr_b": false,
+        "global_read_vector_width_a": 8,
+        "global_read_vector_width_b": 4,
+        "global_split_algorithm": "MultipleBuffer",
+        "global_split_u": 1,
+        "instruction": [
+          16,
+          16,
+          16,
+          1
+        ],
+        "kernel_language": "Assembly",
+        "lds_bytes": 8192,
+        "macro_tile_m": 128,
+        "macro_tile_n": 128,
+        "prefetch_global_read": 2,
+        "prefetch_local_read": 0,
+        "store_remap": 0,
+        "store_vector_width": 4,
+        "stream_k": 0,
+        "vector_width_a": 4,
+        "vector_width_b": 1,
+        "wave_group": [
+          2,
+          2
+        ],
+        "wave_tile": [
+          4,
+          4
+        ],
+        "wavefront_size": 32,
+        "work_group": [
+          32,
+          4,
+          1
+        ],
+        "work_group_mapping": 8
+      },
+      "solution": 1,
+      "source_shape": [
+        4096,
+        4096,
+        4096
+      ]
+    },
+    {
+      "configuration": "adcb5fd18a97f972",
+      "family": "cbb7c9f552b2f0df",
+      "geometry": "deep_k",
+      "k": 512,
+      "m": 128,
+      "mechanism": {
+        "direct_to_vgpr_a": false,
+        "direct_to_vgpr_b": false,
+        "global_split_algorithm": "MultipleBuffer",
+        "instruction": [
+          16,
+          16,
+          16,
+          1
+        ],
+        "kernel_language": "Assembly",
+        "prefetch_global_read": 2,
+        "prefetch_local_read": 1,
+        "split": "none",
+        "store_remap": 0,
+        "stream_k": 0,
+        "wavefront_size": 32
+      },
+      "n": 128,
+      "reasons": [
+        "router_family_boundary_left"
+      ],
+      "row": 3086,
+      "schedule": {
+        "depth_u": 32,
+        "direct_to_vgpr_a": false,
+        "direct_to_vgpr_b": false,
+        "global_read_vector_width_a": 8,
+        "global_read_vector_width_b": 8,
+        "global_split_algorithm": "MultipleBuffer",
+        "global_split_u": 1,
+        "instruction": [
+          16,
+          16,
+          16,
+          1
+        ],
+        "kernel_language": "Assembly",
+        "lds_bytes": 1280,
+        "macro_tile_m": 16,
+        "macro_tile_n": 16,
+        "prefetch_global_read": 2,
+        "prefetch_local_read": 1,
+        "store_remap": 0,
+        "store_vector_width": 8,
+        "stream_k": 0,
+        "vector_width_a": 1,
+        "vector_width_b": 1,
+        "wave_group": [
+          1,
+          1
+        ],
+        "wave_tile": [
+          1,
+          1
+        ],
+        "wavefront_size": 32,
+        "work_group": [
+          16,
+          2,
+          1
+        ],
+        "work_group_mapping": 8
+      },
+      "solution": 113,
+      "source_shape": [
+        128,
+        128,
+        512
+      ]
+    },
+    {
+      "configuration": "467e67f2f2d66c4d",
+      "family": "5f300e3e594a6c43",
+      "geometry": "deep_k",
+      "k": 1024,
+      "m": 128,
+      "mechanism": {
+        "direct_to_vgpr_a": false,
+        "direct_to_vgpr_b": true,
+        "global_split_algorithm": "MultipleBuffer",
+        "instruction": [
+          16,
+          16,
+          16,
+          1
+        ],
+        "kernel_language": "Assembly",
+        "prefetch_global_read": 2,
+        "prefetch_local_read": 1,
+        "split": "none",
+        "store_remap": 0,
+        "stream_k": 0,
+        "wavefront_size": 32
+      },
+      "n": 128,
+      "reasons": [
+        "router_family_boundary_left",
+        "router_family_boundary_right"
+      ],
+      "row": 3277,
+      "schedule": {
+        "depth_u": 32,
+        "direct_to_vgpr_a": false,
+        "direct_to_vgpr_b": true,
+        "global_read_vector_width_a": 8,
+        "global_read_vector_width_b": 8,
+        "global_split_algorithm": "MultipleBuffer",
+        "global_split_u": 1,
+        "instruction": [
+          16,
+          16,
+          16,
+          1
+        ],
+        "kernel_language": "Assembly",
+        "lds_bytes": 1280,
+        "macro_tile_m": 16,
+        "macro_tile_n": 16,
+        "prefetch_global_read": 2,
+        "prefetch_local_read": 1,
+        "store_remap": 0,
+        "store_vector_width": 8,
+        "stream_k": 0,
+        "vector_width_a": 1,
+        "vector_width_b": 1,
+        "wave_group": [
+          1,
+          1
+        ],
+        "wave_tile": [
+          1,
+          1
+        ],
+        "wavefront_size": 32,
+        "work_group": [
+          16,
+          2,
+          1
+        ],
+        "work_group_mapping": 8
+      },
+      "solution": 129,
+      "source_shape": [
+        128,
+        128,
+        1024
+      ]
+    },
+    {
+      "configuration": "adcb5fd18a97f972",
+      "family": "cbb7c9f552b2f0df",
+      "geometry": "deep_k",
+      "k": 2048,
+      "m": 128,
+      "mechanism": {
+        "direct_to_vgpr_a": false,
+        "direct_to_vgpr_b": false,
+        "global_split_algorithm": "MultipleBuffer",
+        "instruction": [
+          16,
+          16,
+          16,
+          1
+        ],
+        "kernel_language": "Assembly",
+        "prefetch_global_read": 2,
+        "prefetch_local_read": 1,
+        "split": "none",
+        "store_remap": 0,
+        "stream_k": 0,
+        "wavefront_size": 32
+      },
+      "n": 128,
+      "reasons": [
+        "router_family_boundary_left",
+        "router_family_boundary_right"
+      ],
+      "row": 3468,
+      "schedule": {
+        "depth_u": 32,
+        "direct_to_vgpr_a": false,
+        "direct_to_vgpr_b": false,
+        "global_read_vector_width_a": 8,
+        "global_read_vector_width_b": 8,
+        "global_split_algorithm": "MultipleBuffer",
+        "global_split_u": 1,
+        "instruction": [
+          16,
+          16,
+          16,
+          1
+        ],
+        "kernel_language": "Assembly",
+        "lds_bytes": 1280,
+        "macro_tile_m": 16,
+        "macro_tile_n": 16,
+        "prefetch_global_read": 2,
+        "prefetch_local_read": 1,
+        "store_remap": 0,
+        "store_vector_width": 8,
+        "stream_k": 0,
+        "vector_width_a": 1,
+        "vector_width_b": 1,
+        "wave_group": [
+          1,
+          1
+        ],
+        "wave_tile": [
+          1,
+          1
+        ],
+        "wavefront_size": 32,
+        "work_group": [
+          16,
+          2,
+          1
+        ],
+        "work_group_mapping": 8
+      },
+      "solution": 132,
+      "source_shape": [
+        128,
+        128,
+        2048
+      ]
+    },
+    {
+      "configuration": "16f3df86670a06a4",
+      "family": "0ae2cdcb0a88be8b",
+      "geometry": "deep_k",
+      "k": 4096,
+      "m": 128,
+      "mechanism": {
+        "direct_to_vgpr_a": false,
+        "direct_to_vgpr_b": false,
+        "global_split_algorithm": "MultipleBuffer",
+        "instruction": [
+          16,
+          16,
+          16,
+          1
+        ],
+        "kernel_language": "Assembly",
+        "prefetch_global_read": 2,
+        "prefetch_local_read": 0,
+        "split": "none",
+        "store_remap": 0,
+        "stream_k": 0,
+        "wavefront_size": 32
+      },
+      "n": 128,
+      "reasons": [
+        "router_family_boundary_left",
+        "router_family_boundary_right"
+      ],
+      "row": 3660,
+      "schedule": {
+        "depth_u": 32,
+        "direct_to_vgpr_a": false,
+        "direct_to_vgpr_b": false,
+        "global_read_vector_width_a": 8,
+        "global_read_vector_width_b": 8,
+        "global_split_algorithm": "MultipleBuffer",
+        "global_split_u": 1,
+        "instruction": [
+          16,
+          16,
+          16,
+          1
+        ],
+        "kernel_language": "Assembly",
+        "lds_bytes": 1280,
+        "macro_tile_m": 16,
+        "macro_tile_n": 16,
+        "prefetch_global_read": 2,
+        "prefetch_local_read": 0,
+        "store_remap": 0,
+        "store_vector_width": 8,
+        "stream_k": 0,
+        "vector_width_a": 1,
+        "vector_width_b": 1,
+        "wave_group": [
+          1,
+          1
+        ],
+        "wave_tile": [
+          1,
+          1
+        ],
+        "wavefront_size": 32,
+        "work_group": [
+          16,
+          2,
+          1
+        ],
+        "work_group_mapping": 8
+      },
+      "solution": 178,
+      "source_shape": [
+        128,
+        128,
+        4096
+      ]
+    },
+    {
+      "configuration": "adcb5fd18a97f972",
+      "family": "cbb7c9f552b2f0df",
+      "geometry": "balanced",
+      "k": 64,
+      "m": 128,
+      "mechanism": {
+        "direct_to_vgpr_a": false,
+        "direct_to_vgpr_b": false,
+        "global_split_algorithm": "MultipleBuffer",
+        "instruction": [
+          16,
+          16,
+          16,
+          1
+        ],
+        "kernel_language": "Assembly",
+        "prefetch_global_read": 2,
+        "prefetch_local_read": 1,
+        "split": "none",
+        "store_remap": 0,
+        "stream_k": 0,
+        "wavefront_size": 32
+      },
+      "n": 256,
+      "reasons": [
+        "router_family_boundary_left",
+        "router_family_boundary_right"
+      ],
+      "row": 2727,
+      "schedule": {
+        "depth_u": 32,
+        "direct_to_vgpr_a": false,
+        "direct_to_vgpr_b": false,
+        "global_read_vector_width_a": 8,
+        "global_read_vector_width_b": 8,
+        "global_split_algorithm": "MultipleBuffer",
+        "global_split_u": 1,
+        "instruction": [
+          16,
+          16,
+          16,
+          1
+        ],
+        "kernel_language": "Assembly",
+        "lds_bytes": 1280,
+        "macro_tile_m": 16,
+        "macro_tile_n": 16,
+        "prefetch_global_read": 2,
+        "prefetch_local_read": 1,
+        "store_remap": 0,
+        "store_vector_width": 8,
+        "stream_k": 0,
+        "vector_width_a": 1,
+        "vector_width_b": 1,
+        "wave_group": [
+          1,
+          1
+        ],
+        "wave_tile": [
+          1,
+          1
+        ],
+        "wavefront_size": 32,
+        "work_group": [
+          16,
+          2,
+          1
+        ],
+        "work_group_mapping": 8
+      },
+      "solution": 123,
+      "source_shape": [
+        128,
+        256,
+        64
+      ]
+    },
+    {
+      "configuration": "adcb5fd18a97f972",
+      "family": "cbb7c9f552b2f0df",
+      "geometry": "balanced",
+      "k": 512,
+      "m": 128,
+      "mechanism": {
+        "direct_to_vgpr_a": false,
+        "direct_to_vgpr_b": false,
+        "global_split_algorithm": "MultipleBuffer",
+        "instruction": [
+          16,
+          16,
+          16,
+          1
+        ],
+        "kernel_language": "Assembly",
+        "prefetch_global_read": 2,
+        "prefetch_local_read": 1,
+        "split": "none",
+        "store_remap": 0,
+        "stream_k": 0,
+        "wavefront_size": 32
+      },
+      "n": 256,
+      "reasons": [
+        "router_family_boundary_left",
+        "router_family_boundary_right"
+      ],
+      "row": 3110,
+      "schedule": {
+        "depth_u": 32,
+        "direct_to_vgpr_a": false,
+        "direct_to_vgpr_b": false,
+        "global_read_vector_width_a": 8,
+        "global_read_vector_width_b": 8,
+        "global_split_algorithm": "MultipleBuffer",
+        "global_split_u": 1,
+        "instruction": [
+          16,
+          16,
+          16,
+          1
+        ],
+        "kernel_language": "Assembly",
+        "lds_bytes": 1280,
+        "macro_tile_m": 16,
+        "macro_tile_n": 16,
+        "prefetch_global_read": 2,
+        "prefetch_local_read": 1,
+        "store_remap": 0,
+        "store_vector_width": 8,
+        "stream_k": 0,
+        "vector_width_a": 1,
+        "vector_width_b": 1,
+        "wave_group": [
+          1,
+          1
+        ],
+        "wave_tile": [
+          1,
+          1
+        ],
+        "wavefront_size": 32,
+        "work_group": [
+          16,
+          2,
+          1
+        ],
+        "work_group_mapping": 8
+      },
+      "solution": 123,
+      "source_shape": [
+        128,
+        256,
+        512
+      ]
+    },
+    {
+      "configuration": "467e67f2f2d66c4d",
+      "family": "5f300e3e594a6c43",
+      "geometry": "deep_k",
+      "k": 1024,
+      "m": 128,
+      "mechanism": {
+        "direct_to_vgpr_a": false,
+        "direct_to_vgpr_b": true,
+        "global_split_algorithm": "MultipleBuffer",
+        "instruction": [
+          16,
+          16,
+          16,
+          1
+        ],
+        "kernel_language": "Assembly",
+        "prefetch_global_read": 2,
+        "prefetch_local_read": 1,
+        "split": "none",
+        "store_remap": 0,
+        "stream_k": 0,
+        "wavefront_size": 32
+      },
+      "n": 256,
+      "reasons": [
+        "router_family_boundary_left",
+        "router_family_boundary_right"
+      ],
+      "row": 3301,
+      "schedule": {
+        "depth_u": 32,
+        "direct_to_vgpr_a": false,
+        "direct_to_vgpr_b": true,
+        "global_read_vector_width_a": 8,
+        "global_read_vector_width_b": 8,
+        "global_split_algorithm": "MultipleBuffer",
+        "global_split_u": 1,
+        "instruction": [
+          16,
+          16,
+          16,
+          1
+        ],
+        "kernel_language": "Assembly",
+        "lds_bytes": 1280,
+        "macro_tile_m": 16,
+        "macro_tile_n": 16,
+        "prefetch_global_read": 2,
+        "prefetch_local_read": 1,
+        "store_remap": 0,
+        "store_vector_width": 8,
+        "stream_k": 0,
+        "vector_width_a": 1,
+        "vector_width_b": 1,
+        "wave_group": [
+          1,
+          1
+        ],
+        "wave_tile": [
+          1,
+          1
+        ],
+        "wavefront_size": 32,
+        "work_group": [
+          16,
+          2,
+          1
+        ],
+        "work_group_mapping": 8
+      },
+      "solution": 27,
+      "source_shape": [
+        128,
+        256,
+        1024
+      ]
+    },
+    {
+      "configuration": "dc94da3ac3cd0e17",
+      "family": "cbb7c9f552b2f0df",
+      "geometry": "deep_k",
+      "k": 2048,
+      "m": 128,
+      "mechanism": {
+        "direct_to_vgpr_a": false,
+        "direct_to_vgpr_b": false,
+        "global_split_algorithm": "MultipleBuffer",
+        "instruction": [
+          16,
+          16,
+          16,
+          1
+        ],
+        "kernel_language": "Assembly",
+        "prefetch_global_read": 2,
+        "prefetch_local_read": 1,
+        "split": "none",
+        "store_remap": 0,
+        "stream_k": 0,
+        "wavefront_size": 32
+      },
+      "n": 256,
+      "reasons": [
+        "router_family_boundary_left",
+        "router_family_boundary_right"
+      ],
+      "row": 3492,
+      "schedule": {
+        "depth_u": 32,
+        "direct_to_vgpr_a": false,
+        "direct_to_vgpr_b": false,
+        "global_read_vector_width_a": 8,
+        "global_read_vector_width_b": 8,
+        "global_split_algorithm": "MultipleBuffer",
+        "global_split_u": 1,
+        "instruction": [
+          16,
+          16,
+          16,
+          1
+        ],
+        "kernel_language": "Assembly",
+        "lds_bytes": 1280,
+        "macro_tile_m": 16,
+        "macro_tile_n": 16,
+        "prefetch_global_read": 2,
+        "prefetch_local_read": 1,
+        "store_remap": 0,
+        "store_vector_width": 1,
+        "stream_k": 0,
+        "vector_width_a": 1,
+        "vector_width_b": 1,
+        "wave_group": [
+          1,
+          1
+        ],
+        "wave_tile": [
+          1,
+          1
+        ],
+        "wavefront_size": 32,
+        "work_group": [
+          16,
+          2,
+          1
+        ],
+        "work_group_mapping": 8
+      },
+      "solution": 243,
+      "source_shape": [
+        128,
+        256,
+        2048
+      ]
+    },
+    {
+      "configuration": "467e67f2f2d66c4d",
+      "family": "5f300e3e594a6c43",
+      "geometry": "deep_k",
+      "k": 4096,
+      "m": 128,
+      "mechanism": {
+        "direct_to_vgpr_a": false,
+        "direct_to_vgpr_b": true,
+        "global_split_algorithm": "MultipleBuffer",
+        "instruction": [
+          16,
+          16,
+          16,
+          1
+        ],
+        "kernel_language": "Assembly",
+        "prefetch_global_read": 2,
+        "prefetch_local_read": 1,
+        "split": "none",
+        "store_remap": 0,
+        "stream_k": 0,
+        "wavefront_size": 32
+      },
+      "n": 256,
+      "reasons": [
+        "router_family_boundary_left",
+        "router_family_boundary_right"
+      ],
+      "row": 3684,
+      "schedule": {
+        "depth_u": 32,
+        "direct_to_vgpr_a": false,
+        "direct_to_vgpr_b": true,
+        "global_read_vector_width_a": 8,
+        "global_read_vector_width_b": 8,
+        "global_split_algorithm": "MultipleBuffer",
+        "global_split_u": 1,
+        "instruction": [
+          16,
+          16,
+          16,
+          1
+        ],
+        "kernel_language": "Assembly",
+        "lds_bytes": 1280,
+        "macro_tile_m": 16,
+        "macro_tile_n": 16,
+        "prefetch_global_read": 2,
+        "prefetch_local_read": 1,
+        "store_remap": 0,
+        "store_vector_width": 8,
+        "stream_k": 0,
+        "vector_width_a": 1,
+        "vector_width_b": 1,
+        "wave_group": [
+          1,
+          1
+        ],
+        "wave_tile": [
+          1,
+          1
+        ],
+        "wavefront_size": 32,
+        "work_group": [
+          16,
+          2,
+          1
+        ],
+        "work_group_mapping": 8
+      },
+      "solution": 203,
+      "source_shape": [
+        128,
+        256,
+        4096
+      ]
+    },
+    {
+      "configuration": "baa44be406287c67",
+      "family": "27138d856ef02995",
+      "geometry": "balanced",
+      "k": 64,
+      "m": 128,
+      "mechanism": {
+        "direct_to_vgpr_a": false,
+        "direct_to_vgpr_b": true,
+        "global_split_algorithm": "MultipleBuffer",
+        "instruction": [
+          16,
+          16,
+          16,
+          1
+        ],
+        "kernel_language": "Assembly",
+        "prefetch_global_read": 1,
+        "prefetch_local_read": 1,
+        "split": "none",
+        "store_remap": 0,
+        "stream_k": 0,
+        "wavefront_size": 32
+      },
+      "n": 384,
+      "reasons": [
+        "router_family_boundary_left",
+        "router_family_boundary_right"
+      ],
+      "row": 2751,
+      "schedule": {
+        "depth_u": 32,
+        "direct_to_vgpr_a": false,
+        "direct_to_vgpr_b": true,
+        "global_read_vector_width_a": 8,
+        "global_read_vector_width_b": 8,
+        "global_split_algorithm": "MultipleBuffer",
+        "global_split_u": 1,
+        "instruction": [
+          16,
+          16,
+          16,
+          1
+        ],
+        "kernel_language": "Assembly",
+        "lds_bytes": 1280,
+        "macro_tile_m": 16,
+        "macro_tile_n": 16,
+        "prefetch_global_read": 1,
+        "prefetch_local_read": 1,
+        "store_remap": 0,
+        "store_vector_width": 8,
+        "stream_k": 0,
+        "vector_width_a": 1,
+        "vector_width_b": 1,
+        "wave_group": [
+          1,
+          1
+        ],
+        "wave_tile": [
+          1,
+          1
+        ],
+        "wavefront_size": 32,
+        "work_group": [
+          16,
+          2,
+          1
+        ],
+        "work_group_mapping": 8
+      },
+      "solution": 166,
+      "source_shape": [
+        128,
+        384,
+        64
+      ]
+    },
+    {
+      "configuration": "467e67f2f2d66c4d",
+      "family": "5f300e3e594a6c43",
+      "geometry": "balanced",
+      "k": 256,
+      "m": 128,
+      "mechanism": {
+        "direct_to_vgpr_a": false,
+        "direct_to_vgpr_b": true,
+        "global_split_algorithm": "MultipleBuffer",
+        "instruction": [
+          16,
+          16,
+          16,
+          1
+        ],
+        "kernel_language": "Assembly",
+        "prefetch_global_read": 2,
+        "prefetch_local_read": 1,
+        "split": "none",
+        "store_remap": 0,
+        "stream_k": 0,
+        "wavefront_size": 32
+      },
+      "n": 384,
+      "reasons": [
+        "router_family_boundary_left",
+        "router_family_boundary_right"
+      ],
+      "row": 2942,
+      "schedule": {
+        "depth_u": 32,
+        "direct_to_vgpr_a": false,
+        "direct_to_vgpr_b": true,
+        "global_read_vector_width_a": 8,
+        "global_read_vector_width_b": 8,
+        "global_split_algorithm": "MultipleBuffer",
+        "global_split_u": 1,
+        "instruction": [
+          16,
+          16,
+          16,
+          1
+        ],
+        "kernel_language": "Assembly",
+        "lds_bytes": 1280,
+        "macro_tile_m": 16,
+        "macro_tile_n": 16,
+        "prefetch_global_read": 2,
+        "prefetch_local_read": 1,
+        "store_remap": 0,
+        "store_vector_width": 8,
+        "stream_k": 0,
+        "vector_width_a": 1,
+        "vector_width_b": 1,
+        "wave_group": [
+          1,
+          1
+        ],
+        "wave_tile": [
+          1,
+          1
+        ],
+        "wavefront_size": 32,
+        "work_group": [
+          16,
+          2,
+          1
+        ],
+        "work_group_mapping": 8
+      },
+      "solution": 203,
+      "source_shape": [
+        128,
+        384,
+        256
+      ]
+    },
+    {
+      "configuration": "adcb5fd18a97f972",
+      "family": "cbb7c9f552b2f0df",
+      "geometry": "balanced",
+      "k": 512,
+      "m": 128,
+      "mechanism": {
+        "direct_to_vgpr_a": false,
+        "direct_to_vgpr_b": false,
+        "global_split_algorithm": "MultipleBuffer",
+        "instruction": [
+          16,
+          16,
+          16,
+          1
+        ],
+        "kernel_language": "Assembly",
+        "prefetch_global_read": 2,
+        "prefetch_local_read": 1,
+        "split": "none",
+        "store_remap": 0,
+        "stream_k": 0,
+        "wavefront_size": 32
+      },
+      "n": 384,
+      "reasons": [
+        "router_family_boundary_left",
+        "router_family_boundary_right"
+      ],
+      "row": 3134,
+      "schedule": {
+        "depth_u": 32,
+        "direct_to_vgpr_a": false,
+        "direct_to_vgpr_b": false,
+        "global_read_vector_width_a": 8,
+        "global_read_vector_width_b": 8,
+        "global_split_algorithm": "MultipleBuffer",
+        "global_split_u": 1,
+        "instruction": [
+          16,
+          16,
+          16,
+          1
+        ],
+        "kernel_language": "Assembly",
+        "lds_bytes": 1280,
+        "macro_tile_m": 16,
+        "macro_tile_n": 16,
+        "prefetch_global_read": 2,
+        "prefetch_local_read": 1,
+        "store_remap": 0,
+        "store_vector_width": 8,
+        "stream_k": 0,
+        "vector_width_a": 1,
+        "vector_width_b": 1,
+        "wave_group": [
+          1,
+          1
+        ],
+        "wave_tile": [
+          1,
+          1
+        ],
+        "wavefront_size": 32,
+        "work_group": [
+          16,
+          2,
+          1
+        ],
+        "work_group_mapping": 8
+      },
+      "solution": 132,
+      "source_shape": [
+        128,
+        384,
+        512
+      ]
+    },
+    {
+      "configuration": "467e67f2f2d66c4d",
+      "family": "5f300e3e594a6c43",
+      "geometry": "balanced",
+      "k": 1024,
+      "m": 128,
+      "mechanism": {
+        "direct_to_vgpr_a": false,
+        "direct_to_vgpr_b": true,
+        "global_split_algorithm": "MultipleBuffer",
+        "instruction": [
+          16,
+          16,
+          16,
+          1
+        ],
+        "kernel_language": "Assembly",
+        "prefetch_global_read": 2,
+        "prefetch_local_read": 1,
+        "split": "none",
+        "store_remap": 0,
+        "stream_k": 0,
+        "wavefront_size": 32
+      },
+      "n": 384,
+      "reasons": [
+        "router_family_boundary_right"
+      ],
+      "row": 3325,
+      "schedule": {
+        "depth_u": 32,
+        "direct_to_vgpr_a": false,
+        "direct_to_vgpr_b": true,
+        "global_read_vector_width_a": 8,
+        "global_read_vector_width_b": 8,
+        "global_split_algorithm": "MultipleBuffer",
+        "global_split_u": 1,
+        "instruction": [
+          16,
+          16,
+          16,
+          1
+        ],
+        "kernel_language": "Assembly",
+        "lds_bytes": 1280,
+        "macro_tile_m": 16,
+        "macro_tile_n": 16,
+        "prefetch_global_read": 2,
+        "prefetch_local_read": 1,
+        "store_remap": 0,
+        "store_vector_width": 8,
+        "stream_k": 0,
+        "vector_width_a": 1,
+        "vector_width_b": 1,
+        "wave_group": [
+          1,
+          1
+        ],
+        "wave_tile": [
+          1,
+          1
+        ],
+        "wavefront_size": 32,
+        "work_group": [
+          16,
+          2,
+          1
+        ],
+        "work_group_mapping": 8
+      },
+      "solution": 129,
+      "source_shape": [
+        128,
+        384,
+        1024
+      ]
+    },
+    {
+      "configuration": "467e67f2f2d66c4d",
+      "family": "5f300e3e594a6c43",
+      "geometry": "deep_k",
+      "k": 4096,
+      "m": 128,
+      "mechanism": {
+        "direct_to_vgpr_a": false,
+        "direct_to_vgpr_b": true,
+        "global_split_algorithm": "MultipleBuffer",
+        "instruction": [
+          16,
+          16,
+          16,
+          1
+        ],
+        "kernel_language": "Assembly",
+        "prefetch_global_read": 2,
+        "prefetch_local_read": 1,
+        "split": "none",
+        "store_remap": 0,
+        "stream_k": 0,
+        "wavefront_size": 32
+      },
+      "n": 384,
+      "reasons": [
+        "router_family_boundary_left"
+      ],
+      "row": 3708,
+      "schedule": {
+        "depth_u": 32,
+        "direct_to_vgpr_a": false,
+        "direct_to_vgpr_b": true,
+        "global_read_vector_width_a": 8,
+        "global_read_vector_width_b": 8,
+        "global_split_algorithm": "MultipleBuffer",
+        "global_split_u": 1,
+        "instruction": [
+          16,
+          16,
+          16,
+          1
+        ],
+        "kernel_language": "Assembly",
+        "lds_bytes": 1280,
+        "macro_tile_m": 16,
+        "macro_tile_n": 16,
+        "prefetch_global_read": 2,
+        "prefetch_local_read": 1,
+        "store_remap": 0,
+        "store_vector_width": 8,
+        "stream_k": 0,
+        "vector_width_a": 1,
+        "vector_width_b": 1,
+        "wave_group": [
+          1,
+          1
+        ],
+        "wave_tile": [
+          1,
+          1
+        ],
+        "wavefront_size": 32,
+        "work_group": [
+          16,
+          2,
+          1
+        ],
+        "work_group_mapping": 8
+      },
+      "solution": 203,
+      "source_shape": [
+        128,
+        384,
+        4096
+      ]
+    },
+    {
+      "configuration": "eb3ab09a9f93b0f1",
+      "family": "cbb7c9f552b2f0df",
+      "geometry": "n_wide",
+      "k": 64,
+      "m": 128,
+      "mechanism": {
+        "direct_to_vgpr_a": false,
+        "direct_to_vgpr_b": false,
+        "global_split_algorithm": "MultipleBuffer",
+        "instruction": [
+          16,
+          16,
+          16,
+          1
+        ],
+        "kernel_language": "Assembly",
+        "prefetch_global_read": 2,
+        "prefetch_local_read": 1,
+        "split": "none",
+        "store_remap": 0,
+        "stream_k": 0,
+        "wavefront_size": 32
+      },
+      "n": 512,
+      "reasons": [
+        "geometry_n_wide",
+        "router_family_boundary_left",
+        "router_family_boundary_right"
+      ],
+      "row": 2775,
+      "schedule": {
+        "depth_u": 32,
+        "direct_to_vgpr_a": false,
+        "direct_to_vgpr_b": false,
+        "global_read_vector_width_a": 1,
+        "global_read_vector_width_b": 8,
+        "global_split_algorithm": "MultipleBuffer",
+        "global_split_u": 1,
+        "instruction": [
+          16,
+          16,
+          16,
+          1
+        ],
+        "kernel_language": "Assembly",
+        "lds_bytes": 4224,
+        "macro_tile_m": 64,
+        "macro_tile_n": 64,
+        "prefetch_global_read": 2,
+        "prefetch_local_read": 1,
+        "store_remap": 0,
+        "store_vector_width": 8,
+        "stream_k": 0,
+        "vector_width_a": 1,
+        "vector_width_b": 1,
+        "wave_group": [
+          2,
+          2
+        ],
+        "wave_tile": [
+          2,
+          2
+        ],
+        "wavefront_size": 32,
+        "work_group": [
+          32,
+          4,
+          1
+        ],
+        "work_group_mapping": 8
+      },
+      "solution": 107,
+      "source_shape": [
+        128,
+        512,
+        64
+      ]
+    },
+    {
+      "configuration": "3dbc167d74a44f6c",
+      "family": "5f300e3e594a6c43",
+      "geometry": "n_wide",
+      "k": 256,
+      "m": 128,
+      "mechanism": {
+        "direct_to_vgpr_a": false,
+        "direct_to_vgpr_b": true,
+        "global_split_algorithm": "MultipleBuffer",
+        "instruction": [
+          16,
+          16,
+          16,
+          1
+        ],
+        "kernel_language": "Assembly",
+        "prefetch_global_read": 2,
+        "prefetch_local_read": 1,
+        "split": "none",
+        "store_remap": 0,
+        "stream_k": 0,
+        "wavefront_size": 32
+      },
+      "n": 512,
+      "reasons": [
+        "router_family_boundary_right"
+      ],
+      "row": 2966,
+      "schedule": {
+        "depth_u": 32,
+        "direct_to_vgpr_a": false,
+        "direct_to_vgpr_b": true,
+        "global_read_vector_width_a": 8,
+        "global_read_vector_width_b": 8,
+        "global_split_algorithm": "MultipleBuffer",
+        "global_split_u": 1,
+        "instruction": [
+          16,
+          16,
+          16,
+          1
+        ],
+        "kernel_language": "Assembly",
+        "lds_bytes": 1280,
+        "macro_tile_m": 16,
+        "macro_tile_n": 16,
+        "prefetch_global_read": 2,
+        "prefetch_local_read": 1,
+        "store_remap": 0,
+        "store_vector_width": 1,
+        "stream_k": 0,
+        "vector_width_a": 1,
+        "vector_width_b": 1,
+        "wave_group": [
+          1,
+          1
+        ],
+        "wave_tile": [
+          1,
+          1
+        ],
+        "wavefront_size": 32,
+        "work_group": [
+          16,
+          2,
+          1
+        ],
+        "work_group_mapping": 8
+      },
+      "solution": 196,
+      "source_shape": [
+        128,
+        512,
+        256
+      ]
+    },
+    {
+      "configuration": "467e67f2f2d66c4d",
+      "family": "5f300e3e594a6c43",
+      "geometry": "n_wide",
+      "k": 4096,
+      "m": 128,
+      "mechanism": {
+        "direct_to_vgpr_a": false,
+        "direct_to_vgpr_b": true,
+        "global_split_algorithm": "MultipleBuffer",
+        "instruction": [
+          16,
+          16,
+          16,
+          1
+        ],
+        "kernel_language": "Assembly",
+        "prefetch_global_read": 2,
+        "prefetch_local_read": 1,
+        "split": "none",
+        "store_remap": 0,
+        "stream_k": 0,
+        "wavefront_size": 32
+      },
+      "n": 512,
+      "reasons": [
+        "router_family_boundary_left"
+      ],
+      "row": 3732,
+      "schedule": {
+        "depth_u": 32,
+        "direct_to_vgpr_a": false,
+        "direct_to_vgpr_b": true,
+        "global_read_vector_width_a": 8,
+        "global_read_vector_width_b": 8,
+        "global_split_algorithm": "MultipleBuffer",
+        "global_split_u": 1,
+        "instruction": [
+          16,
+          16,
+          16,
+          1
+        ],
+        "kernel_language": "Assembly",
+        "lds_bytes": 1280,
+        "macro_tile_m": 16,
+        "macro_tile_n": 16,
+        "prefetch_global_read": 2,
+        "prefetch_local_read": 1,
+        "store_remap": 0,
+        "store_vector_width": 8,
+        "stream_k": 0,
+        "vector_width_a": 1,
+        "vector_width_b": 1,
+        "wave_group": [
+          1,
+          1
+        ],
+        "wave_tile": [
+          1,
+          1
+        ],
+        "wavefront_size": 32,
+        "work_group": [
+          16,
+          2,
+          1
+        ],
+        "work_group_mapping": 8
+      },
+      "solution": 125,
+      "source_shape": [
+        128,
+        512,
+        4096
+      ]
+    },
+    {
+      "configuration": "f41bf9c158a0db31",
+      "family": "e93d5a9a1b11d47a",
+      "geometry": "n_wide",
+      "k": 64,
+      "m": 128,
+      "mechanism": {
+        "direct_to_vgpr_a": false,
+        "direct_to_vgpr_b": false,
+        "global_split_algorithm": "MultipleBuffer",
+        "instruction": [
+          16,
+          16,
+          16,
+          1
+        ],
+        "kernel_language": "Assembly",
+        "prefetch_global_read": 1,
+        "prefetch_local_read": 1,
+        "split": "none",
+        "store_remap": 0,
+        "stream_k": 0,
+        "wavefront_size": 32
+      },
+      "n": 640,
+      "reasons": [
+        "router_family_boundary_left",
+        "router_family_boundary_right"
+      ],
+      "row": 2799,
+      "schedule": {
+        "depth_u": 32,
+        "direct_to_vgpr_a": false,
+        "direct_to_vgpr_b": false,
+        "global_read_vector_width_a": 8,
+        "global_read_vector_width_b": 8,
+        "global_split_algorithm": "MultipleBuffer",
+        "global_split_u": 1,
+        "instruction": [
+          16,
+          16,
+          16,
+          1
+        ],
+        "kernel_language": "Assembly",
+        "lds_bytes": 4224,
+        "macro_tile_m": 64,
+        "macro_tile_n": 64,
+        "prefetch_global_read": 1,
+        "prefetch_local_read": 1,
+        "store_remap": 0,
+        "store_vector_width": 8,
+        "stream_k": 0,
+        "vector_width_a": 1,
+        "vector_width_b": 1,
+        "wave_group": [
+          2,
+          2
+        ],
+        "wave_tile": [
+          2,
+          2
+        ],
+        "wavefront_size": 32,
+        "work_group": [
+          32,
+          4,
+          1
+        ],
+        "work_group_mapping": 8
+      },
+      "solution": 12,
+      "source_shape": [
+        128,
+        640,
+        64
+      ]
+    },
+    {
+      "configuration": "3dbc167d74a44f6c",
+      "family": "5f300e3e594a6c43",
+      "geometry": "n_wide",
+      "k": 256,
+      "m": 128,
+      "mechanism": {
+        "direct_to_vgpr_a": false,
+        "direct_to_vgpr_b": true,
+        "global_split_algorithm": "MultipleBuffer",
+        "instruction": [
+          16,
+          16,
+          16,
+          1
+        ],
+        "kernel_language": "Assembly",
+        "prefetch_global_read": 2,
+        "prefetch_local_read": 1,
+        "split": "none",
+        "store_remap": 0,
+        "stream_k": 0,
+        "wavefront_size": 32
+      },
+      "n": 640,
+      "reasons": [
+        "router_family_boundary_right"
+      ],
+      "row": 2990,
+      "schedule": {
+        "depth_u": 32,
+        "direct_to_vgpr_a": false,
+        "direct_to_vgpr_b": true,
+        "global_read_vector_width_a": 8,
+        "global_read_vector_width_b": 8,
+        "global_split_algorithm": "MultipleBuffer",
+        "global_split_u": 1,
+        "instruction": [
+          16,
+          16,
+          16,
+          1
+        ],
+        "kernel_language": "Assembly",
+        "lds_bytes": 1280,
+        "macro_tile_m": 16,
+        "macro_tile_n": 16,
+        "prefetch_global_read": 2,
+        "prefetch_local_read": 1,
+        "store_remap": 0,
+        "store_vector_width": 1,
+        "stream_k": 0,
+        "vector_width_a": 1,
+        "vector_width_b": 1,
+        "wave_group": [
+          1,
+          1
+        ],
+        "wave_tile": [
+          1,
+          1
+        ],
+        "wavefront_size": 32,
+        "work_group": [
+          16,
+          2,
+          1
+        ],
+        "work_group_mapping": 8
+      },
+      "solution": 206,
+      "source_shape": [
+        128,
+        640,
+        256
+      ]
+    },
+    {
+      "configuration": "c7df0a478c061eb9",
+      "family": "5f300e3e594a6c43",
+      "geometry": "n_wide",
+      "k": 1024,
+      "m": 128,
+      "mechanism": {
+        "direct_to_vgpr_a": false,
+        "direct_to_vgpr_b": true,
+        "global_split_algorithm": "MultipleBuffer",
+        "instruction": [
+          16,
+          16,
+          16,
+          1
+        ],
+        "kernel_language": "Assembly",
+        "prefetch_global_read": 2,
+        "prefetch_local_read": 1,
+        "split": "none",
+        "store_remap": 0,
+        "stream_k": 0,
+        "wavefront_size": 32
+      },
+      "n": 640,
+      "reasons": [
+        "router_family_boundary_left"
+      ],
+      "row": 3373,
+      "schedule": {
+        "depth_u": 32,
+        "direct_to_vgpr_a": false,
+        "direct_to_vgpr_b": true,
+        "global_read_vector_width_a": 8,
+        "global_read_vector_width_b": 8,
+        "global_split_algorithm": "MultipleBuffer",
+        "global_split_u": 1,
+        "instruction": [
+          16,
+          16,
+          16,
+          1
+        ],
+        "kernel_language": "Assembly",
+        "lds_bytes": 1152,
+        "macro_tile_m": 16,
+        "macro_tile_n": 16,
+        "prefetch_global_read": 2,
+        "prefetch_local_read": 1,
+        "store_remap": 0,
+        "store_vector_width": 1,
+        "stream_k": 0,
+        "vector_width_a": 1,
+        "vector_width_b": 1,
+        "wave_group": [
+          1,
+          1
+        ],
+        "wave_tile": [
+          1,
+          1
+        ],
+        "wavefront_size": 32,
+        "work_group": [
+          16,
+          2,
+          1
+        ],
+        "work_group_mapping": 8
+      },
+      "solution": 80,
+      "source_shape": [
+        128,
+        640,
+        1024
+      ]
+    },
+    {
+      "configuration": "f5d1a686735425b3",
+      "family": "cbb7c9f552b2f0df",
+      "geometry": "n_wide",
+      "k": 2048,
+      "m": 128,
+      "mechanism": {
+        "direct_to_vgpr_a": false,
+        "direct_to_vgpr_b": false,
+        "global_split_algorithm": "MultipleBuffer",
+        "instruction": [
+          16,
+          16,
+          16,
+          1
+        ],
+        "kernel_language": "Assembly",
+        "prefetch_global_read": 2,
+        "prefetch_local_read": 1,
+        "split": "none",
+        "store_remap": 0,
+        "stream_k": 0,
+        "wavefront_size": 32
+      },
+      "n": 640,
+      "reasons": [
+        "router_family_boundary_left",
+        "router_family_boundary_right"
+      ],
+      "row": 3564,
+      "schedule": {
+        "depth_u": 32,
+        "direct_to_vgpr_a": false,
+        "direct_to_vgpr_b": false,
+        "global_read_vector_width_a": 8,
+        "global_read_vector_width_b": 8,
+        "global_split_algorithm": "MultipleBuffer",
+        "global_split_u": 1,
+        "instruction": [
+          16,
+          16,
+          16,
+          1
+        ],
+        "kernel_language": "Assembly",
+        "lds_bytes": 1152,
+        "macro_tile_m": 16,
+        "macro_tile_n": 16,
+        "prefetch_global_read": 2,
+        "prefetch_local_read": 1,
+        "store_remap": 0,
+        "store_vector_width": 8,
+        "stream_k": 0,
+        "vector_width_a": 1,
+        "vector_width_b": 1,
+        "wave_group": [
+          1,
+          1
+        ],
+        "wave_tile": [
+          1,
+          1
+        ],
+        "wavefront_size": 32,
+        "work_group": [
+          16,
+          2,
+          1
+        ],
+        "work_group_mapping": 8
+      },
+      "solution": 89,
+      "source_shape": [
+        128,
+        640,
+        2048
+      ]
+    },
+    {
+      "configuration": "fab82849cd614cd0",
+      "family": "5f300e3e594a6c43",
+      "geometry": "n_wide",
+      "k": 4096,
+      "m": 128,
+      "mechanism": {
+        "direct_to_vgpr_a": false,
+        "direct_to_vgpr_b": true,
+        "global_split_algorithm": "MultipleBuffer",
+        "instruction": [
+          16,
+          16,
+          16,
+          1
+        ],
+        "kernel_language": "Assembly",
+        "prefetch_global_read": 2,
+        "prefetch_local_read": 1,
+        "split": "none",
+        "store_remap": 0,
+        "stream_k": 0,
+        "wavefront_size": 32
+      },
+      "n": 640,
+      "reasons": [
+        "router_family_boundary_left",
+        "router_family_boundary_right"
+      ],
+      "row": 3756,
+      "schedule": {
+        "depth_u": 32,
+        "direct_to_vgpr_a": false,
+        "direct_to_vgpr_b": true,
+        "global_read_vector_width_a": 8,
+        "global_read_vector_width_b": 8,
+        "global_split_algorithm": "MultipleBuffer",
+        "global_split_u": 1,
+        "instruction": [
+          16,
+          16,
+          16,
+          1
+        ],
+        "kernel_language": "Assembly",
+        "lds_bytes": 4224,
+        "macro_tile_m": 64,
+        "macro_tile_n": 64,
+        "prefetch_global_read": 2,
+        "prefetch_local_read": 1,
+        "store_remap": 0,
+        "store_vector_width": 8,
+        "stream_k": 0,
+        "vector_width_a": 1,
+        "vector_width_b": 1,
+        "wave_group": [
+          2,
+          2
+        ],
+        "wave_tile": [
+          2,
+          2
+        ],
+        "wavefront_size": 32,
+        "work_group": [
+          32,
+          4,
+          1
+        ],
+        "work_group_mapping": 8
+      },
+      "solution": 70,
+      "source_shape": [
+        128,
+        640,
+        4096
+      ]
+    },
+    {
+      "configuration": "4f31941900208388",
+      "family": "cbb7c9f552b2f0df",
+      "geometry": "n_wide",
+      "k": 64,
+      "m": 128,
+      "mechanism": {
+        "direct_to_vgpr_a": false,
+        "direct_to_vgpr_b": false,
+        "global_split_algorithm": "MultipleBuffer",
+        "instruction": [
+          16,
+          16,
+          16,
+          1
+        ],
+        "kernel_language": "Assembly",
+        "prefetch_global_read": 2,
+        "prefetch_local_read": 1,
+        "split": "none",
+        "store_remap": 0,
+        "stream_k": 0,
+        "wavefront_size": 32
+      },
+      "n": 768,
+      "reasons": [
+        "router_family_boundary_left",
+        "router_family_boundary_right"
+      ],
+      "row": 2823,
+      "schedule": {
+        "depth_u": 32,
+        "direct_to_vgpr_a": false,
+        "direct_to_vgpr_b": false,
+        "global_read_vector_width_a": 8,
+        "global_read_vector_width_b": 8,
+        "global_split_algorithm": "MultipleBuffer",
+        "global_split_u": 1,
+        "instruction": [
+          16,
+          16,
+          16,
+          1
+        ],
+        "kernel_language": "Assembly",
+        "lds_bytes": 4224,
+        "macro_tile_m": 64,
+        "macro_tile_n": 64,
+        "prefetch_global_read": 2,
+        "prefetch_local_read": 1,
+        "store_remap": 0,
+        "store_vector_width": 8,
+        "stream_k": 0,
+        "vector_width_a": 1,
+        "vector_width_b": 1,
+        "wave_group": [
+          2,
+          2
+        ],
+        "wave_tile": [
+          2,
+          2
+        ],
+        "wavefront_size": 32,
+        "work_group": [
+          32,
+          4,
+          1
+        ],
+        "work_group_mapping": 8
+      },
+      "solution": 7,
+      "source_shape": [
+        128,
+        768,
+        64
+      ]
+    },
+    {
+      "configuration": "fab82849cd614cd0",
+      "family": "5f300e3e594a6c43",
+      "geometry": "n_wide",
+      "k": 256,
+      "m": 128,
+      "mechanism": {
+        "direct_to_vgpr_a": false,
+        "direct_to_vgpr_b": true,
+        "global_split_algorithm": "MultipleBuffer",
+        "instruction": [
+          16,
+          16,
+          16,
+          1
+        ],
+        "kernel_language": "Assembly",
+        "prefetch_global_read": 2,
+        "prefetch_local_read": 1,
+        "split": "none",
+        "store_remap": 0,
+        "stream_k": 0,
+        "wavefront_size": 32
+      },
+      "n": 768,
+      "reasons": [
+        "router_family_boundary_right"
+      ],
+      "row": 3014,
+      "schedule": {
+        "depth_u": 32,
+        "direct_to_vgpr_a": false,
+        "direct_to_vgpr_b": true,
+        "global_read_vector_width_a": 8,
+        "global_read_vector_width_b": 8,
+        "global_split_algorithm": "MultipleBuffer",
+        "global_split_u": 1,
+        "instruction": [
+          16,
+          16,
+          16,
+          1
+        ],
+        "kernel_language": "Assembly",
+        "lds_bytes": 4224,
+        "macro_tile_m": 64,
+        "macro_tile_n": 64,
+        "prefetch_global_read": 2,
+        "prefetch_local_read": 1,
+        "store_remap": 0,
+        "store_vector_width": 8,
+        "stream_k": 0,
+        "vector_width_a": 1,
+        "vector_width_b": 1,
+        "wave_group": [
+          2,
+          2
+        ],
+        "wave_tile": [
+          2,
+          2
+        ],
+        "wavefront_size": 32,
+        "work_group": [
+          32,
+          4,
+          1
+        ],
+        "work_group_mapping": 8
+      },
+      "solution": 70,
+      "source_shape": [
+        128,
+        768,
+        256
+      ]
+    },
+    {
+      "configuration": "fab82849cd614cd0",
+      "family": "5f300e3e594a6c43",
+      "geometry": "n_wide",
+      "k": 2048,
+      "m": 128,
+      "mechanism": {
+        "direct_to_vgpr_a": false,
+        "direct_to_vgpr_b": true,
+        "global_split_algorithm": "MultipleBuffer",
+        "instruction": [
+          16,
+          16,
+          16,
+          1
+        ],
+        "kernel_language": "Assembly",
+        "prefetch_global_read": 2,
+        "prefetch_local_read": 1,
+        "split": "none",
+        "store_remap": 0,
+        "stream_k": 0,
+        "wavefront_size": 32
+      },
+      "n": 768,
+      "reasons": [
+        "router_family_boundary_left"
+      ],
+      "row": 3588,
+      "schedule": {
+        "depth_u": 32,
+        "direct_to_vgpr_a": false,
+        "direct_to_vgpr_b": true,
+        "global_read_vector_width_a": 8,
+        "global_read_vector_width_b": 8,
+        "global_split_algorithm": "MultipleBuffer",
+        "global_split_u": 1,
+        "instruction": [
+          16,
+          16,
+          16,
+          1
+        ],
+        "kernel_language": "Assembly",
+        "lds_bytes": 4224,
+        "macro_tile_m": 64,
+        "macro_tile_n": 64,
+        "prefetch_global_read": 2,
+        "prefetch_local_read": 1,
+        "store_remap": 0,
+        "store_vector_width": 8,
+        "stream_k": 0,
+        "vector_width_a": 1,
+        "vector_width_b": 1,
+        "wave_group": [
+          2,
+          2
+        ],
+        "wave_tile": [
+          2,
+          2
+        ],
+        "wavefront_size": 32,
+        "work_group": [
+          32,
+          4,
+          1
+        ],
+        "work_group_mapping": 8
+      },
+      "solution": 70,
+      "source_shape": [
+        128,
+        768,
+        2048
+      ]
+    },
+    {
+      "configuration": "4b1fa488f88b191f",
+      "family": "cbb7c9f552b2f0df",
+      "geometry": "n_wide",
+      "k": 4096,
+      "m": 128,
+      "mechanism": {
+        "direct_to_vgpr_a": false,
+        "direct_to_vgpr_b": false,
+        "global_split_algorithm": "MultipleBuffer",
+        "instruction": [
+          16,
+          16,
+          16,
+          1
+        ],
+        "kernel_language": "Assembly",
+        "prefetch_global_read": 2,
+        "prefetch_local_read": 1,
+        "split": "none",
+        "store_remap": 0,
+        "stream_k": 0,
+        "wavefront_size": 32
+      },
+      "n": 768,
+      "reasons": [
+        "router_family_boundary_left",
+        "router_family_boundary_right"
+      ],
+      "row": 3780,
+      "schedule": {
+        "depth_u": 32,
+        "direct_to_vgpr_a": false,
+        "direct_to_vgpr_b": false,
+        "global_read_vector_width_a": 8,
+        "global_read_vector_width_b": 8,
+        "global_split_algorithm": "MultipleBuffer",
+        "global_split_u": 1,
+        "instruction": [
+          16,
+          16,
+          16,
+          1
+        ],
+        "kernel_language": "Assembly",
+        "lds_bytes": 4224,
+        "macro_tile_m": 64,
+        "macro_tile_n": 64,
+        "prefetch_global_read": 2,
+        "prefetch_local_read": 1,
+        "store_remap": 0,
+        "store_vector_width": 1,
+        "stream_k": 0,
+        "vector_width_a": 1,
+        "vector_width_b": 1,
+        "wave_group": [
+          2,
+          2
+        ],
+        "wave_tile": [
+          2,
+          2
+        ],
+        "wavefront_size": 32,
+        "work_group": [
+          32,
+          4,
+          1
+        ],
+        "work_group_mapping": 8
+      },
+      "solution": 236,
+      "source_shape": [
+        128,
+        768,
+        4096
+      ]
+    },
+    {
+      "configuration": "3ae84a4cda43cb50",
+      "family": "27138d856ef02995",
+      "geometry": "n_wide",
+      "k": 64,
+      "m": 128,
+      "mechanism": {
+        "direct_to_vgpr_a": false,
+        "direct_to_vgpr_b": true,
+        "global_split_algorithm": "MultipleBuffer",
+        "instruction": [
+          16,
+          16,
+          16,
+          1
+        ],
+        "kernel_language": "Assembly",
+        "prefetch_global_read": 1,
+        "prefetch_local_read": 1,
+        "split": "none",
+        "store_remap": 0,
+        "stream_k": 0,
+        "wavefront_size": 32
+      },
+      "n": 896,
+      "reasons": [
+        "router_family_boundary_left",
+        "router_family_boundary_right"
+      ],
+      "row": 2847,
+      "schedule": {
+        "depth_u": 32,
+        "direct_to_vgpr_a": false,
+        "direct_to_vgpr_b": true,
+        "global_read_vector_width_a": 8,
+        "global_read_vector_width_b": 8,
+        "global_split_algorithm": "MultipleBuffer",
+        "global_split_u": 1,
+        "instruction": [
+          16,
+          16,
+          16,
+          1
+        ],
+        "kernel_language": "Assembly",
+        "lds_bytes": 4224,
+        "macro_tile_m": 64,
+        "macro_tile_n": 64,
+        "prefetch_global_read": 1,
+        "prefetch_local_read": 1,
+        "store_remap": 0,
+        "store_vector_width": 8,
+        "stream_k": 0,
+        "vector_width_a": 1,
+        "vector_width_b": 1,
+        "wave_group": [
+          2,
+          2
+        ],
+        "wave_tile": [
+          2,
+          2
+        ],
+        "wavefront_size": 32,
+        "work_group": [
+          32,
+          4,
+          1
+        ],
+        "work_group_mapping": 8
+      },
+      "solution": 24,
+      "source_shape": [
+        128,
+        896,
+        64
+      ]
+    },
+    {
+      "configuration": "4f31941900208388",
+      "family": "cbb7c9f552b2f0df",
+      "geometry": "n_wide",
+      "k": 256,
+      "m": 128,
+      "mechanism": {
+        "direct_to_vgpr_a": false,
+        "direct_to_vgpr_b": false,
+        "global_split_algorithm": "MultipleBuffer",
+        "instruction": [
+          16,
+          16,
+          16,
+          1
+        ],
+        "kernel_language": "Assembly",
+        "prefetch_global_read": 2,
+        "prefetch_local_read": 1,
+        "split": "none",
+        "store_remap": 0,
+        "stream_k": 0,
+        "wavefront_size": 32
+      },
+      "n": 896,
+      "reasons": [
+        "router_family_boundary_right"
+      ],
+      "row": 3038,
+      "schedule": {
+        "depth_u": 32,
+        "direct_to_vgpr_a": false,
+        "direct_to_vgpr_b": false,
+        "global_read_vector_width_a": 8,
+        "global_read_vector_width_b": 8,
+        "global_split_algorithm": "MultipleBuffer",
+        "global_split_u": 1,
+        "instruction": [
+          16,
+          16,
+          16,
+          1
+        ],
+        "kernel_language": "Assembly",
+        "lds_bytes": 4224,
+        "macro_tile_m": 64,
+        "macro_tile_n": 64,
+        "prefetch_global_read": 2,
+        "prefetch_local_read": 1,
+        "store_remap": 0,
+        "store_vector_width": 8,
+        "stream_k": 0,
+        "vector_width_a": 1,
+        "vector_width_b": 1,
+        "wave_group": [
+          2,
+          2
+        ],
+        "wave_tile": [
+          2,
+          2
+        ],
+        "wavefront_size": 32,
+        "work_group": [
+          32,
+          4,
+          1
+        ],
+        "work_group_mapping": 8
+      },
+      "solution": 68,
+      "source_shape": [
+        128,
+        896,
+        256
+      ]
+    },
+    {
+      "configuration": "4f31941900208388",
+      "family": "cbb7c9f552b2f0df",
+      "geometry": "deep_k",
+      "k": 4096,
+      "m": 512,
+      "mechanism": {
+        "direct_to_vgpr_a": false,
+        "direct_to_vgpr_b": false,
+        "global_split_algorithm": "MultipleBuffer",
+        "instruction": [
+          16,
+          16,
+          16,
+          1
+        ],
+        "kernel_language": "Assembly",
+        "prefetch_global_read": 2,
+        "prefetch_local_read": 1,
+        "split": "none",
+        "store_remap": 0,
+        "stream_k": 0,
+        "wavefront_size": 32
+      },
+      "n": 384,
+      "reasons": [
+        "geometry_deep_k"
+      ],
+      "row": 3714,
+      "schedule": {
+        "depth_u": 32,
+        "direct_to_vgpr_a": false,
+        "direct_to_vgpr_b": false,
+        "global_read_vector_width_a": 8,
+        "global_read_vector_width_b": 8,
+        "global_split_algorithm": "MultipleBuffer",
+        "global_split_u": 1,
+        "instruction": [
+          16,
+          16,
+          16,
+          1
+        ],
+        "kernel_language": "Assembly",
+        "lds_bytes": 4224,
+        "macro_tile_m": 64,
+        "macro_tile_n": 64,
+        "prefetch_global_read": 2,
+        "prefetch_local_read": 1,
+        "store_remap": 0,
+        "store_vector_width": 8,
+        "stream_k": 0,
+        "vector_width_a": 1,
+        "vector_width_b": 1,
+        "wave_group": [
+          2,
+          2
+        ],
+        "wave_tile": [
+          2,
+          2
+        ],
+        "wavefront_size": 32,
+        "work_group": [
+          32,
+          4,
+          1
+        ],
+        "work_group_mapping": 8
+      },
+      "solution": 68,
+      "source_shape": [
+        512,
+        384,
+        4096
+      ]
+    },
+    {
+      "configuration": "7a2811494e0b306f",
+      "family": "e93d5a9a1b11d47a",
+      "geometry": "shallow_k",
+      "k": 64,
+      "m": 640,
+      "mechanism": {
+        "direct_to_vgpr_a": false,
+        "direct_to_vgpr_b": false,
+        "global_split_algorithm": "MultipleBuffer",
+        "instruction": [
+          16,
+          16,
+          16,
+          1
+        ],
+        "kernel_language": "Assembly",
+        "prefetch_global_read": 1,
+        "prefetch_local_read": 1,
+        "split": "none",
+        "store_remap": 0,
+        "stream_k": 0,
+        "wavefront_size": 32
+      },
+      "n": 768,
+      "reasons": [
+        "geometry_shallow_k"
+      ],
+      "row": 2831,
+      "schedule": {
+        "depth_u": 32,
+        "direct_to_vgpr_a": false,
+        "direct_to_vgpr_b": false,
+        "global_read_vector_width_a": 8,
+        "global_read_vector_width_b": 8,
+        "global_split_algorithm": "MultipleBuffer",
+        "global_split_u": 1,
+        "instruction": [
+          16,
+          16,
+          16,
+          1
+        ],
+        "kernel_language": "Assembly",
+        "lds_bytes": 8192,
+        "macro_tile_m": 128,
+        "macro_tile_n": 128,
+        "prefetch_global_read": 1,
+        "prefetch_local_read": 1,
+        "store_remap": 0,
+        "store_vector_width": 8,
+        "stream_k": 0,
+        "vector_width_a": 4,
+        "vector_width_b": 1,
+        "wave_group": [
+          2,
+          2
+        ],
+        "wave_tile": [
+          4,
+          4
+        ],
+        "wavefront_size": 32,
+        "work_group": [
+          32,
+          4,
+          1
+        ],
+        "work_group_mapping": 8
+      },
+      "solution": 185,
+      "source_shape": [
+        640,
+        768,
+        64
+      ]
+    },
+    {
+      "configuration": "4f31941900208388",
+      "family": "cbb7c9f552b2f0df",
+      "geometry": "m_tall",
+      "k": 512,
+      "m": 896,
+      "mechanism": {
+        "direct_to_vgpr_a": false,
+        "direct_to_vgpr_b": false,
+        "global_split_algorithm": "MultipleBuffer",
+        "instruction": [
+          16,
+          16,
+          16,
+          1
+        ],
+        "kernel_language": "Assembly",
+        "prefetch_global_read": 2,
+        "prefetch_local_read": 1,
+        "split": "none",
+        "store_remap": 0,
+        "stream_k": 0,
+        "wavefront_size": 32
+      },
+      "n": 128,
+      "reasons": [
+        "geometry_m_tall"
+      ],
+      "row": 3098,
+      "schedule": {
+        "depth_u": 32,
+        "direct_to_vgpr_a": false,
+        "direct_to_vgpr_b": false,
+        "global_read_vector_width_a": 8,
+        "global_read_vector_width_b": 8,
+        "global_split_algorithm": "MultipleBuffer",
+        "global_split_u": 1,
+        "instruction": [
+          16,
+          16,
+          16,
+          1
+        ],
+        "kernel_language": "Assembly",
+        "lds_bytes": 4224,
+        "macro_tile_m": 64,
+        "macro_tile_n": 64,
+        "prefetch_global_read": 2,
+        "prefetch_local_read": 1,
+        "store_remap": 0,
+        "store_vector_width": 8,
+        "stream_k": 0,
+        "vector_width_a": 1,
+        "vector_width_b": 1,
+        "wave_group": [
+          2,
+          2
+        ],
+        "wave_tile": [
+          2,
+          2
+        ],
+        "wavefront_size": 32,
+        "work_group": [
+          32,
+          4,
+          1
+        ],
+        "work_group_mapping": 8
+      },
+      "solution": 204,
+      "source_shape": [
+        896,
+        128,
+        512
+      ]
+    },
+    {
+      "configuration": "e47e7ee9662d6f82",
+      "family": "cbb7c9f552b2f0df",
+      "geometry": "balanced",
+      "k": 1024,
+      "m": 896,
+      "mechanism": {
+        "direct_to_vgpr_a": false,
+        "direct_to_vgpr_b": false,
+        "global_split_algorithm": "MultipleBuffer",
+        "instruction": [
+          16,
+          16,
+          16,
+          1
+        ],
+        "kernel_language": "Assembly",
+        "prefetch_global_read": 2,
+        "prefetch_local_read": 1,
+        "split": "none",
+        "store_remap": 0,
+        "stream_k": 0,
+        "wavefront_size": 32
+      },
+      "n": 640,
+      "reasons": [
+        "geometry_balanced"
+      ],
+      "row": 3385,
+      "schedule": {
+        "depth_u": 32,
+        "direct_to_vgpr_a": false,
+        "direct_to_vgpr_b": false,
+        "global_read_vector_width_a": 8,
+        "global_read_vector_width_b": 8,
+        "global_split_algorithm": "MultipleBuffer",
+        "global_split_u": 1,
+        "instruction": [
+          16,
+          16,
+          16,
+          1
+        ],
+        "kernel_language": "Assembly",
+        "lds_bytes": 8192,
+        "macro_tile_m": 128,
+        "macro_tile_n": 128,
+        "prefetch_global_read": 2,
+        "prefetch_local_read": 1,
+        "store_remap": 0,
+        "store_vector_width": 4,
+        "stream_k": 0,
+        "vector_width_a": 4,
+        "vector_width_b": 1,
+        "wave_group": [
+          2,
+          2
+        ],
+        "wave_tile": [
+          4,
+          4
+        ],
+        "wavefront_size": 32,
+        "work_group": [
+          32,
+          4,
+          1
+        ],
+        "work_group_mapping": 8
+      },
+      "solution": 73,
+      "source_shape": [
+        896,
+        640,
+        1024
+      ]
+    }
+  ],
+  "dominant_families": [
+    {
+      "fraction": 0.3178294573643411,
+      "id": "5f300e3e594a6c43",
+      "rows": 123
+    },
+    {
+      "fraction": 0.268733850129199,
+      "id": "cbb7c9f552b2f0df",
+      "rows": 104
+    },
+    {
+      "fraction": 0.2041343669250646,
+      "id": "e93d5a9a1b11d47a",
+      "rows": 79
+    },
+    {
+      "fraction": 0.07235142118863049,
+      "id": "0ae2cdcb0a88be8b",
+      "rows": 28
+    },
+    {
+      "fraction": 0.06976744186046512,
+      "id": "e057053e7f6b40eb",
+      "rows": 27
+    }
+  ],
+  "dominant_family_coverage": 0.9328165374677002,
+  "legal_aligned_router_rows": 387,
+  "schema": "loom-blas.router-corpus.v1",
+  "semantic_scope": "FP16 NN, FP32 accumulation, FP16 output, alpha=1, beta=0, no bias",
+  "source": "../TheRock/rocm-libraries/projects/hipblaslt/library/src/amd_detail/rocblaslt/src/Tensile/Logic/asm_full/gfx1201/GridBased/gfx1201_Cijk_Ailk_Bljk_HHS_BH_Bias_SHB_HA_S_SAB_SCD_SAV_UserArgs.yaml",
+  "source_sha256": "fa2fc522fc09115c4be782d9b0911959533087c3e924b1a90e11d907a83eb6ca",
+  "target": "gfx1201",
+  "vendor_backend": "hipblaslt",
+  "weighting": "unweighted; router-row frequency is topology evidence, not demand weight"
+}

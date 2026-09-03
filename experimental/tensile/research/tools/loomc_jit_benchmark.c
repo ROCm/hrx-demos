@@ -29,13 +29,17 @@ typedef struct benchmark_state_t {
   loomc_target_profile_t* target_profile;
   loomc_compiler_t* compiler;
   loomc_pass_program_t* pass_program;
+  loomc_pass_program_t* key_pass_program;
 } benchmark_state_t;
 
 typedef struct sample_t {
   double link_us;
   double compile_us;
+  double key_us;
   double emit_us;
   double total_us;
+  uint64_t program_bytes;
+  uint64_t launch_config_bytes;
   uint64_t artifact_bytes;
 } sample_t;
 
@@ -90,7 +94,34 @@ static const loomc_artifact_t* find_hsaco(const loomc_result_t* result) {
   return NULL;
 }
 
+static const loomc_artifact_t* find_program_bytecode(
+    const loomc_result_t* result) {
+  for (loomc_host_size_t i = 0; i < loomc_result_artifact_count(result); ++i) {
+    const loomc_artifact_t* artifact = loomc_result_artifact_at(result, i);
+    if (artifact != NULL && artifact->kind == LOOMC_ARTIFACT_KIND_MODULE &&
+        loomc_string_view_equal(
+            artifact->format,
+            loomc_make_cstring_view(LOOMC_ARTIFACT_FORMAT_LOOM_BYTECODE))) {
+      return artifact;
+    }
+  }
+  return NULL;
+}
+
+static const loomc_artifact_t* find_launch_config(
+    const loomc_result_t* result) {
+  for (loomc_host_size_t i = 0; i < loomc_result_artifact_count(result); ++i) {
+    const loomc_artifact_t* artifact = loomc_result_artifact_at(result, i);
+    if (artifact != NULL &&
+        artifact->kind == LOOMC_ARTIFACT_KIND_LAUNCH_CONFIG) {
+      return artifact;
+    }
+  }
+  return NULL;
+}
+
 static void benchmark_state_deinitialize(benchmark_state_t* state) {
+  loomc_pass_program_release(state->key_pass_program);
   loomc_pass_program_release(state->pass_program);
   loomc_compiler_release(state->compiler);
   loomc_linker_release(state->linker);
@@ -226,12 +257,27 @@ static loomc_status_t benchmark_state_initialize(benchmark_state_t* state,
     }
     loomc_result_release(pipeline_result);
   }
+  if (loomc_status_is_ok(status)) {
+    loomc_result_t* key_result = NULL;
+    status = loomc_pass_program_create_from_pipeline_text(
+        state->context, loomc_make_cstring_view("canonicalize,dce,symbol-dce"),
+        NULL, loomc_allocator_system(), &state->key_pass_program, &key_result);
+    if (loomc_status_is_ok(status) &&
+        !require_successful_result(key_result, "program-key pipeline preparation")) {
+      status = loomc_make_status(LOOMC_STATUS_FAILED_PRECONDITION,
+                                 "program-key pipeline preparation failed");
+    }
+    loomc_result_release(key_result);
+  }
   return status;
 }
 
 static loomc_status_t run_sample(benchmark_state_t* state,
                                  const char* function_symbol,
-                                 const char* output_path, sample_t* sample) {
+                                 const char* output_path,
+                                 const char* program_output_path,
+                                 const char* launch_config_output_path,
+                                 sample_t* sample) {
   memset(sample, 0, sizeof(*sample));
   loomc_module_t* module = NULL;
   loomc_result_t* result = NULL;
@@ -280,6 +326,7 @@ static loomc_status_t run_sample(benchmark_state_t* state,
       .structure_size = sizeof(compile_options),
       .next = &target_options,
       .module_name = loomc_make_cstring_view("loom_blas_jit_benchmark"),
+      .artifact_flags = LOOMC_COMPILE_ARTIFACT_FLAG_LAUNCH_CONFIG,
       .config_flags = LOOMC_CONFIG_POLICY_FLAG_REQUIRE_RESOLVED,
       .config_module = state->config_module,
   };
@@ -296,6 +343,59 @@ static loomc_status_t run_sample(benchmark_state_t* state,
     status = loomc_make_status(LOOMC_STATUS_FAILED_PRECONDITION,
                                "default pipeline compilation failed");
     goto cleanup;
+  }
+  const loomc_artifact_t* launch_config_artifact = find_launch_config(result);
+  if (launch_config_artifact == NULL) {
+    fprintf(stderr, "compilation produced no launch-config artifact\n");
+    status = loomc_make_status(LOOMC_STATUS_NOT_FOUND,
+                               "launch-config artifact not found");
+    goto cleanup;
+  }
+  sample->launch_config_bytes =
+      loomc_byte_sequence_length(launch_config_artifact->contents);
+  if (launch_config_output_path != NULL) {
+    status = loomc_artifact_write_to_path(
+        launch_config_artifact,
+        loomc_make_cstring_view(launch_config_output_path),
+        loomc_allocator_system());
+    if (!loomc_status_is_ok(status)) goto cleanup;
+  }
+  loomc_result_release(result);
+  result = NULL;
+
+  loomc_compile_options_t key_options = {
+      .type = LOOMC_STRUCTURE_TYPE_COMPILE_OPTIONS,
+      .structure_size = sizeof(key_options),
+      .next = &target_options,
+      .module_name = loomc_make_cstring_view("loom_blas_jit_benchmark"),
+      .artifact_flags = LOOMC_COMPILE_ARTIFACT_FLAG_MODULE_BYTECODE,
+  };
+  phase_start_ns = now_ns();
+  status = loomc_compile_module(
+      state->compiler, state->workspace, state->key_pass_program, module,
+      &key_options, loomc_allocator_system(), &result);
+  const uint64_t key_end_ns = now_ns();
+  sample->key_us = (double)(key_end_ns - phase_start_ns) / 1e3;
+  if (!loomc_status_is_ok(status)) goto cleanup;
+  if (!require_successful_result(result, "program-key canonicalization")) {
+    status = loomc_make_status(LOOMC_STATUS_FAILED_PRECONDITION,
+                               "program-key canonicalization failed");
+    goto cleanup;
+  }
+  const loomc_artifact_t* program_artifact = find_program_bytecode(result);
+  if (program_artifact == NULL) {
+    fprintf(stderr, "compilation produced no transformed bytecode artifact\n");
+    status = loomc_make_status(LOOMC_STATUS_NOT_FOUND,
+                               "transformed bytecode artifact not found");
+    goto cleanup;
+  }
+  sample->program_bytes =
+      loomc_byte_sequence_length(program_artifact->contents);
+  if (program_output_path != NULL) {
+    status = loomc_artifact_write_to_path(
+        program_artifact, loomc_make_cstring_view(program_output_path),
+        loomc_allocator_system());
+    if (!loomc_status_is_ok(status)) goto cleanup;
   }
   loomc_result_release(result);
   result = NULL;
@@ -385,11 +485,12 @@ static void print_usage(FILE* file) {
   fprintf(file,
           "Usage: loomc-jit-benchmark <kernel.loombc> <config.loombc> "
           "<target> <symbol> "
-          "[iterations] [output.hsaco]\n");
+          "[iterations] [output.hsaco] [program.loombc] "
+          "[launch-config.loombc]\n");
 }
 
 int main(int argc, char** argv) {
-  if (argc < 5 || argc > 7) {
+  if (argc < 5 || argc > 9) {
     print_usage(stderr);
     return 64;
   }
@@ -399,6 +500,8 @@ int main(int argc, char** argv) {
   const char* function_symbol = argv[4];
   const size_t iteration_count = argc >= 6 ? strtoull(argv[5], NULL, 10) : 100;
   const char* output_path = argc >= 7 ? argv[6] : NULL;
+  const char* program_output_path = argc >= 8 ? argv[7] : NULL;
+  const char* launch_config_output_path = argc >= 9 ? argv[8] : NULL;
   if (iteration_count == 0) {
     fprintf(stderr, "iterations must be positive\n");
     return 64;
@@ -428,7 +531,7 @@ int main(int argc, char** argv) {
   }
 
   sample_t warmup;
-  status = run_sample(&state, function_symbol, NULL, &warmup);
+  status = run_sample(&state, function_symbol, NULL, NULL, NULL, &warmup);
   if (!loomc_status_is_ok(status)) {
     loomc_status_free(status);
     benchmark_state_deinitialize(&state);
@@ -438,16 +541,23 @@ int main(int argc, char** argv) {
   sample_t* samples = (sample_t*)calloc(iteration_count, sizeof(*samples));
   double* link = (double*)malloc(iteration_count * sizeof(double));
   double* compile = (double*)malloc(iteration_count * sizeof(double));
+  double* key = (double*)malloc(iteration_count * sizeof(double));
   double* emit = (double*)malloc(iteration_count * sizeof(double));
   double* total = (double*)malloc(iteration_count * sizeof(double));
-  if (samples == NULL || link == NULL || compile == NULL ||
+  if (samples == NULL || link == NULL || compile == NULL || key == NULL ||
       emit == NULL || total == NULL) {
     fprintf(stderr, "failed to allocate sample buffers\n");
     return 1;
   }
   for (size_t i = 0; i < iteration_count; ++i) {
     const char* current_output = i + 1 == iteration_count ? output_path : NULL;
-    status = run_sample(&state, function_symbol, current_output, &samples[i]);
+    const char* current_program_output =
+        i + 1 == iteration_count ? program_output_path : NULL;
+    status = run_sample(&state, function_symbol, current_output,
+                        current_program_output,
+                        i + 1 == iteration_count ? launch_config_output_path
+                                                 : NULL,
+                        &samples[i]);
     if (!loomc_status_is_ok(status)) {
       loomc_status_free(status);
       benchmark_state_deinitialize(&state);
@@ -455,6 +565,7 @@ int main(int argc, char** argv) {
     }
     link[i] = samples[i].link_us;
     compile[i] = samples[i].compile_us;
+    key[i] = samples[i].key_us;
     emit[i] = samples[i].emit_us;
     total[i] = samples[i].total_us;
   }
@@ -462,15 +573,22 @@ int main(int argc, char** argv) {
   printf("{\"schema\":\"loom-blas.loomc-jit-benchmark.v1\","
          "\"source\":\"%s\",\"config\":\"%s\",\"target\":\"%s\","
          "\"symbol\":\"%s\",\"loombc_bytes\":%" PRIu64 ","
-         "\"config_loombc_bytes\":%" PRIu64 ",\"hsaco_bytes\":%" PRIu64 ","
+         "\"config_loombc_bytes\":%" PRIu64
+         ",\"program_loombc_bytes\":%" PRIu64
+         ",\"launch_config_loombc_bytes\":%" PRIu64
+         ",\"hsaco_bytes\":%" PRIu64 ","
          "\"iterations\":%zu,\"warmup_iterations\":1,"
          "\"setup_us\":%.3f,\"phases\":{",
          source_path, config_path, target, function_symbol,
          (uint64_t)source_stat.st_size, (uint64_t)config_stat.st_size,
+         samples[iteration_count - 1].program_bytes,
+         samples[iteration_count - 1].launch_config_bytes,
          samples[iteration_count - 1].artifact_bytes, iteration_count, setup_us);
   print_distribution("link", link, iteration_count);
   printf(",");
   print_distribution("compile", compile, iteration_count);
+  printf(",");
+  print_distribution("key", key, iteration_count);
   printf(",");
   print_distribution("emit", emit, iteration_count);
   printf(",");
@@ -479,6 +597,7 @@ int main(int argc, char** argv) {
 
   free(total);
   free(emit);
+  free(key);
   free(compile);
   free(link);
   free(samples);

@@ -1,0 +1,46 @@
+{
+  "forms": [
+    {
+      "form": "structured",
+      "hsaco_bytes": 13312,
+      "hsaco_sha256": "1633bdde054307e8c48e5e529ebdfa6c7fdde669831d650b3c0b7cad5219244a",
+      "launch_config_bytes": 919,
+      "launch_config_sha256": "afe42d6d3d9573fbe9376297b9d5aa2e8583942bbab17043d8a8628b9e80c038",
+      "program_loombc_bytes": 29660,
+      "program_sha256": "2543dca6f81f85d4e6614bff752b9d6122d5323d8a15e41a8d101c11ef726022",
+      "source_loombc_bytes": 11217,
+      "timing_us": {
+        "compile": 4560.867,
+        "emit": 2919.635,
+        "key": 924.314,
+        "link": 230.686,
+        "total": 8680.257
+      }
+    },
+    {
+      "form": "unrolled",
+      "hsaco_bytes": 46080,
+      "hsaco_sha256": "6446ba0cc66586a1b942e82ca32881ea8f83cec15f3c1e4d270a233643ab1ae9",
+      "launch_config_bytes": 937,
+      "launch_config_sha256": "3d7483b9cdcc87abab2d41d9e57f3d57a0f0bc9edbdfb84f9d4f1876ff6926c3",
+      "program_loombc_bytes": 287386,
+      "program_sha256": "cc9b91c3a2821600b6b4c6be2c33d38826db479dc608556e74ee467f790227b4",
+      "source_loombc_bytes": 18550,
+      "timing_us": {
+        "compile": 21016.903,
+        "emit": 30797.014,
+        "key": 7184.578,
+        "link": 356.174,
+        "total": 59388.196
+      }
+    }
+  ],
+  "pipeline": "default + canonicalize,dce,symbol-dce key cleanup",
+  "request": {
+    "k": 1024,
+    "m": 1024,
+    "n": 960
+  },
+  "schema": "loom-blas.loop-form-jit.v1",
+  "target": "gfx1100"
+}

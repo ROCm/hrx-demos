@@ -1,0 +1,24 @@
+{
+  "cases": [
+    {
+      "case": "minimum nonuniform 64x96x64",
+      "failed_sample_count": 0,
+      "planning_issue_count": 0,
+      "sample_count": 1,
+      "status": "pass",
+      "target": "gfx1100"
+    },
+    {
+      "case": "complete macro tile 128x128x64",
+      "failed_sample_count": 0,
+      "planning_issue_count": 0,
+      "sample_count": 1,
+      "status": "pass",
+      "target": "gfx1201"
+    }
+  ],
+  "notes": "Sanitizer instrumentation on gfx1100 reports expected instrumentation-time SGPR spill storage; the checked sample passes. Production resource facts come from unsanitized runs.",
+  "pipeline": "default",
+  "sanitizer": "loom-native-access",
+  "schema": "loom-blas.spike6-sanitizer.v1"
+}

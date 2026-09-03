@@ -51,6 +51,7 @@ struct Options {
   std::optional<int> grid_y;
   std::filesystem::path dump_output;
   bool flatten_grid = false;
+  bool algorithm_correctness = true;
 };
 
 [[noreturn]] void fail(const std::string &message) {
@@ -172,6 +173,8 @@ Options parse_options(int argc, char **argv) {
     else if (arg == "--dump-output") options.dump_output = next();
     else if (arg == "--flatten-grid")
       options.flatten_grid = true;
+    else if (arg == "--skip-algorithm-correctness")
+      options.algorithm_correctness = false;
     else if (arg == "--help") {
       std::cout << "Usage: blas-probe [--backend hipblaslt|rocblas|loom|compare] "
                    "[--type f16|bf16] "
@@ -185,7 +188,7 @@ Options parse_options(int argc, char **argv) {
                    "[--workgroup-x N --workgroup-y N --workgroup-z N] "
                    "[--grid-x N --grid-y N] "
                    "[--dump-output FILE] "
-                   "[--flatten-grid]\n";
+                   "[--flatten-grid] [--skip-algorithm-correctness]\n";
       std::exit(0);
     } else {
       fail("unknown option: " + std::string(arg));
@@ -595,7 +598,10 @@ void run_hipblaslt(const Options &options, CommonState &state) {
     };
     const std::vector<float> samples = measure(
         state.stream, options.warmup, options.iterations, launch);
-    const ErrorSummary error = state.read_and_compare();
+    const std::optional<ErrorSummary> error =
+        options.algorithm_correctness
+            ? std::optional<ErrorSummary>(state.read_and_compare())
+            : std::nullopt;
     if (!first) std::cout << ",\n";
     first = false;
     std::cout << "    {\"index\":" << index
@@ -604,9 +610,13 @@ void run_hipblaslt(const Options &options, CommonState &state) {
               << "\",\"workspace_bytes\":" << required_workspace
               << ",\"time_us\":";
     print_samples(samples);
-    std::cout << ",\"correctness\":{\"mismatches\":" << error.mismatches
-              << ",\"max_absolute\":" << error.max_absolute
-              << ",\"max_relative\":" << error.max_relative << "}}";
+    if (error.has_value()) {
+      std::cout << ",\"correctness\":{\"mismatches\":" << error->mismatches
+                << ",\"max_absolute\":" << error->max_absolute
+                << ",\"max_relative\":" << error->max_relative << "}}";
+    } else {
+      std::cout << ",\"correctness\":null}";
+    }
   }
   std::cout << "\n  ]\n}\n";
   check_lt(hipblasLtDestroy(handle), "hipblasLtDestroy");
@@ -691,14 +701,21 @@ void run_rocblas(const Options &options, CommonState &state) {
     };
     const std::vector<float> samples = measure(
         state.stream, options.warmup, options.iterations, launch);
-    const ErrorSummary error = state.read_and_compare();
+    const std::optional<ErrorSummary> error =
+        options.algorithm_correctness
+            ? std::optional<ErrorSummary>(state.read_and_compare())
+            : std::nullopt;
     if (!first) std::cout << ",\n";
     first = false;
     std::cout << "    {\"index\":" << solution << ",\"time_us\":";
     print_samples(samples);
-    std::cout << ",\"correctness\":{\"mismatches\":" << error.mismatches
-              << ",\"max_absolute\":" << error.max_absolute
-              << ",\"max_relative\":" << error.max_relative << "}}";
+    if (error.has_value()) {
+      std::cout << ",\"correctness\":{\"mismatches\":" << error->mismatches
+                << ",\"max_absolute\":" << error->max_absolute
+                << ",\"max_relative\":" << error->max_relative << "}}";
+    } else {
+      std::cout << ",\"correctness\":null}";
+    }
   }
   std::cout << "\n  ]\n}\n";
 #undef GEMM_ARGUMENTS

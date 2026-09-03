@@ -1,0 +1,49 @@
+{
+  "date": "2026-09-02",
+  "devices": [
+    {
+      "ordinal": 1,
+      "target": "gfx1100"
+    },
+    {
+      "ordinal": 2,
+      "target": "gfx1201"
+    }
+  ],
+  "environment": {
+    "jit_input": "loombc",
+    "loom_pipeline": "default",
+    "rocm_selection": "explicit selected installation; no implicit activation"
+  },
+  "host_role": "three-GPU Radeon feasibility workstation",
+  "revisions": {
+    "hrx_demos": "474ee73039bce74eb9bb20e624481ae535d44aa7",
+    "hrx_system": "f17f69e82df39f31b9b3ee404c5a33ab7c2c47b6",
+    "the_rock": "9a50c0e9e1a3345553b6420b4a4fbbd0100df907"
+  },
+  "rocm": {
+    "hip_version": "7.16.26346-0000000",
+    "installation_basename": "10.1.0a20260901",
+    "libraries": [
+      {
+        "bytes": 28183840,
+        "name": "libamdhip64.so",
+        "resolved_filename": "libamdhip64.so.7.16.26346-0000000",
+        "sha256": "cafc403d4a65a6a8775db4e8ec85acfe08e404806fd92c3445ff5cb061218b55"
+      },
+      {
+        "bytes": 9122688,
+        "name": "libhipblaslt.so",
+        "resolved_filename": "libhipblaslt.so.1.4",
+        "sha256": "900dfb26dd10c691d918e9a122620a2b7becf595eb02b6b60bdaf4428d88ddba"
+      },
+      {
+        "bytes": 27796352,
+        "name": "librocblas.so",
+        "resolved_filename": "librocblas.so.5.7",
+        "sha256": "92da28ae3308599f0117d88cda73aa5885992dade6ab494ee888d0babd2c222a"
+      }
+    ]
+  },
+  "schema": "loom-blas.provenance.v1"
+}

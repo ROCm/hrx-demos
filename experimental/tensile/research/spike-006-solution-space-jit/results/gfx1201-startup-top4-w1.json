@@ -1,0 +1,216 @@
+{
+  "batch": {
+    "wall_us": 183260.994,
+    "workers": 1
+  },
+  "corpus": "gfx1201-f16-nn.json",
+  "determinism": {
+    "hsaco_hash_count": 1,
+    "pass": true,
+    "program_hash_count": 1,
+    "repeats": 2
+  },
+  "distinct_hsaco_count": 4,
+  "distinct_key_count": 4,
+  "distinct_program_count": 4,
+  "equal_key_hsaco_violations": [],
+  "failed_request_count": 0,
+  "hsaco_groups": {
+    "5e1478006b1ee3eb6ab69d3121a0e7098710a5031155afce7c674e9442171c72": [
+      {
+        "k": 1024,
+        "m": 512,
+        "n": 384
+      }
+    ],
+    "71ccda2b3e90fad9b6041ed8a06483473aa3971b928696d0e79130f429501c38": [
+      {
+        "k": 2048,
+        "m": 640,
+        "n": 128
+      }
+    ],
+    "7f8b3af0e87691fbd0aa000641e6e21f697ec855b2fe32f5b623565ad4694908": [
+      {
+        "k": 512,
+        "m": 384,
+        "n": 640
+      }
+    ],
+    "a6475e7d2ba341154ba9f0a1c494b5a827f5c2483c193e1d2595ce4d42f9c009": [
+      {
+        "k": 1024,
+        "m": 1024,
+        "n": 1024
+      }
+    ]
+  },
+  "key_groups": {
+    "118c0c745ce8c804d9fa86fda4d6c4cc6bdbb55b405318d5f0b5a5695927c78d": [
+      {
+        "k": 512,
+        "m": 384,
+        "n": 640
+      }
+    ],
+    "60e9a05b3efeb887133b3b9a736bb64e83a5f15f1bbc340b7903d391718e69d8": [
+      {
+        "k": 1024,
+        "m": 512,
+        "n": 384
+      }
+    ],
+    "6647ee56c196249180e8089d70e5d616926aaa7152b121b83ef2758b17a55941": [
+      {
+        "k": 1024,
+        "m": 1024,
+        "n": 1024
+      }
+    ],
+    "f6e1e33035f9b2aa73eb2676dd6109173763d1733abf757461be8b151bb88760": [
+      {
+        "k": 2048,
+        "m": 640,
+        "n": 128
+      }
+    ]
+  },
+  "latency_us": {
+    "compile": {
+      "max": 12248.214,
+      "median": 11132.455
+    },
+    "emit": {
+      "max": 6433.935,
+      "median": 5571.318
+    },
+    "key": {
+      "max": 1816.737,
+      "median": 1618.3815
+    },
+    "link": {
+      "max": 989.455,
+      "median": 959.7049999999999
+    },
+    "setup": {
+      "max": 688.677,
+      "median": 581.8795
+    },
+    "total": {
+      "max": 20706.671,
+      "median": 19759.571
+    }
+  },
+  "namespace": {
+    "compiler": "hrx-f17f69e82-default-pipeline",
+    "device_abi": "amdgpu-hsa-v1",
+    "emission": {
+      "format": "hsaco",
+      "options": "defaults"
+    },
+    "export": "gemm_f16_f32_mt128x128x32_gfx12_scalar_acc",
+    "pass_program": "source-to-prepared-low/default",
+    "schema": "loom-blas.program-key-namespace.v1",
+    "source_sha256": "b8345f263b0f2ad4686edaf962759600d823583a19fcc6784d7c0b15a3cf3e53",
+    "target_profile": "gfx1201"
+  },
+  "peak_child_rss_kib": 21676,
+  "raw_request_count": 4,
+  "records": [
+    {
+      "derived_key": "6647ee56c196249180e8089d70e5d616926aaa7152b121b83ef2758b17a55941",
+      "hsaco_bytes": 17424,
+      "hsaco_sha256": "a6475e7d2ba341154ba9f0a1c494b5a827f5c2483c193e1d2595ce4d42f9c009",
+      "launch_config_bytes": 922,
+      "launch_config_sha256": "19de0a65efe2f5186c84f55cdabf6b2d5b60f92aa19dccbffd922a4f27b92ae7",
+      "ordinal": 0,
+      "program_bytes": 68953,
+      "program_sha256": "67b9a41f48601195cfbe326132bf69ede0aec105369a1883d13e1655a9eae6f7",
+      "request": {
+        "k": 1024,
+        "m": 1024,
+        "n": 1024
+      },
+      "timing_us": {
+        "compile": 10791.626,
+        "emit": 6433.935,
+        "key": 1599.711,
+        "link": 929.544,
+        "setup": 634.716,
+        "total": 19871.579
+      }
+    },
+    {
+      "derived_key": "118c0c745ce8c804d9fa86fda4d6c4cc6bdbb55b405318d5f0b5a5695927c78d",
+      "hsaco_bytes": 17424,
+      "hsaco_sha256": "7f8b3af0e87691fbd0aa000641e6e21f697ec855b2fe32f5b623565ad4694908",
+      "launch_config_bytes": 959,
+      "launch_config_sha256": "b4959ab6b11412d4a8da92e4536b9cddcf09b7230719fe34d954f04c77d78127",
+      "ordinal": 1,
+      "program_bytes": 68964,
+      "program_sha256": "c50ff1ae3c358793143cbb0925b8c3afc3ae0fbfa3c5b733a10be78647efd4c5",
+      "request": {
+        "k": 512,
+        "m": 384,
+        "n": 640
+      },
+      "timing_us": {
+        "compile": 12248.214,
+        "emit": 5536.412,
+        "key": 1816.737,
+        "link": 965.295,
+        "setup": 519.813,
+        "total": 20706.671
+      }
+    },
+    {
+      "derived_key": "60e9a05b3efeb887133b3b9a736bb64e83a5f15f1bbc340b7903d391718e69d8",
+      "hsaco_bytes": 17424,
+      "hsaco_sha256": "5e1478006b1ee3eb6ab69d3121a0e7098710a5031155afce7c674e9442171c72",
+      "launch_config_bytes": 929,
+      "launch_config_sha256": "49d871e2b24f1f7eb63289a9caa105dd2333542b38d27030bda4ee40cd7e1642",
+      "ordinal": 2,
+      "program_bytes": 68949,
+      "program_sha256": "75f7b4082908994de5edf28baf8106fb9bafe40c91cf094e57e19becdf0385b5",
+      "request": {
+        "k": 1024,
+        "m": 512,
+        "n": 384
+      },
+      "timing_us": {
+        "compile": 10991.671,
+        "emit": 5397.218,
+        "key": 1587.051,
+        "link": 954.115,
+        "setup": 688.677,
+        "total": 19057.668
+      }
+    },
+    {
+      "derived_key": "f6e1e33035f9b2aa73eb2676dd6109173763d1733abf757461be8b151bb88760",
+      "hsaco_bytes": 17424,
+      "hsaco_sha256": "71ccda2b3e90fad9b6041ed8a06483473aa3971b928696d0e79130f429501c38",
+      "launch_config_bytes": 931,
+      "launch_config_sha256": "969068ba57ab7c576d0fa38ff467b7ae00d4d9f3730b8733cf33f518b3a465c3",
+      "ordinal": 3,
+      "program_bytes": 66442,
+      "program_sha256": "da0ee3ad972cfa2374b08aec091498f977403c260c7eca25b7484dcca69b13a4",
+      "request": {
+        "k": 2048,
+        "m": 640,
+        "n": 128
+      },
+      "timing_us": {
+        "compile": 11273.239,
+        "emit": 5606.224,
+        "key": 1637.052,
+        "link": 989.455,
+        "setup": 529.043,
+        "total": 19647.563
+      }
+    }
+  ],
+  "request_per_hsaco": 1.0,
+  "schema": "loom-blas.program-key-study.v1",
+  "successful_request_count": 4
+}

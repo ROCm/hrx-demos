@@ -1,0 +1,1800 @@
+{
+  "batch": {
+    "wall_us": 2035111.145,
+    "workers": 1
+  },
+  "corpus": "gfx1201-f16-nn.json",
+  "determinism": {
+    "hsaco_hash_count": 1,
+    "pass": true,
+    "program_hash_count": 1,
+    "repeats": 10
+  },
+  "distinct_hsaco_count": 26,
+  "distinct_key_count": 48,
+  "distinct_program_count": 48,
+  "equal_key_hsaco_violations": [],
+  "failed_request_count": 0,
+  "hsaco_groups": {
+    "014079204a3bcdaa8c9bb22603ba14320c0e24b41ec47d462d20f11a12fd7fa1": [
+      {
+        "k": 1024,
+        "m": 128,
+        "n": 256
+      },
+      {
+        "k": 1024,
+        "m": 128,
+        "n": 384
+      },
+      {
+        "k": 1024,
+        "m": 128,
+        "n": 640
+      }
+    ],
+    "0ad782639ed377bf50870369741eef9e80461fb79975500291ff8660356126f9": [
+      {
+        "k": 4096,
+        "m": 1024,
+        "n": 896
+      },
+      {
+        "k": 4096,
+        "m": 1024,
+        "n": 1024
+      }
+    ],
+    "0c68389b9a1088fa87048c9820095f046ed184350b7c491eea1a7462513b30b6": [
+      {
+        "k": 256,
+        "m": 896,
+        "n": 896
+      }
+    ],
+    "37f92a79b2ee0f29662a8070bf609a669a0a5883523710c6e40e1dfcf56d79d8": [
+      {
+        "k": 64,
+        "m": 256,
+        "n": 256
+      },
+      {
+        "k": 64,
+        "m": 256,
+        "n": 512
+      }
+    ],
+    "42492971c93523cf0aba80294bd16fd56a1100f72c30bb63679371c7e93013d7": [
+      {
+        "k": 4096,
+        "m": 128,
+        "n": 256
+      },
+      {
+        "k": 4096,
+        "m": 128,
+        "n": 384
+      },
+      {
+        "k": 4096,
+        "m": 128,
+        "n": 512
+      },
+      {
+        "k": 4096,
+        "m": 128,
+        "n": 640
+      },
+      {
+        "k": 4096,
+        "m": 128,
+        "n": 768
+      }
+    ],
+    "473e962f2bd2574bfacc7891146ebd76ac988ac10cbd6cafb5d134a7f4497149": [
+      {
+        "k": 1024,
+        "m": 128,
+        "n": 128
+      }
+    ],
+    "47e692ce5fa637dd95c476ef076c3593e7c4a0ce987f0d97b7a26420085227ca": [
+      {
+        "k": 4096,
+        "m": 4096,
+        "n": 4096
+      }
+    ],
+    "4fbe80fd5b28709a796ec5bb5d424a1676ede734be65179c81e23ff5c79a22b1": [
+      {
+        "k": 256,
+        "m": 128,
+        "n": 256
+      },
+      {
+        "k": 256,
+        "m": 128,
+        "n": 384
+      },
+      {
+        "k": 256,
+        "m": 128,
+        "n": 512
+      },
+      {
+        "k": 256,
+        "m": 128,
+        "n": 640
+      },
+      {
+        "k": 256,
+        "m": 128,
+        "n": 768
+      },
+      {
+        "k": 256,
+        "m": 128,
+        "n": 896
+      }
+    ],
+    "5958a41106d3906f14f3f2e36ec0569e25d05bab130cbd391caf8411a9169be0": [
+      {
+        "k": 64,
+        "m": 128,
+        "n": 128
+      }
+    ],
+    "5e1478006b1ee3eb6ab69d3121a0e7098710a5031155afce7c674e9442171c72": [
+      {
+        "k": 1024,
+        "m": 512,
+        "n": 384
+      }
+    ],
+    "6155e9ce8cce4765feba33a50623ddeed3a0542a68b2e904ef095fa8b8d3270d": [
+      {
+        "k": 2048,
+        "m": 128,
+        "n": 256
+      },
+      {
+        "k": 2048,
+        "m": 128,
+        "n": 640
+      },
+      {
+        "k": 2048,
+        "m": 128,
+        "n": 768
+      }
+    ],
+    "6955d0f9d3fb7f79051a95902ad2f8d10a0030d0543aefbf0be2bb425b1dd530": [
+      {
+        "k": 64,
+        "m": 640,
+        "n": 768
+      }
+    ],
+    "6a62fe278edbe55a648bb5a50b60b7eedb92a9bf79e168e6627a8b04df09a914": [
+      {
+        "k": 1024,
+        "m": 896,
+        "n": 640
+      }
+    ],
+    "6fc045bf592b8692075f116fd77d4dd54731e92f2a69ce24ebaf4c569647d901": [
+      {
+        "k": 512,
+        "m": 128,
+        "n": 128
+      }
+    ],
+    "71ccda2b3e90fad9b6041ed8a06483473aa3971b928696d0e79130f429501c38": [
+      {
+        "k": 2048,
+        "m": 640,
+        "n": 128
+      }
+    ],
+    "7471a1996f8be85ba6b0ab81ee236a1fbafd7a8edf29fd411c0fe35bc2a9710a": [
+      {
+        "k": 4096,
+        "m": 896,
+        "n": 512
+      },
+      {
+        "k": 4096,
+        "m": 896,
+        "n": 1024
+      }
+    ],
+    "7f8b3af0e87691fbd0aa000641e6e21f697ec855b2fe32f5b623565ad4694908": [
+      {
+        "k": 512,
+        "m": 384,
+        "n": 640
+      }
+    ],
+    "9742290a2321f4a84cba89e8a2a5fd7747d1a9eefe2ba7dec1664f43cd434e6f": [
+      {
+        "k": 64,
+        "m": 768,
+        "n": 384
+      }
+    ],
+    "a6475e7d2ba341154ba9f0a1c494b5a827f5c2483c193e1d2595ce4d42f9c009": [
+      {
+        "k": 1024,
+        "m": 1024,
+        "n": 1024
+      }
+    ],
+    "afa438615883b6c41731d9e3861fbb24bbf3f40a8ab8a87229e8e10ce68125ac": [
+      {
+        "k": 512,
+        "m": 896,
+        "n": 128
+      }
+    ],
+    "d0555316838f9cb34d8255205f59d030bafc3ddcd11fd41cef09e9ff95c9c26f": [
+      {
+        "k": 512,
+        "m": 128,
+        "n": 256
+      },
+      {
+        "k": 512,
+        "m": 128,
+        "n": 384
+      }
+    ],
+    "dfab8533fe9fbaf6fba6d554168fa24c09099ebf0de9834a9fd5f0faee54356b": [
+      {
+        "k": 4096,
+        "m": 512,
+        "n": 384
+      }
+    ],
+    "e498b111c596846f207d05af76eb10cb7d0a942796f8054f3375c3ac0f0e212d": [
+      {
+        "k": 64,
+        "m": 128,
+        "n": 256
+      },
+      {
+        "k": 64,
+        "m": 128,
+        "n": 384
+      },
+      {
+        "k": 64,
+        "m": 128,
+        "n": 512
+      },
+      {
+        "k": 64,
+        "m": 128,
+        "n": 640
+      },
+      {
+        "k": 64,
+        "m": 128,
+        "n": 768
+      },
+      {
+        "k": 64,
+        "m": 128,
+        "n": 896
+      }
+    ],
+    "e7b18aac3a3795c074955508012b463a8d1152c6521c971dc799393868f558ab": [
+      {
+        "k": 256,
+        "m": 1024,
+        "n": 1024
+      }
+    ],
+    "eca0d7bde4d0007054d181be55e7c23ad080c4a2aa6c855f282bc75baa24154e": [
+      {
+        "k": 4096,
+        "m": 128,
+        "n": 128
+      }
+    ],
+    "eca638aff2e5af8a79e44dcd163216c8e135e5be0c7afa3f7d20690f1bd1c24d": [
+      {
+        "k": 2048,
+        "m": 128,
+        "n": 128
+      }
+    ]
+  },
+  "key_groups": {
+    "0204a007ec9d128c116bb70d929ab660b9b00f4ced4caff6a3e5cc004e785f87": [
+      {
+        "k": 64,
+        "m": 128,
+        "n": 896
+      }
+    ],
+    "118c0c745ce8c804d9fa86fda4d6c4cc6bdbb55b405318d5f0b5a5695927c78d": [
+      {
+        "k": 512,
+        "m": 384,
+        "n": 640
+      }
+    ],
+    "14f31f1ff54c215e3df0cfcea90541c298abfa6804cf1745fa31a16c5f038434": [
+      {
+        "k": 4096,
+        "m": 896,
+        "n": 1024
+      }
+    ],
+    "1ada13e142ab001d09b6d5c9e7531236a9c3cdf15857b68e3264c199a2c6abf9": [
+      {
+        "k": 4096,
+        "m": 128,
+        "n": 640
+      }
+    ],
+    "2623d992ff02e7438ba11af6db7926fd47a78601520edb1d637226e5bb58d334": [
+      {
+        "k": 4096,
+        "m": 896,
+        "n": 512
+      }
+    ],
+    "39535d105f97eb6803b071c483ab7528f92c62a065f604bf951fb6916df1e0f2": [
+      {
+        "k": 1024,
+        "m": 128,
+        "n": 256
+      }
+    ],
+    "3a795a90be266dbf708c40b79af7dd99961265b6072e8ac182453806a5cfaeb8": [
+      {
+        "k": 512,
+        "m": 128,
+        "n": 384
+      }
+    ],
+    "3f032cfaf08e64334a7702944cc93ec12b6cfb4b2169c01ff4d8f2e3dc3d8ade": [
+      {
+        "k": 2048,
+        "m": 128,
+        "n": 256
+      }
+    ],
+    "4afa1b8c021d97aee838dc01c00952587d6142636a615657392f70ba581e07de": [
+      {
+        "k": 64,
+        "m": 256,
+        "n": 256
+      }
+    ],
+    "5559629b3cca1979ef8df9d9459f05d3f064f62ff5e217f059b50dd2407837c1": [
+      {
+        "k": 1024,
+        "m": 128,
+        "n": 640
+      }
+    ],
+    "5ed63f7da860b80308fdcf5eaaab65fec571519e4cf9904b9a71251a672bc9c8": [
+      {
+        "k": 64,
+        "m": 128,
+        "n": 384
+      }
+    ],
+    "60e9a05b3efeb887133b3b9a736bb64e83a5f15f1bbc340b7903d391718e69d8": [
+      {
+        "k": 1024,
+        "m": 512,
+        "n": 384
+      }
+    ],
+    "625564b552dd7577ae2bf62ad9dad24fc870791c178324db14ec2b126db488d3": [
+      {
+        "k": 256,
+        "m": 128,
+        "n": 384
+      }
+    ],
+    "63c724476ad6854dc3b63c950e74507036ba2e64c06be0e1ce1f2171d7eb0737": [
+      {
+        "k": 256,
+        "m": 128,
+        "n": 512
+      }
+    ],
+    "6647ee56c196249180e8089d70e5d616926aaa7152b121b83ef2758b17a55941": [
+      {
+        "k": 1024,
+        "m": 1024,
+        "n": 1024
+      }
+    ],
+    "6b6061955db49337cd98909a75c3523cd05c2f774ee0da3345606e28c436f138": [
+      {
+        "k": 2048,
+        "m": 128,
+        "n": 768
+      }
+    ],
+    "6e595962de421d839686874ca2db8a25210e214749a0f196879abe9cfdd1a14c": [
+      {
+        "k": 2048,
+        "m": 128,
+        "n": 640
+      }
+    ],
+    "787646b5b0dd712fc6a1c779d472e674f51ef28071b0accfe671ae780fbef380": [
+      {
+        "k": 64,
+        "m": 128,
+        "n": 768
+      }
+    ],
+    "7b156464d19af5d7debdb8f9e34e6ad94ffd103fec34b36d71b76110f8c27370": [
+      {
+        "k": 4096,
+        "m": 128,
+        "n": 768
+      }
+    ],
+    "868ad8a8f83e0efd3e66a596cf63a5254622758f169cec1dfbeff6845d993814": [
+      {
+        "k": 4096,
+        "m": 1024,
+        "n": 896
+      }
+    ],
+    "8a0f9734de78bf40daf0a3eac371700a2af87d8083013f386f7d8385e990205f": [
+      {
+        "k": 64,
+        "m": 128,
+        "n": 256
+      }
+    ],
+    "8ab80d73f63115b70aa82703ea756a629b8dac1c7c9d23d08566747c3e5c62ba": [
+      {
+        "k": 64,
+        "m": 128,
+        "n": 512
+      }
+    ],
+    "90ab75345105c563389635644b3025099814a44e25e8efe6dc40f831ad6c6557": [
+      {
+        "k": 64,
+        "m": 128,
+        "n": 128
+      }
+    ],
+    "919b7aae583d6557f67c0795d4debf8fa5f86d2bd7b903a7954f730de8a2cb83": [
+      {
+        "k": 4096,
+        "m": 4096,
+        "n": 4096
+      }
+    ],
+    "9395e809d23a90f2b2d2aab11ca20fff312dbc64f4f9c8edbc867d3b100e2e5c": [
+      {
+        "k": 256,
+        "m": 128,
+        "n": 256
+      }
+    ],
+    "947041021877ad4ce81951ba96a7ed126eaf348154b79e9332373e66ae8a5732": [
+      {
+        "k": 4096,
+        "m": 128,
+        "n": 128
+      }
+    ],
+    "96eaee995f0b8edac6114635339d0acba0db79eb91416679791cec3571065063": [
+      {
+        "k": 64,
+        "m": 768,
+        "n": 384
+      }
+    ],
+    "972ee72aa416a40b551bc06f8aebb5b73913349c5066d455c894051067b9df4e": [
+      {
+        "k": 256,
+        "m": 128,
+        "n": 896
+      }
+    ],
+    "99338116bf7f1e68c76ed98c1b355a6c9825261b84af1157f1e8f5d56376b777": [
+      {
+        "k": 64,
+        "m": 128,
+        "n": 640
+      }
+    ],
+    "a34847e43d3476a9e0131c05c3364cf00da9d4c840ba0fe212d50d8836da275c": [
+      {
+        "k": 4096,
+        "m": 1024,
+        "n": 1024
+      }
+    ],
+    "a39bf583fd7e96de50044eb6b85d146f725c24c1b7da79043005c658a88d6272": [
+      {
+        "k": 4096,
+        "m": 128,
+        "n": 384
+      }
+    ],
+    "a61c5a14591704e203f253b67b6cc15a6d4e55b81975864377cb13cee9d3b380": [
+      {
+        "k": 64,
+        "m": 640,
+        "n": 768
+      }
+    ],
+    "a76966f9c91cd952504cee3b4a28c2b6da22e9ea1bae8a501d750dc31f7dd74c": [
+      {
+        "k": 256,
+        "m": 128,
+        "n": 640
+      }
+    ],
+    "b1ad51cee4203ef19985a2140d4c828b29c642202e259af9d2fb61ce52236b46": [
+      {
+        "k": 64,
+        "m": 256,
+        "n": 512
+      }
+    ],
+    "b2b80a8625f07658fa1e0e39d726a386943e87dab467c089d2c767e02c615ee2": [
+      {
+        "k": 1024,
+        "m": 128,
+        "n": 128
+      }
+    ],
+    "b5ae60591df12d59b8576b7cac09eea20f89db25db79bc152f813cfb58c429ce": [
+      {
+        "k": 256,
+        "m": 896,
+        "n": 896
+      }
+    ],
+    "c12f97234bd79be299151eb49772c0c0191f71cc38db9212c5bf486b8b570f8c": [
+      {
+        "k": 4096,
+        "m": 512,
+        "n": 384
+      }
+    ],
+    "c2f103f84d9e85ad859fc4bf77ce1ec4108561e80101cff5dc0092459b0f2769": [
+      {
+        "k": 512,
+        "m": 896,
+        "n": 128
+      }
+    ],
+    "ca8dce2df38c63e4e0b1792e7634828f58e61b20b7eafb81a187bdefcb54f853": [
+      {
+        "k": 256,
+        "m": 1024,
+        "n": 1024
+      }
+    ],
+    "d7be5785b51ce2af452304552d494ce30bb00452dac1616b35281c9dc2a4560c": [
+      {
+        "k": 4096,
+        "m": 128,
+        "n": 256
+      }
+    ],
+    "dc38fc209d36591273c907f73cdbcd07a6347742306a703cde53fdf8d39def30": [
+      {
+        "k": 4096,
+        "m": 128,
+        "n": 512
+      }
+    ],
+    "dd9be4f566ddfe83624278b126078710bfbecf4b571e07fc66c19c4e65029eb0": [
+      {
+        "k": 512,
+        "m": 128,
+        "n": 256
+      }
+    ],
+    "e2ed77ca15d95795b0d4ca0215aa692d8486451a6e60fd313255d8c8bc97ae42": [
+      {
+        "k": 1024,
+        "m": 128,
+        "n": 384
+      }
+    ],
+    "e4c903130013cb98aa0d4eed7a06aa6897764bd996ee7097ccd15057618f80d7": [
+      {
+        "k": 256,
+        "m": 128,
+        "n": 768
+      }
+    ],
+    "ea96a167e6ff838b634c82768f560a84c655b4228da327e003754c312ea67002": [
+      {
+        "k": 2048,
+        "m": 128,
+        "n": 128
+      }
+    ],
+    "f4ac600bf47d795bce4bd4ab70069ec0dba91daafeb9c12203c6d56f05c61d3c": [
+      {
+        "k": 512,
+        "m": 128,
+        "n": 128
+      }
+    ],
+    "f6e1e33035f9b2aa73eb2676dd6109173763d1733abf757461be8b151bb88760": [
+      {
+        "k": 2048,
+        "m": 640,
+        "n": 128
+      }
+    ],
+    "f7f79ea4ff1dd9d3932d84dd7443151e0b614b478fc1d385d41309730f03738d": [
+      {
+        "k": 1024,
+        "m": 896,
+        "n": 640
+      }
+    ]
+  },
+  "latency_us": {
+    "compile": {
+      "max": 15015.805,
+      "median": 10971.966
+    },
+    "emit": {
+      "max": 7114.802,
+      "median": 5400.7735
+    },
+    "key": {
+      "max": 2306.92,
+      "median": 1502.328
+    },
+    "link": {
+      "max": 1564.07,
+      "median": 1031.5819999999999
+    },
+    "setup": {
+      "max": 902.203,
+      "median": 657.7165
+    },
+    "total": {
+      "max": 25805.601,
+      "median": 19216.3675
+    }
+  },
+  "namespace": {
+    "compiler": "hrx-f17f69e82-default-pipeline",
+    "device_abi": "amdgpu-hsa-v1",
+    "emission": {
+      "format": "hsaco",
+      "options": "defaults"
+    },
+    "export": "gemm_f16_f32_mt128x128x32_gfx12_scalar_acc",
+    "pass_program": "source-to-prepared-low/default",
+    "schema": "loom-blas.program-key-namespace.v1",
+    "source_sha256": "b8345f263b0f2ad4686edaf962759600d823583a19fcc6784d7c0b15a3cf3e53",
+    "target_profile": "gfx1201"
+  },
+  "peak_child_rss_kib": 21668,
+  "raw_request_count": 48,
+  "records": [
+    {
+      "derived_key": "6647ee56c196249180e8089d70e5d616926aaa7152b121b83ef2758b17a55941",
+      "hsaco_bytes": 17424,
+      "hsaco_sha256": "a6475e7d2ba341154ba9f0a1c494b5a827f5c2483c193e1d2595ce4d42f9c009",
+      "launch_config_bytes": 922,
+      "launch_config_sha256": "19de0a65efe2f5186c84f55cdabf6b2d5b60f92aa19dccbffd922a4f27b92ae7",
+      "ordinal": 0,
+      "program_bytes": 68953,
+      "program_sha256": "67b9a41f48601195cfbe326132bf69ede0aec105369a1883d13e1655a9eae6f7",
+      "request": {
+        "k": 1024,
+        "m": 1024,
+        "n": 1024
+      },
+      "timing_us": {
+        "compile": 15015.805,
+        "emit": 7092.152,
+        "key": 2115.435,
+        "link": 1379.365,
+        "setup": 737.789,
+        "total": 25805.601
+      }
+    },
+    {
+      "derived_key": "118c0c745ce8c804d9fa86fda4d6c4cc6bdbb55b405318d5f0b5a5695927c78d",
+      "hsaco_bytes": 17424,
+      "hsaco_sha256": "7f8b3af0e87691fbd0aa000641e6e21f697ec855b2fe32f5b623565ad4694908",
+      "launch_config_bytes": 959,
+      "launch_config_sha256": "b4959ab6b11412d4a8da92e4536b9cddcf09b7230719fe34d954f04c77d78127",
+      "ordinal": 1,
+      "program_bytes": 68964,
+      "program_sha256": "c50ff1ae3c358793143cbb0925b8c3afc3ae0fbfa3c5b733a10be78647efd4c5",
+      "request": {
+        "k": 512,
+        "m": 384,
+        "n": 640
+      },
+      "timing_us": {
+        "compile": 14283.385,
+        "emit": 7063.781,
+        "key": 2117.554,
+        "link": 1472.778,
+        "setup": 666.827,
+        "total": 25111.683
+      }
+    },
+    {
+      "derived_key": "60e9a05b3efeb887133b3b9a736bb64e83a5f15f1bbc340b7903d391718e69d8",
+      "hsaco_bytes": 17424,
+      "hsaco_sha256": "5e1478006b1ee3eb6ab69d3121a0e7098710a5031155afce7c674e9442171c72",
+      "launch_config_bytes": 929,
+      "launch_config_sha256": "49d871e2b24f1f7eb63289a9caa105dd2333542b38d27030bda4ee40cd7e1642",
+      "ordinal": 2,
+      "program_bytes": 68949,
+      "program_sha256": "75f7b4082908994de5edf28baf8106fb9bafe40c91cf094e57e19becdf0385b5",
+      "request": {
+        "k": 1024,
+        "m": 512,
+        "n": 384
+      },
+      "timing_us": {
+        "compile": 14349.267,
+        "emit": 7114.802,
+        "key": 2118.994,
+        "link": 1205.471,
+        "setup": 747.219,
+        "total": 24942.659
+      }
+    },
+    {
+      "derived_key": "f6e1e33035f9b2aa73eb2676dd6109173763d1733abf757461be8b151bb88760",
+      "hsaco_bytes": 17424,
+      "hsaco_sha256": "71ccda2b3e90fad9b6041ed8a06483473aa3971b928696d0e79130f429501c38",
+      "launch_config_bytes": 931,
+      "launch_config_sha256": "969068ba57ab7c576d0fa38ff467b7ae00d4d9f3730b8733cf33f518b3a465c3",
+      "ordinal": 3,
+      "program_bytes": 66442,
+      "program_sha256": "da0ee3ad972cfa2374b08aec091498f977403c260c7eca25b7484dcca69b13a4",
+      "request": {
+        "k": 2048,
+        "m": 640,
+        "n": 128
+      },
+      "timing_us": {
+        "compile": 14760.528,
+        "emit": 7057.49,
+        "key": 2306.92,
+        "link": 1232.332,
+        "setup": 693.798,
+        "total": 25534.934
+      }
+    },
+    {
+      "derived_key": "b5ae60591df12d59b8576b7cac09eea20f89db25db79bc152f813cfb58c429ce",
+      "hsaco_bytes": 17424,
+      "hsaco_sha256": "0c68389b9a1088fa87048c9820095f046ed184350b7c491eea1a7462513b30b6",
+      "launch_config_bytes": 922,
+      "launch_config_sha256": "00d5258f645bb94c277ce8ccc4222271ff9cb250ff5376075602360dcc144d46",
+      "ordinal": 4,
+      "program_bytes": 68980,
+      "program_sha256": "2fd055fb2aaabd0e3435cc3eb0f62e79ec81a76e85e02aacb160f8bb56f4b1a5",
+      "request": {
+        "k": 256,
+        "m": 896,
+        "n": 896
+      },
+      "timing_us": {
+        "compile": 14445.89,
+        "emit": 7096.722,
+        "key": 2206.647,
+        "link": 1201.251,
+        "setup": 613.606,
+        "total": 25116.514
+      }
+    },
+    {
+      "derived_key": "ca8dce2df38c63e4e0b1792e7634828f58e61b20b7eafb81a187bdefcb54f853",
+      "hsaco_bytes": 17424,
+      "hsaco_sha256": "e7b18aac3a3795c074955508012b463a8d1152c6521c971dc799393868f558ab",
+      "launch_config_bytes": 922,
+      "launch_config_sha256": "19de0a65efe2f5186c84f55cdabf6b2d5b60f92aa19dccbffd922a4f27b92ae7",
+      "ordinal": 5,
+      "program_bytes": 68949,
+      "program_sha256": "990b74f6aff24d8acb6335ebdc5d17824ac2a282d8f266b6f97d1810e4c7ec91",
+      "request": {
+        "k": 256,
+        "m": 1024,
+        "n": 1024
+      },
+      "timing_us": {
+        "compile": 14378.388,
+        "emit": 7085.042,
+        "key": 2126.465,
+        "link": 1240.812,
+        "setup": 681.288,
+        "total": 25018.251
+      }
+    },
+    {
+      "derived_key": "90ab75345105c563389635644b3025099814a44e25e8efe6dc40f831ad6c6557",
+      "hsaco_bytes": 13328,
+      "hsaco_sha256": "5958a41106d3906f14f3f2e36ec0569e25d05bab130cbd391caf8411a9169be0",
+      "launch_config_bytes": 894,
+      "launch_config_sha256": "3a0127f424c1cd38158e36a5bb168b10780b065dda98c80b423ca2e6c7cbfdb7",
+      "ordinal": 6,
+      "program_bytes": 37269,
+      "program_sha256": "655958ea8d2648322d8ed7c83375255128d3d9737896614f6f1ef5bd486d8231",
+      "request": {
+        "k": 64,
+        "m": 128,
+        "n": 128
+      },
+      "timing_us": {
+        "compile": 6463.215,
+        "emit": 3134.971,
+        "key": 1073.338,
+        "link": 1554.65,
+        "setup": 648.606,
+        "total": 12395.608
+      }
+    },
+    {
+      "derived_key": "9395e809d23a90f2b2d2aab11ca20fff312dbc64f4f9c8edbc867d3b100e2e5c",
+      "hsaco_bytes": 17424,
+      "hsaco_sha256": "4fbe80fd5b28709a796ec5bb5d424a1676ede734be65179c81e23ff5c79a22b1",
+      "launch_config_bytes": 931,
+      "launch_config_sha256": "d7e60b11f7c1e8916a0a5177d21e5f5ac7d591f2dfcb07d929613ca91e88b77d",
+      "ordinal": 7,
+      "program_bytes": 65630,
+      "program_sha256": "d299ee24eccbee8e97b82c3384be96e807507a6529e30f5e11dbf5dc54a7c23d",
+      "request": {
+        "k": 256,
+        "m": 128,
+        "n": 256
+      },
+      "timing_us": {
+        "compile": 14365.248,
+        "emit": 6850.495,
+        "key": 1937.11,
+        "link": 1556.47,
+        "setup": 737.959,
+        "total": 24846.916
+      }
+    },
+    {
+      "derived_key": "4afa1b8c021d97aee838dc01c00952587d6142636a615657392f70ba581e07de",
+      "hsaco_bytes": 13328,
+      "hsaco_sha256": "37f92a79b2ee0f29662a8070bf609a669a0a5883523710c6e40e1dfcf56d79d8",
+      "launch_config_bytes": 922,
+      "launch_config_sha256": "3516e34cda41d38cbe9fec9f2e07d4eb4e9ff459902194c245c3d0199bc7b025",
+      "ordinal": 8,
+      "program_bytes": 40729,
+      "program_sha256": "68c7ee5b3c4a4541bfabae1c79629ee36e4cec2072ade1bb57fb498655219627",
+      "request": {
+        "k": 64,
+        "m": 256,
+        "n": 256
+      },
+      "timing_us": {
+        "compile": 6449.195,
+        "emit": 3416.038,
+        "key": 1190.941,
+        "link": 1155.92,
+        "setup": 820.331,
+        "total": 12365.267
+      }
+    },
+    {
+      "derived_key": "b1ad51cee4203ef19985a2140d4c828b29c642202e259af9d2fb61ce52236b46",
+      "hsaco_bytes": 13328,
+      "hsaco_sha256": "37f92a79b2ee0f29662a8070bf609a669a0a5883523710c6e40e1dfcf56d79d8",
+      "launch_config_bytes": 929,
+      "launch_config_sha256": "044cd9b738ceb2086e339ff83af63c103769583557d6b595cc9def13c1870ccc",
+      "ordinal": 9,
+      "program_bytes": 40729,
+      "program_sha256": "3dfd5f35234917ea967b0da6d88e5fc4a8e3a058a30cfd3b76f21a480f3094d4",
+      "request": {
+        "k": 64,
+        "m": 256,
+        "n": 512
+      },
+      "timing_us": {
+        "compile": 6452.225,
+        "emit": 3378.726,
+        "key": 1246.792,
+        "link": 1225.692,
+        "setup": 748.149,
+        "total": 12450.409
+      }
+    },
+    {
+      "derived_key": "96eaee995f0b8edac6114635339d0acba0db79eb91416679791cec3571065063",
+      "hsaco_bytes": 13328,
+      "hsaco_sha256": "9742290a2321f4a84cba89e8a2a5fd7747d1a9eefe2ba7dec1664f43cd434e6f",
+      "launch_config_bytes": 959,
+      "launch_config_sha256": "240792a83dc42570193315b740d1fff10b9b2965482826eb16341b3c0a74008c",
+      "ordinal": 10,
+      "program_bytes": 40901,
+      "program_sha256": "0c8b344b5e6037832bbececd1b157c257c56fb634b9eebbfca55ef82e254b68a",
+      "request": {
+        "k": 64,
+        "m": 768,
+        "n": 384
+      },
+      "timing_us": {
+        "compile": 6446.055,
+        "emit": 3417.818,
+        "key": 1230.982,
+        "link": 1179.471,
+        "setup": 590.415,
+        "total": 12421.489
+      }
+    },
+    {
+      "derived_key": "2623d992ff02e7438ba11af6db7926fd47a78601520edb1d637226e5bb58d334",
+      "hsaco_bytes": 17424,
+      "hsaco_sha256": "7471a1996f8be85ba6b0ab81ee236a1fbafd7a8edf29fd411c0fe35bc2a9710a",
+      "launch_config_bytes": 929,
+      "launch_config_sha256": "59f6ed98510b2f920fadde8e6097f296924a5263bf354d9ee64864801cc634b3",
+      "ordinal": 11,
+      "program_bytes": 68984,
+      "program_sha256": "489abfa8ca9736c16676800336451b950b86c05b66898c6085bca14fa5631c31",
+      "request": {
+        "k": 4096,
+        "m": 896,
+        "n": 512
+      },
+      "timing_us": {
+        "compile": 11696.159,
+        "emit": 5469.0,
+        "key": 1759.955,
+        "link": 1338.725,
+        "setup": 680.447,
+        "total": 20403.533
+      }
+    },
+    {
+      "derived_key": "14f31f1ff54c215e3df0cfcea90541c298abfa6804cf1745fa31a16c5f038434",
+      "hsaco_bytes": 17424,
+      "hsaco_sha256": "7471a1996f8be85ba6b0ab81ee236a1fbafd7a8edf29fd411c0fe35bc2a9710a",
+      "launch_config_bytes": 959,
+      "launch_config_sha256": "d0300932f11231a5c2e466b107be3c771a2ed174bddb75b50f1c6029030bbcb6",
+      "ordinal": 12,
+      "program_bytes": 68984,
+      "program_sha256": "1ea7e612e0d0fc2f35e13da873d9f34c6f7fb6d097a049fef98823c82f5f7d9c",
+      "request": {
+        "k": 4096,
+        "m": 896,
+        "n": 1024
+      },
+      "timing_us": {
+        "compile": 10861.359,
+        "emit": 5377.368,
+        "key": 1600.691,
+        "link": 1104.858,
+        "setup": 725.099,
+        "total": 19078.379
+      }
+    },
+    {
+      "derived_key": "868ad8a8f83e0efd3e66a596cf63a5254622758f169cec1dfbeff6845d993814",
+      "hsaco_bytes": 17424,
+      "hsaco_sha256": "0ad782639ed377bf50870369741eef9e80461fb79975500291ff8660356126f9",
+      "launch_config_bytes": 959,
+      "launch_config_sha256": "3ab726a252a6ba2e52c70fbd92a25144bcd89e597238a3daf734ba2f14783cde",
+      "ordinal": 13,
+      "program_bytes": 68953,
+      "program_sha256": "fc4c285e1a965f354defa82e761fa7de21203b7c0845067a199c84da3fdcf256",
+      "request": {
+        "k": 4096,
+        "m": 1024,
+        "n": 896
+      },
+      "timing_us": {
+        "compile": 10454.387,
+        "emit": 5215.264,
+        "key": 1574.6,
+        "link": 897.853,
+        "setup": 692.347,
+        "total": 18280.158
+      }
+    },
+    {
+      "derived_key": "a34847e43d3476a9e0131c05c3364cf00da9d4c840ba0fe212d50d8836da275c",
+      "hsaco_bytes": 17424,
+      "hsaco_sha256": "0ad782639ed377bf50870369741eef9e80461fb79975500291ff8660356126f9",
+      "launch_config_bytes": 922,
+      "launch_config_sha256": "19de0a65efe2f5186c84f55cdabf6b2d5b60f92aa19dccbffd922a4f27b92ae7",
+      "ordinal": 14,
+      "program_bytes": 68953,
+      "program_sha256": "41366cdf8f1dfd26f7682128146348a9a2bf690f29f37418eb8b64514a3079c4",
+      "request": {
+        "k": 4096,
+        "m": 1024,
+        "n": 1024
+      },
+      "timing_us": {
+        "compile": 10971.401,
+        "emit": 5516.041,
+        "key": 1616.322,
+        "link": 925.074,
+        "setup": 623.716,
+        "total": 19158.671
+      }
+    },
+    {
+      "derived_key": "919b7aae583d6557f67c0795d4debf8fa5f86d2bd7b903a7954f730de8a2cb83",
+      "hsaco_bytes": 17424,
+      "hsaco_sha256": "47e692ce5fa637dd95c476ef076c3593e7c4a0ce987f0d97b7a26420085227ca",
+      "launch_config_bytes": 888,
+      "launch_config_sha256": "3558f873ce62296ed6923ee1cf1afe3b4cde433acfc73d5cbfd1fbe1ee095208",
+      "ordinal": 15,
+      "program_bytes": 69118,
+      "program_sha256": "5cdd6db68af3f6114951e9ce2b5907266f4ce1ebf832fbb54eac16eedb9be9e4",
+      "request": {
+        "k": 4096,
+        "m": 4096,
+        "n": 4096
+      },
+      "timing_us": {
+        "compile": 11892.945,
+        "emit": 6015.654,
+        "key": 1764.665,
+        "link": 1016.986,
+        "setup": 479.562,
+        "total": 20841.734
+      }
+    },
+    {
+      "derived_key": "f4ac600bf47d795bce4bd4ab70069ec0dba91daafeb9c12203c6d56f05c61d3c",
+      "hsaco_bytes": 13328,
+      "hsaco_sha256": "6fc045bf592b8692075f116fd77d4dd54731e92f2a69ce24ebaf4c569647d901",
+      "launch_config_bytes": 894,
+      "launch_config_sha256": "3a0127f424c1cd38158e36a5bb168b10780b065dda98c80b423ca2e6c7cbfdb7",
+      "ordinal": 16,
+      "program_bytes": 62827,
+      "program_sha256": "0447d7076ef0eaa8c66607b3492148622da35a034936d2a7be92ca451e0112d2",
+      "request": {
+        "k": 512,
+        "m": 128,
+        "n": 128
+      },
+      "timing_us": {
+        "compile": 10958.22,
+        "emit": 5221.624,
+        "key": 1469.298,
+        "link": 997.626,
+        "setup": 454.431,
+        "total": 18753.331
+      }
+    },
+    {
+      "derived_key": "b2b80a8625f07658fa1e0e39d726a386943e87dab467c089d2c767e02c615ee2",
+      "hsaco_bytes": 13328,
+      "hsaco_sha256": "473e962f2bd2574bfacc7891146ebd76ac988ac10cbd6cafb5d134a7f4497149",
+      "launch_config_bytes": 894,
+      "launch_config_sha256": "3a0127f424c1cd38158e36a5bb168b10780b065dda98c80b423ca2e6c7cbfdb7",
+      "ordinal": 17,
+      "program_bytes": 62827,
+      "program_sha256": "acee8a5e85292027d8ba1039a13b8b3922a1294d3ef3e0e5797fd6ff7ec39815",
+      "request": {
+        "k": 1024,
+        "m": 128,
+        "n": 128
+      },
+      "timing_us": {
+        "compile": 10259.353,
+        "emit": 4988.378,
+        "key": 1378.785,
+        "link": 1248.782,
+        "setup": 857.862,
+        "total": 17981.191
+      }
+    },
+    {
+      "derived_key": "ea96a167e6ff838b634c82768f560a84c655b4228da327e003754c312ea67002",
+      "hsaco_bytes": 13328,
+      "hsaco_sha256": "eca638aff2e5af8a79e44dcd163216c8e135e5be0c7afa3f7d20690f1bd1c24d",
+      "launch_config_bytes": 894,
+      "launch_config_sha256": "3a0127f424c1cd38158e36a5bb168b10780b065dda98c80b423ca2e6c7cbfdb7",
+      "ordinal": 18,
+      "program_bytes": 62827,
+      "program_sha256": "114066e41074ebb46f149a008f259df9a1f3d2c6c81d7cdd1ec9237a11f7885b",
+      "request": {
+        "k": 2048,
+        "m": 128,
+        "n": 128
+      },
+      "timing_us": {
+        "compile": 10526.2,
+        "emit": 5096.561,
+        "key": 1360.484,
+        "link": 945.574,
+        "setup": 582.685,
+        "total": 18030.742
+      }
+    },
+    {
+      "derived_key": "947041021877ad4ce81951ba96a7ed126eaf348154b79e9332373e66ae8a5732",
+      "hsaco_bytes": 13328,
+      "hsaco_sha256": "eca0d7bde4d0007054d181be55e7c23ad080c4a2aa6c855f282bc75baa24154e",
+      "launch_config_bytes": 894,
+      "launch_config_sha256": "3a0127f424c1cd38158e36a5bb168b10780b065dda98c80b423ca2e6c7cbfdb7",
+      "ordinal": 19,
+      "program_bytes": 62827,
+      "program_sha256": "f032d4188d90a3a521893f29824bf9d5faef181770438a59162c95ea81a233ef",
+      "request": {
+        "k": 4096,
+        "m": 128,
+        "n": 128
+      },
+      "timing_us": {
+        "compile": 11230.577,
+        "emit": 5332.176,
+        "key": 1854.878,
+        "link": 1045.087,
+        "setup": 638.496,
+        "total": 19580.341
+      }
+    },
+    {
+      "derived_key": "8a0f9734de78bf40daf0a3eac371700a2af87d8083013f386f7d8385e990205f",
+      "hsaco_bytes": 13328,
+      "hsaco_sha256": "e498b111c596846f207d05af76eb10cb7d0a942796f8054f3375c3ac0f0e212d",
+      "launch_config_bytes": 931,
+      "launch_config_sha256": "d7e60b11f7c1e8916a0a5177d21e5f5ac7d591f2dfcb07d929613ca91e88b77d",
+      "ordinal": 20,
+      "program_bytes": 38725,
+      "program_sha256": "36ab85453ff28bc6e059c93f7b79ec0811ca0b5c3b0a03251859fea857e4742a",
+      "request": {
+        "k": 64,
+        "m": 128,
+        "n": 256
+      },
+      "timing_us": {
+        "compile": 4833.754,
+        "emit": 2342.57,
+        "key": 913.443,
+        "link": 1099.968,
+        "setup": 488.403,
+        "total": 9318.609
+      }
+    },
+    {
+      "derived_key": "dd9be4f566ddfe83624278b126078710bfbecf4b571e07fc66c19c4e65029eb0",
+      "hsaco_bytes": 17424,
+      "hsaco_sha256": "d0555316838f9cb34d8255205f59d030bafc3ddcd11fd41cef09e9ff95c9c26f",
+      "launch_config_bytes": 931,
+      "launch_config_sha256": "d7e60b11f7c1e8916a0a5177d21e5f5ac7d591f2dfcb07d929613ca91e88b77d",
+      "ordinal": 21,
+      "program_bytes": 65630,
+      "program_sha256": "0fe82fc1b52b2f441b1d461197d8ebfae39e67d36e7185cef88422ef7669a4f0",
+      "request": {
+        "k": 512,
+        "m": 128,
+        "n": 256
+      },
+      "timing_us": {
+        "compile": 11696.45,
+        "emit": 5449.96,
+        "key": 1655.552,
+        "link": 1047.537,
+        "setup": 902.203,
+        "total": 19961.172
+      }
+    },
+    {
+      "derived_key": "39535d105f97eb6803b071c483ab7528f92c62a065f604bf951fb6916df1e0f2",
+      "hsaco_bytes": 17424,
+      "hsaco_sha256": "014079204a3bcdaa8c9bb22603ba14320c0e24b41ec47d462d20f11a12fd7fa1",
+      "launch_config_bytes": 931,
+      "launch_config_sha256": "d7e60b11f7c1e8916a0a5177d21e5f5ac7d591f2dfcb07d929613ca91e88b77d",
+      "ordinal": 22,
+      "program_bytes": 65630,
+      "program_sha256": "23eb5b5ff6ee0968bcd4c88250e20b1e29ebd849bd14786304be48c3df037ee9",
+      "request": {
+        "k": 1024,
+        "m": 128,
+        "n": 256
+      },
+      "timing_us": {
+        "compile": 11307.47,
+        "emit": 5564.472,
+        "key": 1495.348,
+        "link": 1024.356,
+        "setup": 806.8,
+        "total": 19499.749
+      }
+    },
+    {
+      "derived_key": "3f032cfaf08e64334a7702944cc93ec12b6cfb4b2169c01ff4d8f2e3dc3d8ade",
+      "hsaco_bytes": 17424,
+      "hsaco_sha256": "6155e9ce8cce4765feba33a50623ddeed3a0542a68b2e904ef095fa8b8d3270d",
+      "launch_config_bytes": 931,
+      "launch_config_sha256": "d7e60b11f7c1e8916a0a5177d21e5f5ac7d591f2dfcb07d929613ca91e88b77d",
+      "ordinal": 23,
+      "program_bytes": 65630,
+      "program_sha256": "ce259168f680961c0d5f117832d81aadbdbd6f221dbbc45a0109367ca01fa026",
+      "request": {
+        "k": 2048,
+        "m": 128,
+        "n": 256
+      },
+      "timing_us": {
+        "compile": 10889.129,
+        "emit": 5346.937,
+        "key": 1463.957,
+        "link": 960.974,
+        "setup": 738.149,
+        "total": 18819.502
+      }
+    },
+    {
+      "derived_key": "d7be5785b51ce2af452304552d494ce30bb00452dac1616b35281c9dc2a4560c",
+      "hsaco_bytes": 17424,
+      "hsaco_sha256": "42492971c93523cf0aba80294bd16fd56a1100f72c30bb63679371c7e93013d7",
+      "launch_config_bytes": 931,
+      "launch_config_sha256": "d7e60b11f7c1e8916a0a5177d21e5f5ac7d591f2dfcb07d929613ca91e88b77d",
+      "ordinal": 24,
+      "program_bytes": 65630,
+      "program_sha256": "b5f1291b10a33d69d0026476f5883ffb04a5b9b2233852764a21be655cf79408",
+      "request": {
+        "k": 4096,
+        "m": 128,
+        "n": 256
+      },
+      "timing_us": {
+        "compile": 11417.252,
+        "emit": 5910.492,
+        "key": 1509.308,
+        "link": 1030.627,
+        "setup": 830.112,
+        "total": 19990.103
+      }
+    },
+    {
+      "derived_key": "5ed63f7da860b80308fdcf5eaaab65fec571519e4cf9904b9a71251a672bc9c8",
+      "hsaco_bytes": 13328,
+      "hsaco_sha256": "e498b111c596846f207d05af76eb10cb7d0a942796f8054f3375c3ac0f0e212d",
+      "launch_config_bytes": 931,
+      "launch_config_sha256": "9a572a7c62a3969ba5780a51dc02b36949f3aedf1ae7549fa9bce2a7f9162773",
+      "ordinal": 25,
+      "program_bytes": 38725,
+      "program_sha256": "1c17aa2ec4f7c9395198c90d4f32edea19f27bb8cc84652372eecd9b96cbac4a",
+      "request": {
+        "k": 64,
+        "m": 128,
+        "n": 384
+      },
+      "timing_us": {
+        "compile": 5306.946,
+        "emit": 2634.038,
+        "key": 913.093,
+        "link": 1032.537,
+        "setup": 687.998,
+        "total": 10006.657
+      }
+    },
+    {
+      "derived_key": "625564b552dd7577ae2bf62ad9dad24fc870791c178324db14ec2b126db488d3",
+      "hsaco_bytes": 17424,
+      "hsaco_sha256": "4fbe80fd5b28709a796ec5bb5d424a1676ede734be65179c81e23ff5c79a22b1",
+      "launch_config_bytes": 931,
+      "launch_config_sha256": "9a572a7c62a3969ba5780a51dc02b36949f3aedf1ae7549fa9bce2a7f9162773",
+      "ordinal": 26,
+      "program_bytes": 65630,
+      "program_sha256": "99793dccd227c760eb8b6f26273701950bd861c578f06beae4aad43393157148",
+      "request": {
+        "k": 256,
+        "m": 128,
+        "n": 384
+      },
+      "timing_us": {
+        "compile": 10594.582,
+        "emit": 5053.499,
+        "key": 1384.725,
+        "link": 933.004,
+        "setup": 604.136,
+        "total": 18073.173
+      }
+    },
+    {
+      "derived_key": "3a795a90be266dbf708c40b79af7dd99961265b6072e8ac182453806a5cfaeb8",
+      "hsaco_bytes": 17424,
+      "hsaco_sha256": "d0555316838f9cb34d8255205f59d030bafc3ddcd11fd41cef09e9ff95c9c26f",
+      "launch_config_bytes": 931,
+      "launch_config_sha256": "9a572a7c62a3969ba5780a51dc02b36949f3aedf1ae7549fa9bce2a7f9162773",
+      "ordinal": 27,
+      "program_bytes": 65630,
+      "program_sha256": "6b3ce0a290eb44d87dcff07a2977656d67381346460e73e566fbeee874eb6632",
+      "request": {
+        "k": 512,
+        "m": 128,
+        "n": 384
+      },
+      "timing_us": {
+        "compile": 10972.531,
+        "emit": 5364.857,
+        "key": 1449.587,
+        "link": 938.884,
+        "setup": 725.958,
+        "total": 18835.622
+      }
+    },
+    {
+      "derived_key": "e2ed77ca15d95795b0d4ca0215aa692d8486451a6e60fd313255d8c8bc97ae42",
+      "hsaco_bytes": 17424,
+      "hsaco_sha256": "014079204a3bcdaa8c9bb22603ba14320c0e24b41ec47d462d20f11a12fd7fa1",
+      "launch_config_bytes": 931,
+      "launch_config_sha256": "9a572a7c62a3969ba5780a51dc02b36949f3aedf1ae7549fa9bce2a7f9162773",
+      "ordinal": 28,
+      "program_bytes": 65630,
+      "program_sha256": "22da4597426e87167573bfc5738d7f59ea3932c55cd33b099b1ec73a2137a5d7",
+      "request": {
+        "k": 1024,
+        "m": 128,
+        "n": 384
+      },
+      "timing_us": {
+        "compile": 11807.223,
+        "emit": 5760.367,
+        "key": 1577.89,
+        "link": 1038.836,
+        "setup": 637.526,
+        "total": 20294.049
+      }
+    },
+    {
+      "derived_key": "a39bf583fd7e96de50044eb6b85d146f725c24c1b7da79043005c658a88d6272",
+      "hsaco_bytes": 17424,
+      "hsaco_sha256": "42492971c93523cf0aba80294bd16fd56a1100f72c30bb63679371c7e93013d7",
+      "launch_config_bytes": 931,
+      "launch_config_sha256": "9a572a7c62a3969ba5780a51dc02b36949f3aedf1ae7549fa9bce2a7f9162773",
+      "ordinal": 29,
+      "program_bytes": 65630,
+      "program_sha256": "5c3c1a7d6467065fde1b8f34531714a284bb011bd8234c474220f31bbb4f2d02",
+      "request": {
+        "k": 4096,
+        "m": 128,
+        "n": 384
+      },
+      "timing_us": {
+        "compile": 10499.419,
+        "emit": 5076.35,
+        "key": 1404.736,
+        "link": 889.793,
+        "setup": 585.855,
+        "total": 17980.031
+      }
+    },
+    {
+      "derived_key": "8ab80d73f63115b70aa82703ea756a629b8dac1c7c9d23d08566747c3e5c62ba",
+      "hsaco_bytes": 13328,
+      "hsaco_sha256": "e498b111c596846f207d05af76eb10cb7d0a942796f8054f3375c3ac0f0e212d",
+      "launch_config_bytes": 901,
+      "launch_config_sha256": "9e13c221d52b8aea50617907f2584dee78ac4f7b2ba736b6df6e1545f7d3d437",
+      "ordinal": 30,
+      "program_bytes": 38725,
+      "program_sha256": "88f23fe2841f35b337e0ba8caf67f0850432a7cdcc70aaf39cbddc6273c00ace",
+      "request": {
+        "k": 64,
+        "m": 128,
+        "n": 512
+      },
+      "timing_us": {
+        "compile": 5212.814,
+        "emit": 2565.246,
+        "key": 915.633,
+        "link": 1001.675,
+        "setup": 492.942,
+        "total": 9806.351
+      }
+    },
+    {
+      "derived_key": "63c724476ad6854dc3b63c950e74507036ba2e64c06be0e1ce1f2171d7eb0737",
+      "hsaco_bytes": 17424,
+      "hsaco_sha256": "4fbe80fd5b28709a796ec5bb5d424a1676ede734be65179c81e23ff5c79a22b1",
+      "launch_config_bytes": 901,
+      "launch_config_sha256": "9e13c221d52b8aea50617907f2584dee78ac4f7b2ba736b6df6e1545f7d3d437",
+      "ordinal": 31,
+      "program_bytes": 65630,
+      "program_sha256": "f433b84045cd8e3050a615c14b161377b76404061ad6029695623cd21d742007",
+      "request": {
+        "k": 256,
+        "m": 128,
+        "n": 512
+      },
+      "timing_us": {
+        "compile": 11186.287,
+        "emit": 5513.381,
+        "key": 1479.398,
+        "link": 1001.655,
+        "setup": 480.663,
+        "total": 19293.544
+      }
+    },
+    {
+      "derived_key": "dc38fc209d36591273c907f73cdbcd07a6347742306a703cde53fdf8d39def30",
+      "hsaco_bytes": 17424,
+      "hsaco_sha256": "42492971c93523cf0aba80294bd16fd56a1100f72c30bb63679371c7e93013d7",
+      "launch_config_bytes": 901,
+      "launch_config_sha256": "9e13c221d52b8aea50617907f2584dee78ac4f7b2ba736b6df6e1545f7d3d437",
+      "ordinal": 32,
+      "program_bytes": 65630,
+      "program_sha256": "d04e63692cb878e9d143a98b6fef4b100753d4307a9e1b2a31e582947853cb89",
+      "request": {
+        "k": 4096,
+        "m": 128,
+        "n": 512
+      },
+      "timing_us": {
+        "compile": 10592.771,
+        "emit": 5168.912,
+        "key": 1400.826,
+        "link": 918.494,
+        "setup": 501.463,
+        "total": 18183.786
+      }
+    },
+    {
+      "derived_key": "99338116bf7f1e68c76ed98c1b355a6c9825261b84af1157f1e8f5d56376b777",
+      "hsaco_bytes": 13328,
+      "hsaco_sha256": "e498b111c596846f207d05af76eb10cb7d0a942796f8054f3375c3ac0f0e212d",
+      "launch_config_bytes": 931,
+      "launch_config_sha256": "ac665d6c8c08c6d3ae76ce639347ca3edaa9e42412e6a1c1bffc8d314b0acad7",
+      "ordinal": 33,
+      "program_bytes": 38725,
+      "program_sha256": "1fcd2d6d8a60083804da42775226ea5596f444fcddc8591414d0b8cfe44e77d7",
+      "request": {
+        "k": 64,
+        "m": 128,
+        "n": 640
+      },
+      "timing_us": {
+        "compile": 4951.487,
+        "emit": 2456.203,
+        "key": 850.512,
+        "link": 956.725,
+        "setup": 748.129,
+        "total": 9341.96
+      }
+    },
+    {
+      "derived_key": "a76966f9c91cd952504cee3b4a28c2b6da22e9ea1bae8a501d750dc31f7dd74c",
+      "hsaco_bytes": 17424,
+      "hsaco_sha256": "4fbe80fd5b28709a796ec5bb5d424a1676ede734be65179c81e23ff5c79a22b1",
+      "launch_config_bytes": 931,
+      "launch_config_sha256": "ac665d6c8c08c6d3ae76ce639347ca3edaa9e42412e6a1c1bffc8d314b0acad7",
+      "ordinal": 34,
+      "program_bytes": 65630,
+      "program_sha256": "84a607730603bb91ed2382a90e9649377e1098b277ae6d0ecc707dfad41bdd3e",
+      "request": {
+        "k": 256,
+        "m": 128,
+        "n": 640
+      },
+      "timing_us": {
+        "compile": 11501.844,
+        "emit": 5613.894,
+        "key": 1546.97,
+        "link": 1080.828,
+        "setup": 497.133,
+        "total": 19866.159
+      }
+    },
+    {
+      "derived_key": "5559629b3cca1979ef8df9d9459f05d3f064f62ff5e217f059b50dd2407837c1",
+      "hsaco_bytes": 17424,
+      "hsaco_sha256": "014079204a3bcdaa8c9bb22603ba14320c0e24b41ec47d462d20f11a12fd7fa1",
+      "launch_config_bytes": 931,
+      "launch_config_sha256": "ac665d6c8c08c6d3ae76ce639347ca3edaa9e42412e6a1c1bffc8d314b0acad7",
+      "ordinal": 35,
+      "program_bytes": 65630,
+      "program_sha256": "a1324ce7fab7f58a202163337652c78fdb5685bdde3da4d3c3dfe5f211d94ad5",
+      "request": {
+        "k": 1024,
+        "m": 128,
+        "n": 640
+      },
+      "timing_us": {
+        "compile": 11422.942,
+        "emit": 5319.126,
+        "key": 1469.897,
+        "link": 995.416,
+        "setup": 635.936,
+        "total": 19330.635
+      }
+    },
+    {
+      "derived_key": "6e595962de421d839686874ca2db8a25210e214749a0f196879abe9cfdd1a14c",
+      "hsaco_bytes": 17424,
+      "hsaco_sha256": "6155e9ce8cce4765feba33a50623ddeed3a0542a68b2e904ef095fa8b8d3270d",
+      "launch_config_bytes": 931,
+      "launch_config_sha256": "ac665d6c8c08c6d3ae76ce639347ca3edaa9e42412e6a1c1bffc8d314b0acad7",
+      "ordinal": 36,
+      "program_bytes": 65630,
+      "program_sha256": "b3aa89613234b89b8d2624852b541342a1fd5246876a2ad1ffb8923320516bb6",
+      "request": {
+        "k": 2048,
+        "m": 128,
+        "n": 640
+      },
+      "timing_us": {
+        "compile": 11129.995,
+        "emit": 5424.179,
+        "key": 1461.288,
+        "link": 966.665,
+        "setup": 594.756,
+        "total": 19095.909
+      }
+    },
+    {
+      "derived_key": "1ada13e142ab001d09b6d5c9e7531236a9c3cdf15857b68e3264c199a2c6abf9",
+      "hsaco_bytes": 17424,
+      "hsaco_sha256": "42492971c93523cf0aba80294bd16fd56a1100f72c30bb63679371c7e93013d7",
+      "launch_config_bytes": 931,
+      "launch_config_sha256": "ac665d6c8c08c6d3ae76ce639347ca3edaa9e42412e6a1c1bffc8d314b0acad7",
+      "ordinal": 37,
+      "program_bytes": 65630,
+      "program_sha256": "3fa972b45e048118d10bc1a84c24f65985ded889ac9b356c680faa371dd2c750",
+      "request": {
+        "k": 4096,
+        "m": 128,
+        "n": 640
+      },
+      "timing_us": {
+        "compile": 11636.878,
+        "emit": 5738.847,
+        "key": 1574.2,
+        "link": 1010.176,
+        "setup": 618.316,
+        "total": 20073.224
+      }
+    },
+    {
+      "derived_key": "787646b5b0dd712fc6a1c779d472e674f51ef28071b0accfe671ae780fbef380",
+      "hsaco_bytes": 13328,
+      "hsaco_sha256": "e498b111c596846f207d05af76eb10cb7d0a942796f8054f3375c3ac0f0e212d",
+      "launch_config_bytes": 931,
+      "launch_config_sha256": "87e82168ec64e599909a7f9cbab397586c15b6354842f064f9ccaa282270bad2",
+      "ordinal": 38,
+      "program_bytes": 38725,
+      "program_sha256": "609e1386375212dd77012e093527b2e8e23fc8f35d6cf9168f1c7fe0bd4e0028",
+      "request": {
+        "k": 64,
+        "m": 128,
+        "n": 768
+      },
+      "timing_us": {
+        "compile": 4785.582,
+        "emit": 2669.548,
+        "key": 893.203,
+        "link": 874.863,
+        "setup": 750.409,
+        "total": 9352.76
+      }
+    },
+    {
+      "derived_key": "e4c903130013cb98aa0d4eed7a06aa6897764bd996ee7097ccd15057618f80d7",
+      "hsaco_bytes": 17424,
+      "hsaco_sha256": "4fbe80fd5b28709a796ec5bb5d424a1676ede734be65179c81e23ff5c79a22b1",
+      "launch_config_bytes": 931,
+      "launch_config_sha256": "87e82168ec64e599909a7f9cbab397586c15b6354842f064f9ccaa282270bad2",
+      "ordinal": 39,
+      "program_bytes": 65630,
+      "program_sha256": "65c4c0a99775b51ecde91ed07ff06f2c48115b959538e0895757ff6a109f9d41",
+      "request": {
+        "k": 256,
+        "m": 128,
+        "n": 768
+      },
+      "timing_us": {
+        "compile": 10654.853,
+        "emit": 5726.337,
+        "key": 1534.16,
+        "link": 1239.512,
+        "setup": 369.759,
+        "total": 19274.064
+      }
+    },
+    {
+      "derived_key": "6b6061955db49337cd98909a75c3523cd05c2f774ee0da3345606e28c436f138",
+      "hsaco_bytes": 17424,
+      "hsaco_sha256": "6155e9ce8cce4765feba33a50623ddeed3a0542a68b2e904ef095fa8b8d3270d",
+      "launch_config_bytes": 931,
+      "launch_config_sha256": "87e82168ec64e599909a7f9cbab397586c15b6354842f064f9ccaa282270bad2",
+      "ordinal": 40,
+      "program_bytes": 65630,
+      "program_sha256": "13c62b944d19f978aff1e8b8cc4a0f73b663bd4d4318687157d2899c75a318b6",
+      "request": {
+        "k": 2048,
+        "m": 128,
+        "n": 768
+      },
+      "timing_us": {
+        "compile": 10598.251,
+        "emit": 5650.044,
+        "key": 1400.586,
+        "link": 941.454,
+        "setup": 735.689,
+        "total": 18694.088
+      }
+    },
+    {
+      "derived_key": "7b156464d19af5d7debdb8f9e34e6ad94ffd103fec34b36d71b76110f8c27370",
+      "hsaco_bytes": 17424,
+      "hsaco_sha256": "42492971c93523cf0aba80294bd16fd56a1100f72c30bb63679371c7e93013d7",
+      "launch_config_bytes": 931,
+      "launch_config_sha256": "87e82168ec64e599909a7f9cbab397586c15b6354842f064f9ccaa282270bad2",
+      "ordinal": 41,
+      "program_bytes": 65630,
+      "program_sha256": "c4ffc12c832452de6ea5389a5cf7d8118f563da6ae80819d9f233de9c3490ae3",
+      "request": {
+        "k": 4096,
+        "m": 128,
+        "n": 768
+      },
+      "timing_us": {
+        "compile": 10816.697,
+        "emit": 5306.496,
+        "key": 1641.712,
+        "link": 1564.07,
+        "setup": 453.322,
+        "total": 19436.878
+      }
+    },
+    {
+      "derived_key": "0204a007ec9d128c116bb70d929ab660b9b00f4ced4caff6a3e5cc004e785f87",
+      "hsaco_bytes": 13328,
+      "hsaco_sha256": "e498b111c596846f207d05af76eb10cb7d0a942796f8054f3375c3ac0f0e212d",
+      "launch_config_bytes": 931,
+      "launch_config_sha256": "e700888f7cf951ba681469987456b9909c0abf97065a2e2a712718f4a3b4bd3d",
+      "ordinal": 42,
+      "program_bytes": 38725,
+      "program_sha256": "73a51885874742677b2a6384949e2375f4f8d4a63cd91250c500c4741d74e8bd",
+      "request": {
+        "k": 64,
+        "m": 128,
+        "n": 896
+      },
+      "timing_us": {
+        "compile": 5218.413,
+        "emit": 2575.636,
+        "key": 894.913,
+        "link": 980.336,
+        "setup": 481.943,
+        "total": 9781.991
+      }
+    },
+    {
+      "derived_key": "972ee72aa416a40b551bc06f8aebb5b73913349c5066d455c894051067b9df4e",
+      "hsaco_bytes": 17424,
+      "hsaco_sha256": "4fbe80fd5b28709a796ec5bb5d424a1676ede734be65179c81e23ff5c79a22b1",
+      "launch_config_bytes": 931,
+      "launch_config_sha256": "e700888f7cf951ba681469987456b9909c0abf97065a2e2a712718f4a3b4bd3d",
+      "ordinal": 43,
+      "program_bytes": 65630,
+      "program_sha256": "968205b26d5679d49bba56ab8536232c71f529b6fc60cda1162e369cf588714f",
+      "request": {
+        "k": 256,
+        "m": 128,
+        "n": 896
+      },
+      "timing_us": {
+        "compile": 12015.288,
+        "emit": 5736.007,
+        "key": 1761.545,
+        "link": 1043.407,
+        "setup": 742.069,
+        "total": 20673.89
+      }
+    },
+    {
+      "derived_key": "c12f97234bd79be299151eb49772c0c0191f71cc38db9212c5bf486b8b570f8c",
+      "hsaco_bytes": 17424,
+      "hsaco_sha256": "dfab8533fe9fbaf6fba6d554168fa24c09099ebf0de9834a9fd5f0faee54356b",
+      "launch_config_bytes": 929,
+      "launch_config_sha256": "49d871e2b24f1f7eb63289a9caa105dd2333542b38d27030bda4ee40cd7e1642",
+      "ordinal": 44,
+      "program_bytes": 68953,
+      "program_sha256": "310a652a78d7417e6d0cfc86078ba4c978842b034f0af2c3f90e22366e88e552",
+      "request": {
+        "k": 4096,
+        "m": 512,
+        "n": 384
+      },
+      "timing_us": {
+        "compile": 11527.855,
+        "emit": 5700.766,
+        "key": 1842.007,
+        "link": 1114.579,
+        "setup": 807.901,
+        "total": 20334.061
+      }
+    },
+    {
+      "derived_key": "a61c5a14591704e203f253b67b6cc15a6d4e55b81975864377cb13cee9d3b380",
+      "hsaco_bytes": 13328,
+      "hsaco_sha256": "6955d0f9d3fb7f79051a95902ad2f8d10a0030d0543aefbf0be2bb425b1dd530",
+      "launch_config_bytes": 959,
+      "launch_config_sha256": "7fa1d0261d895a7c60695f5c8f6fd01585ccccf0f736d006a3de49a428055857",
+      "ordinal": 45,
+      "program_bytes": 40901,
+      "program_sha256": "a334c702dd9eefe6565b7d633a3e71e3ab05c5dfb8d6363fd31b42d15f72b79b",
+      "request": {
+        "k": 64,
+        "m": 640,
+        "n": 768
+      },
+      "timing_us": {
+        "compile": 4897.775,
+        "emit": 2932.055,
+        "key": 990.255,
+        "link": 964.045,
+        "setup": 812.551,
+        "total": 9934.645
+      }
+    },
+    {
+      "derived_key": "c2f103f84d9e85ad859fc4bf77ce1ec4108561e80101cff5dc0092459b0f2769",
+      "hsaco_bytes": 17424,
+      "hsaco_sha256": "afa438615883b6c41731d9e3861fbb24bbf3f40a8ab8a87229e8e10ce68125ac",
+      "launch_config_bytes": 931,
+      "launch_config_sha256": "985e9035a97e034875a4445823b03f4da7209610b1559589059429511becc685",
+      "ordinal": 46,
+      "program_bytes": 66438,
+      "program_sha256": "1ced1de34a40db501e98a87b99f8105e239708cf51451222cc511d80ef6044b8",
+      "request": {
+        "k": 512,
+        "m": 896,
+        "n": 128
+      },
+      "timing_us": {
+        "compile": 11463.773,
+        "emit": 5695.756,
+        "key": 1662.072,
+        "link": 989.576,
+        "setup": 471.412,
+        "total": 19950.101
+      }
+    },
+    {
+      "derived_key": "f7f79ea4ff1dd9d3932d84dd7443151e0b614b478fc1d385d41309730f03738d",
+      "hsaco_bytes": 17424,
+      "hsaco_sha256": "6a62fe278edbe55a648bb5a50b60b7eedb92a9bf79e168e6627a8b04df09a914",
+      "launch_config_bytes": 959,
+      "launch_config_sha256": "7dc88c52fb1bb22ace6c0206c6b7d3051bb1ab857f9fda745e7c09c0594a0341",
+      "ordinal": 47,
+      "program_bytes": 68984,
+      "program_sha256": "0c64338e7763dd92e57424f052bfa158085058639259c67b9d28318dbad83c5c",
+      "request": {
+        "k": 1024,
+        "m": 896,
+        "n": 640
+      },
+      "timing_us": {
+        "compile": 11252.768,
+        "emit": 5726.076,
+        "key": 1672.113,
+        "link": 951.004,
+        "setup": 505.063,
+        "total": 19730.445
+      }
+    }
+  ],
+  "request_per_hsaco": 1.8461538461538463,
+  "schema": "loom-blas.program-key-study.v1",
+  "successful_request_count": 48
+}

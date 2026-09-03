@@ -23,6 +23,10 @@ retains enough state to reproduce or invalidate its findings.
   plus one register-only locked WMMA helper; retain the loop-wait smoking gun,
   publication-map correction, full nonuniform and access-sanitizer evidence,
   and a default-pipeline 1.0166x result versus hipBLASLt solution 1675.
+- [`spike-006-solution-space-jit/`](spike-006-solution-space-jit/) — census
+  accelerated Radeon recipe mechanisms, measure bounded FP16 router baskets
+  against ecosystem-best eligible kernels, quantify program/HSACO cardinality
+  and parallel startup, and isolate the canonical pre-emission key gap.
 - [`tools/`](tools/) — small explicit probes used by the spikes.
 
 Generated binaries and bulky raw artifacts live in ignored `artifacts/`

@@ -1,0 +1,3 @@
+config.def @epilogue.has_bias = false : i1
+
+config.def @epilogue.bias_axis = 0 : index

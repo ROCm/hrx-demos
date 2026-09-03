@@ -1,0 +1,364 @@
+{
+  "batch": {
+    "wall_us": 187064.971,
+    "workers": 2
+  },
+  "corpus": "gfx1201-f16-nn.json",
+  "determinism": {
+    "hsaco_hash_count": 1,
+    "pass": true,
+    "program_hash_count": 1,
+    "repeats": 2
+  },
+  "distinct_hsaco_count": 8,
+  "distinct_key_count": 8,
+  "distinct_program_count": 8,
+  "equal_key_hsaco_violations": [],
+  "failed_request_count": 0,
+  "hsaco_groups": {
+    "0c68389b9a1088fa87048c9820095f046ed184350b7c491eea1a7462513b30b6": [
+      {
+        "k": 256,
+        "m": 896,
+        "n": 896
+      }
+    ],
+    "4fbe80fd5b28709a796ec5bb5d424a1676ede734be65179c81e23ff5c79a22b1": [
+      {
+        "k": 256,
+        "m": 128,
+        "n": 256
+      }
+    ],
+    "5958a41106d3906f14f3f2e36ec0569e25d05bab130cbd391caf8411a9169be0": [
+      {
+        "k": 64,
+        "m": 128,
+        "n": 128
+      }
+    ],
+    "5e1478006b1ee3eb6ab69d3121a0e7098710a5031155afce7c674e9442171c72": [
+      {
+        "k": 1024,
+        "m": 512,
+        "n": 384
+      }
+    ],
+    "71ccda2b3e90fad9b6041ed8a06483473aa3971b928696d0e79130f429501c38": [
+      {
+        "k": 2048,
+        "m": 640,
+        "n": 128
+      }
+    ],
+    "7f8b3af0e87691fbd0aa000641e6e21f697ec855b2fe32f5b623565ad4694908": [
+      {
+        "k": 512,
+        "m": 384,
+        "n": 640
+      }
+    ],
+    "a6475e7d2ba341154ba9f0a1c494b5a827f5c2483c193e1d2595ce4d42f9c009": [
+      {
+        "k": 1024,
+        "m": 1024,
+        "n": 1024
+      }
+    ],
+    "e7b18aac3a3795c074955508012b463a8d1152c6521c971dc799393868f558ab": [
+      {
+        "k": 256,
+        "m": 1024,
+        "n": 1024
+      }
+    ]
+  },
+  "key_groups": {
+    "118c0c745ce8c804d9fa86fda4d6c4cc6bdbb55b405318d5f0b5a5695927c78d": [
+      {
+        "k": 512,
+        "m": 384,
+        "n": 640
+      }
+    ],
+    "60e9a05b3efeb887133b3b9a736bb64e83a5f15f1bbc340b7903d391718e69d8": [
+      {
+        "k": 1024,
+        "m": 512,
+        "n": 384
+      }
+    ],
+    "6647ee56c196249180e8089d70e5d616926aaa7152b121b83ef2758b17a55941": [
+      {
+        "k": 1024,
+        "m": 1024,
+        "n": 1024
+      }
+    ],
+    "90ab75345105c563389635644b3025099814a44e25e8efe6dc40f831ad6c6557": [
+      {
+        "k": 64,
+        "m": 128,
+        "n": 128
+      }
+    ],
+    "9395e809d23a90f2b2d2aab11ca20fff312dbc64f4f9c8edbc867d3b100e2e5c": [
+      {
+        "k": 256,
+        "m": 128,
+        "n": 256
+      }
+    ],
+    "b5ae60591df12d59b8576b7cac09eea20f89db25db79bc152f813cfb58c429ce": [
+      {
+        "k": 256,
+        "m": 896,
+        "n": 896
+      }
+    ],
+    "ca8dce2df38c63e4e0b1792e7634828f58e61b20b7eafb81a187bdefcb54f853": [
+      {
+        "k": 256,
+        "m": 1024,
+        "n": 1024
+      }
+    ],
+    "f6e1e33035f9b2aa73eb2676dd6109173763d1733abf757461be8b151bb88760": [
+      {
+        "k": 2048,
+        "m": 640,
+        "n": 128
+      }
+    ]
+  },
+  "latency_us": {
+    "compile": {
+      "max": 12214.083,
+      "median": 11382.647
+    },
+    "emit": {
+      "max": 6210.41,
+      "median": 5697.8655
+    },
+    "key": {
+      "max": 1856.508,
+      "median": 1704.259
+    },
+    "link": {
+      "max": 1092.048,
+      "median": 986.735
+    },
+    "setup": {
+      "max": 639.086,
+      "median": 504.98299999999995
+    },
+    "total": {
+      "max": 21511.882,
+      "median": 19895.659
+    }
+  },
+  "namespace": {
+    "compiler": "hrx-f17f69e82-default-pipeline",
+    "device_abi": "amdgpu-hsa-v1",
+    "emission": {
+      "format": "hsaco",
+      "options": "defaults"
+    },
+    "export": "gemm_f16_f32_mt128x128x32_gfx12_scalar_acc",
+    "pass_program": "source-to-prepared-low/default",
+    "schema": "loom-blas.program-key-namespace.v1",
+    "source_sha256": "b8345f263b0f2ad4686edaf962759600d823583a19fcc6784d7c0b15a3cf3e53",
+    "target_profile": "gfx1201"
+  },
+  "peak_child_rss_kib": 18544,
+  "raw_request_count": 8,
+  "records": [
+    {
+      "derived_key": "6647ee56c196249180e8089d70e5d616926aaa7152b121b83ef2758b17a55941",
+      "hsaco_bytes": 17424,
+      "hsaco_sha256": "a6475e7d2ba341154ba9f0a1c494b5a827f5c2483c193e1d2595ce4d42f9c009",
+      "launch_config_bytes": 922,
+      "launch_config_sha256": "19de0a65efe2f5186c84f55cdabf6b2d5b60f92aa19dccbffd922a4f27b92ae7",
+      "ordinal": 0,
+      "program_bytes": 68953,
+      "program_sha256": "67b9a41f48601195cfbe326132bf69ede0aec105369a1883d13e1655a9eae6f7",
+      "request": {
+        "k": 1024,
+        "m": 1024,
+        "n": 1024
+      },
+      "timing_us": {
+        "compile": 12214.083,
+        "emit": 6210.41,
+        "key": 1856.508,
+        "link": 1092.048,
+        "setup": 497.243,
+        "total": 21511.882
+      }
+    },
+    {
+      "derived_key": "118c0c745ce8c804d9fa86fda4d6c4cc6bdbb55b405318d5f0b5a5695927c78d",
+      "hsaco_bytes": 17424,
+      "hsaco_sha256": "7f8b3af0e87691fbd0aa000641e6e21f697ec855b2fe32f5b623565ad4694908",
+      "launch_config_bytes": 959,
+      "launch_config_sha256": "b4959ab6b11412d4a8da92e4536b9cddcf09b7230719fe34d954f04c77d78127",
+      "ordinal": 1,
+      "program_bytes": 68964,
+      "program_sha256": "c50ff1ae3c358793143cbb0925b8c3afc3ae0fbfa3c5b733a10be78647efd4c5",
+      "request": {
+        "k": 512,
+        "m": 384,
+        "n": 640
+      },
+      "timing_us": {
+        "compile": 11496.185,
+        "emit": 5801.488,
+        "key": 1743.305,
+        "link": 960.264,
+        "setup": 486.513,
+        "total": 20135.365
+      }
+    },
+    {
+      "derived_key": "60e9a05b3efeb887133b3b9a736bb64e83a5f15f1bbc340b7903d391718e69d8",
+      "hsaco_bytes": 17424,
+      "hsaco_sha256": "5e1478006b1ee3eb6ab69d3121a0e7098710a5031155afce7c674e9442171c72",
+      "launch_config_bytes": 929,
+      "launch_config_sha256": "49d871e2b24f1f7eb63289a9caa105dd2333542b38d27030bda4ee40cd7e1642",
+      "ordinal": 2,
+      "program_bytes": 68949,
+      "program_sha256": "75f7b4082908994de5edf28baf8106fb9bafe40c91cf094e57e19becdf0385b5",
+      "request": {
+        "k": 1024,
+        "m": 512,
+        "n": 384
+      },
+      "timing_us": {
+        "compile": 11529.935,
+        "emit": 5839.809,
+        "key": 1759.226,
+        "link": 992.195,
+        "setup": 639.086,
+        "total": 20252.358
+      }
+    },
+    {
+      "derived_key": "f6e1e33035f9b2aa73eb2676dd6109173763d1733abf757461be8b151bb88760",
+      "hsaco_bytes": 17424,
+      "hsaco_sha256": "71ccda2b3e90fad9b6041ed8a06483473aa3971b928696d0e79130f429501c38",
+      "launch_config_bytes": 931,
+      "launch_config_sha256": "969068ba57ab7c576d0fa38ff467b7ae00d4d9f3730b8733cf33f518b3a465c3",
+      "ordinal": 3,
+      "program_bytes": 66442,
+      "program_sha256": "da0ee3ad972cfa2374b08aec091498f977403c260c7eca25b7484dcca69b13a4",
+      "request": {
+        "k": 2048,
+        "m": 640,
+        "n": 128
+      },
+      "timing_us": {
+        "compile": 10897.029,
+        "emit": 5396.508,
+        "key": 1592.231,
+        "link": 965.095,
+        "setup": 533.234,
+        "total": 19009.117
+      }
+    },
+    {
+      "derived_key": "b5ae60591df12d59b8576b7cac09eea20f89db25db79bc152f813cfb58c429ce",
+      "hsaco_bytes": 17424,
+      "hsaco_sha256": "0c68389b9a1088fa87048c9820095f046ed184350b7c491eea1a7462513b30b6",
+      "launch_config_bytes": 922,
+      "launch_config_sha256": "00d5258f645bb94c277ce8ccc4222271ff9cb250ff5376075602360dcc144d46",
+      "ordinal": 4,
+      "program_bytes": 68980,
+      "program_sha256": "2fd055fb2aaabd0e3435cc3eb0f62e79ec81a76e85e02aacb160f8bb56f4b1a5",
+      "request": {
+        "k": 256,
+        "m": 896,
+        "n": 896
+      },
+      "timing_us": {
+        "compile": 11966.417,
+        "emit": 5995.834,
+        "key": 1800.336,
+        "link": 1030.616,
+        "setup": 490.772,
+        "total": 20934.876
+      }
+    },
+    {
+      "derived_key": "ca8dce2df38c63e4e0b1792e7634828f58e61b20b7eafb81a187bdefcb54f853",
+      "hsaco_bytes": 17424,
+      "hsaco_sha256": "e7b18aac3a3795c074955508012b463a8d1152c6521c971dc799393868f558ab",
+      "launch_config_bytes": 922,
+      "launch_config_sha256": "19de0a65efe2f5186c84f55cdabf6b2d5b60f92aa19dccbffd922a4f27b92ae7",
+      "ordinal": 5,
+      "program_bytes": 68949,
+      "program_sha256": "990b74f6aff24d8acb6335ebdc5d17824ac2a282d8f266b6f97d1810e4c7ec91",
+      "request": {
+        "k": 256,
+        "m": 1024,
+        "n": 1024
+      },
+      "timing_us": {
+        "compile": 11269.109,
+        "emit": 5594.243,
+        "key": 1665.213,
+        "link": 981.275,
+        "setup": 605.956,
+        "total": 19655.953
+      }
+    },
+    {
+      "derived_key": "90ab75345105c563389635644b3025099814a44e25e8efe6dc40f831ad6c6557",
+      "hsaco_bytes": 13328,
+      "hsaco_sha256": "5958a41106d3906f14f3f2e36ec0569e25d05bab130cbd391caf8411a9169be0",
+      "launch_config_bytes": 894,
+      "launch_config_sha256": "3a0127f424c1cd38158e36a5bb168b10780b065dda98c80b423ca2e6c7cbfdb7",
+      "ordinal": 6,
+      "program_bytes": 37269,
+      "program_sha256": "655958ea8d2648322d8ed7c83375255128d3d9737896614f6f1ef5bd486d8231",
+      "request": {
+        "k": 64,
+        "m": 128,
+        "n": 128
+      },
+      "timing_us": {
+        "compile": 5699.866,
+        "emit": 2511.314,
+        "key": 892.093,
+        "link": 931.984,
+        "setup": 512.723,
+        "total": 10169.971
+      }
+    },
+    {
+      "derived_key": "9395e809d23a90f2b2d2aab11ca20fff312dbc64f4f9c8edbc867d3b100e2e5c",
+      "hsaco_bytes": 17424,
+      "hsaco_sha256": "4fbe80fd5b28709a796ec5bb5d424a1676ede734be65179c81e23ff5c79a22b1",
+      "launch_config_bytes": 931,
+      "launch_config_sha256": "d7e60b11f7c1e8916a0a5177d21e5f5ac7d591f2dfcb07d929613ca91e88b77d",
+      "ordinal": 7,
+      "program_bytes": 65630,
+      "program_sha256": "d299ee24eccbee8e97b82c3384be96e807507a6529e30f5e11dbf5dc54a7c23d",
+      "request": {
+        "k": 256,
+        "m": 128,
+        "n": 256
+      },
+      "timing_us": {
+        "compile": 11168.886,
+        "emit": 5417.969,
+        "key": 1466.388,
+        "link": 1056.817,
+        "setup": 443.341,
+        "total": 19221.622
+      }
+    }
+  ],
+  "request_per_hsaco": 1.0,
+  "schema": "loom-blas.program-key-study.v1",
+  "successful_request_count": 8
+}

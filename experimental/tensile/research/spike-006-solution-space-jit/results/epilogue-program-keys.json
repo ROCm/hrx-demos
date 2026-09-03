@@ -1,0 +1,77 @@
+{
+  "bias_hsaco_distinct": true,
+  "bias_program_distinct": true,
+  "no_bias_hsaco_alias": true,
+  "no_bias_launch_config_alias": true,
+  "no_bias_program_alias": true,
+  "pipeline": "default + canonicalize,dce,symbol-dce key cleanup",
+  "records": [
+    {
+      "configuration": "epilogue-no-bias-row",
+      "hsaco_bytes": 9184,
+      "hsaco_sha256": "7166dd25937a52476dd36a529616967c59c27132253f4774378d65b5b7029eee",
+      "launch_config_bytes": 803,
+      "launch_config_sha256": "218763a2c60d144aab3df5a1a862e295cd8d7a9a4dcdd111905dda62eb1a99fa",
+      "program_bytes": 1791,
+      "program_sha256": "62ee5d3862dd03a91bbfdf5e09f4fffdf7007601507e219c5aad20372fc0ca52",
+      "timing_us": {
+        "compile": 209.815,
+        "emit": 93.892,
+        "key": 36.371,
+        "link": 67.952,
+        "total": 470.142
+      }
+    },
+    {
+      "configuration": "epilogue-no-bias-column",
+      "hsaco_bytes": 9184,
+      "hsaco_sha256": "7166dd25937a52476dd36a529616967c59c27132253f4774378d65b5b7029eee",
+      "launch_config_bytes": 803,
+      "launch_config_sha256": "218763a2c60d144aab3df5a1a862e295cd8d7a9a4dcdd111905dda62eb1a99fa",
+      "program_bytes": 1791,
+      "program_sha256": "62ee5d3862dd03a91bbfdf5e09f4fffdf7007601507e219c5aad20372fc0ca52",
+      "timing_us": {
+        "compile": 208.566,
+        "emit": 91.072,
+        "key": 34.561,
+        "link": 64.762,
+        "total": 427.471
+      }
+    },
+    {
+      "configuration": "epilogue-bias-row",
+      "hsaco_bytes": 9184,
+      "hsaco_sha256": "81c11ffd52c5c9bf6f6d5f86f773e8f58e81798b78ef721d729d707f3d533278",
+      "launch_config_bytes": 803,
+      "launch_config_sha256": "218763a2c60d144aab3df5a1a862e295cd8d7a9a4dcdd111905dda62eb1a99fa",
+      "program_bytes": 2164,
+      "program_sha256": "c40b5685b08158a7d6bb646c4b179731b12f4c004cf04394b9e594aed9da0279",
+      "timing_us": {
+        "compile": 272.237,
+        "emit": 122.333,
+        "key": 44.301,
+        "link": 60.422,
+        "total": 571.045
+      }
+    },
+    {
+      "configuration": "epilogue-bias-column",
+      "hsaco_bytes": 9184,
+      "hsaco_sha256": "88cf99e5444f239578e87e8b1af0560067e0f25d133d652ec67741740b543fcc",
+      "launch_config_bytes": 803,
+      "launch_config_sha256": "218763a2c60d144aab3df5a1a862e295cd8d7a9a4dcdd111905dda62eb1a99fa",
+      "program_bytes": 2212,
+      "program_sha256": "8cfeb302379a5d2ac236790068dc678634522d8700039e9cd3144bb7809247cb",
+      "timing_us": {
+        "compile": 298.407,
+        "emit": 124.433,
+        "key": 47.641,
+        "link": 60.712,
+        "total": 574.014
+      }
+    }
+  ],
+  "schema": "loom-blas.epilogue-program-key.v1",
+  "source": "../../spike-004-default-pipeline-microkernels/loom/epilogue-f16-bias-config.loom",
+  "target": "gfx1201"
+}
