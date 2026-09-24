@@ -19,9 +19,11 @@ cc_library(
 cc_library(
     name = "gtest_main",
     testonly = True,
+    srcs = ["@hrx_system//runtime/src/iree/testing:gtest_main.cc"],
     deps = [
         ":gtest",
-        "@com_google_googletest//:gtest_main",
+        "@hrx_system//runtime/src/iree/base/tooling:flags",
+        "@hrx_system//runtime/src:defines",
     ],
 )
 
