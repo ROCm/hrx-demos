@@ -103,7 +103,8 @@ static iree_status_t id4_sampler_stage_validate_create_values(
 
 static iree_status_t id4_sampler_stage_parse_noise_plan_options(
     const id4_pipeline_stage_plan_options_t* options,
-    id4_pipeline_program_shape_t* out_latent_shape) {
+    id4_pipeline_program_shape_t* out_latent_shape,
+    uint64_t* out_generator_thread_count) {
   const id4_sampler_noise_stage_plan_options_t* sampler_options =
       (const id4_sampler_noise_stage_plan_options_t*)options->next;
   IREE_RETURN_IF_ERROR(id4_sampler_stage_validate_options_size(
@@ -115,6 +116,7 @@ static iree_status_t id4_sampler_stage_parse_noise_plan_options(
         "sampler noise stage plan extension structures are not supported");
   }
   *out_latent_shape = sampler_options->request.latent_shape;
+  *out_generator_thread_count = sampler_options->request.generator_thread_count;
   return iree_ok_status();
 }
 
@@ -138,7 +140,8 @@ static iree_status_t id4_sampler_stage_parse_denoise_plan_options(
 static iree_status_t id4_sampler_stage_parse_plan_extension(
     const id4_sampler_stage_t* stage,
     const id4_pipeline_stage_plan_options_t* options,
-    id4_pipeline_program_shape_t* out_latent_shape) {
+    id4_pipeline_program_shape_t* out_latent_shape,
+    uint64_t* out_generator_thread_count) {
   if (!options || !options->next) {
     return iree_make_status(IREE_STATUS_INVALID_ARGUMENT,
                             "%.*s options are required",
@@ -147,8 +150,8 @@ static iree_status_t id4_sampler_stage_parse_plan_extension(
   }
   switch (stage->descriptor->kind) {
     case ID4_SAMPLER_STAGE_KIND_NOISE:
-      return id4_sampler_stage_parse_noise_plan_options(options,
-                                                        out_latent_shape);
+      return id4_sampler_stage_parse_noise_plan_options(
+          options, out_latent_shape, out_generator_thread_count);
     case ID4_SAMPLER_STAGE_KIND_DENOISE:
       return id4_sampler_stage_parse_denoise_plan_options(options,
                                                           out_latent_shape);
@@ -354,13 +357,14 @@ static iree_status_t id4_sampler_stage_plan(
 
   id4_pipeline_program_shape_t latent_shape =
       id4_pipeline_program_make_shape_rank0();
-  IREE_RETURN_IF_ERROR(
-      id4_sampler_stage_parse_plan_extension(stage, options, &latent_shape));
+  uint64_t generator_thread_count = 0;
+  IREE_RETURN_IF_ERROR(id4_sampler_stage_parse_plan_extension(
+      stage, options, &latent_shape, &generator_thread_count));
   IREE_RETURN_IF_ERROR(
       id4_sampler_stage_validate_latent_shape(stage, latent_shape));
 
-  uint64_t generator_thread_count = 0;
-  if (stage->descriptor->kind == ID4_SAMPLER_STAGE_KIND_NOISE) {
+  if (stage->descriptor->kind == ID4_SAMPLER_STAGE_KIND_NOISE &&
+      generator_thread_count == 0) {
     IREE_RETURN_IF_ERROR(
         id4_sampler_stage_calculate_noise_generator_thread_count(
             stage, options->device_index, latent_shape,

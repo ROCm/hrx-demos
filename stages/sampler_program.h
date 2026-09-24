@@ -31,6 +31,8 @@ typedef struct id4_sampler_noise_request_config_t {
   // Public [width, height, patch channels, batch] latent tensor shape.
   id4_pipeline_program_shape_t latent_shape;
   // Logical generator threads used by the reference distribution mapping.
+  // Zero asks the noise stage to derive its device default; direct program
+  // authoring requires an explicit nonzero count.
   uint64_t generator_thread_count;
 } id4_sampler_noise_request_config_t;
 

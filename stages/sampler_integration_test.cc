@@ -276,7 +276,8 @@ TEST(SamplerDenoiseStageIntegration, PrepareAndIssueDenoiseStepFixture) {
 static iree_status_t RunNoiseStage(id4::test::LiveStageContext& context,
                                    id4_pipeline_program_shape_t latent_shape,
                                    uint64_t seed,
-                                   std::vector<float>* out_values) {
+                                   std::vector<float>* out_values,
+                                   uint64_t generator_thread_count = 0) {
   out_values->clear();
   id4::test::KernelLibraryRef kernel_library;
   IREE_RETURN_IF_ERROR(
@@ -296,6 +297,7 @@ static iree_status_t RunNoiseStage(id4::test::LiveStageContext& context,
   id4_sampler_noise_stage_plan_options_t sampler_options = {};
   sampler_options.structure_size = sizeof(sampler_options);
   sampler_options.request.latent_shape = latent_shape;
+  sampler_options.request.generator_thread_count = generator_thread_count;
   id4_pipeline_stage_plan_options_t plan_options = {};
   plan_options.structure_size = sizeof(plan_options);
   plan_options.next = &sampler_options;
@@ -408,6 +410,8 @@ TEST(SamplerNoiseStageIntegration, MatchesReferenceSeededNoise) {
 }
 
 TEST(SamplerNoiseStageIntegration, MatchesReferenceFullLatentMapping) {
+  // The archived reference used 98304 logical Philox generator threads.
+  // Its distribution mapping is independent of the executing device limits.
   const struct {
     iree_host_size_t index;
     float value;
@@ -423,7 +427,7 @@ TEST(SamplerNoiseStageIntegration, MatchesReferenceFullLatentMapping) {
   IREE_ASSERT_OK(
       RunNoiseStage(SharedLiveStageContext(),
                     id4_pipeline_program_make_shape_rank4(64, 64, 128, 1),
-                    20260625, &actual_values));
+                    20260625, &actual_values, 98304));
   ASSERT_EQ(actual_values.size(), 524288u);
   for (const auto& anchor : reference_anchors) {
     EXPECT_FLOAT_EQ(actual_values[anchor.index], anchor.value)

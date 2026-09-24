@@ -227,4 +227,40 @@ TEST(SamplerNoiseStage, PlansNoiseFromRequestConfig) {
   iree_hal_device_group_release(device_group);
 }
 
+TEST(SamplerNoiseStage, HonorsAndValidatesReferenceGeneratorCount) {
+  iree_hal_device_group_t* device_group = id4::test::CreateLocalSyncDeviceGroup();
+  id4_pipeline_stage_t* stage = CreateNoiseStage(device_group);
+  id4_pipeline_diagnostics_sink_t diagnostics_sink;
+  id4_pipeline_diagnostics_sink_initialize_ignore(&diagnostics_sink);
+  id4_pipeline_stage_load_options_t load_options = {};
+  load_options.structure_size = sizeof(load_options);
+  load_options.diagnostics_sink = &diagnostics_sink;
+  IREE_ASSERT_OK(id4_pipeline_stage_load(stage, &load_options));
+
+  id4_sampler_noise_stage_plan_options_t sampler_options = {};
+  sampler_options.structure_size = sizeof(sampler_options);
+  sampler_options.request.latent_shape =
+      id4_pipeline_program_make_shape_rank4(64, 64, 128, 1);
+  id4_pipeline_stage_plan_options_t plan_options = {};
+  plan_options.structure_size = sizeof(plan_options);
+  plan_options.next = &sampler_options;
+  plan_options.queue_affinity = IREE_HAL_QUEUE_AFFINITY_ANY;
+  plan_options.diagnostics_sink = &diagnostics_sink;
+
+  // A frozen reference mapping can be planned even without GPU residency facts.
+  sampler_options.request.generator_thread_count = 98304;
+  id4_pipeline_plan_t* plan = nullptr;
+  IREE_ASSERT_OK(id4_pipeline_stage_plan(stage, &plan_options, &plan));
+  id4_pipeline_plan_release(plan);
+  for (uint64_t invalid_count : {uint64_t{255}, uint64_t{257}, uint64_t{524544}}) {
+    sampler_options.request.generator_thread_count = invalid_count;
+    plan = nullptr;
+    IREE_EXPECT_STATUS_IS(IREE_STATUS_INVALID_ARGUMENT,
+                         id4_pipeline_stage_plan(stage, &plan_options, &plan));
+    EXPECT_EQ(plan, nullptr);
+  }
+  id4_pipeline_stage_release(stage);
+  iree_hal_device_group_release(device_group);
+}
+
 }  // namespace
